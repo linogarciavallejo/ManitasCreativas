@@ -16,6 +16,10 @@ namespace ManitasCreativas.Domain.Entities
 
         public required string Apellidos { get; set; }
 
+        public required string Email { get; set; }
+
+        public string Celular { get; set; }
+
         public required string Password { get; set; }
 
         public EstadoUsuario EstadoUsuario { get; set; }

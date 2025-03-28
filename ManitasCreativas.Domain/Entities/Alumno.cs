@@ -18,6 +18,8 @@ namespace ManitasCreativas.Domain.Entities
         public required Sede Sede { get; set; }
         public int GradoId { get; set; }
         public required Grado Grado { get; set; }
+        public bool? Becado { get; set; }
+        public decimal? BecaParcialPorcentaje { get; set; }
         public ICollection<Pago> Pagos { get; set; }
         public ICollection<AlumnoContacto> AlumnoContactos { get; set; }
     }

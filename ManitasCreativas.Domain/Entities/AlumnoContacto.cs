@@ -8,9 +8,10 @@ namespace ManitasCreativas.Domain.Entities
 {
     public class AlumnoContacto
     {
+        public int Id { get; set; }
         public int AlumnoId { get; set; }
-        public required Alumno Alumno { get; set; }
+        public Alumno Alumno { get; set; }
         public int ContactoId { get; set; }
-        public required Contacto Contacto { get; set; }
+        public Contacto Contacto { get; set; }
     }
 }
