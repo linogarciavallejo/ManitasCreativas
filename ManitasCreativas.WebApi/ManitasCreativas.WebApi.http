@@ -1,0 +1,6 @@
+@ManitasCreativas.WebApi_HostAddress = http://localhost:5264
+
+GET {{ManitasCreativas.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
