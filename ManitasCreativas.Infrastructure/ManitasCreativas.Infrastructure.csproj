@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ManitasCreativas.Application\ManitasCreativas.Application.csproj" />
     <ProjectReference Include="..\ManitasCreativas.Domain\ManitasCreativas.Domain.csproj" />
   </ItemGroup>
 

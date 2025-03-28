@@ -10,6 +10,7 @@ namespace ManitasCreativas.Domain.Entities
     public class Alumno
     {
         public int Id { get; set; }
+        public required string Codigo { get; set; }
         public required string PrimerNombre { get; set; }
         public string SegundoNombre { get; set; }
         public required string PrimerApellido { get; set; }
