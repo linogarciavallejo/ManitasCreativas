@@ -9,5 +9,5 @@ public interface IUsuarioRepository
     Task AddAsync(Usuario usuario);
     Task UpdateAsync(Usuario usuario);
     Task DeleteAsync(int id);
-    Task<Usuario?> GetByCodigoUsuarioAsync(string codigoUsuario);
+    Task<Usuario?> GetByCodigoUsuarioAsync(string codigoUsuario, string password);
 }

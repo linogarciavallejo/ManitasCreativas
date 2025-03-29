@@ -9,5 +9,5 @@ public interface IUsuarioService
     Task AddUsuarioAsync(UsuarioDto usuarioDto);
     Task UpdateUsuarioAsync(UsuarioDto usuarioDto);
     Task DeleteUsuarioAsync(int id);
-    Task<UsuarioDto?> GetUsuarioByCodigoUsuarioAsync(string codigoUsuario);
+    Task<UsuarioDto?> GetUsuarioByCodigoUsuarioAsync(string codigoUsuario, string password);
 }

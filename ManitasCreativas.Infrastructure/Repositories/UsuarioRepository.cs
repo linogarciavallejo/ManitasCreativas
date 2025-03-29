@@ -45,8 +45,8 @@ public class UsuarioRepository : IUsuarioRepository
         }
     }
 
-    public async Task<Usuario?> GetByCodigoUsuarioAsync(string codigoUsuario)
+    public async Task<Usuario?> GetByCodigoUsuarioAsync(string codigoUsuario, string password)
     {
-        return await _context.Usuarios.FirstOrDefaultAsync(u => u.CodigoUsuario == codigoUsuario);
+        return await _context.Usuarios.FirstOrDefaultAsync(u => u.CodigoUsuario == codigoUsuario && u.Password == password);
     }
 }

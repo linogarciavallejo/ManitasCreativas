@@ -26,7 +26,7 @@ public class UsuarioService : IUsuarioService
             Celular = u.Celular,
             Password = u.Password,
             EstadoUsuario = u.EstadoUsuario.ToString(),
-            Rol = u.Rol.Nombre
+            Rol = u.Rol?.Nombre
         });
     }
 
@@ -43,7 +43,7 @@ public class UsuarioService : IUsuarioService
             Celular = usuario.Celular,
             Password = usuario.Password,
             EstadoUsuario = usuario.EstadoUsuario.ToString(),
-            Rol = usuario.Rol.Nombre
+            Rol = usuario.Rol?.Nombre
         };
     }
 
@@ -85,9 +85,9 @@ public class UsuarioService : IUsuarioService
         await _usuarioRepository.DeleteAsync(id);
     }
 
-    public async Task<UsuarioDto?> GetUsuarioByCodigoUsuarioAsync(string codigoUsuario)
+    public async Task<UsuarioDto?> GetUsuarioByCodigoUsuarioAsync(string codigoUsuario, string password)
     {
-        var usuario = await _usuarioRepository.GetByCodigoUsuarioAsync(codigoUsuario);
+        var usuario = await _usuarioRepository.GetByCodigoUsuarioAsync(codigoUsuario, password);
         return usuario == null ? null : new UsuarioDto
         {
             Id = usuario.Id,
@@ -98,7 +98,7 @@ public class UsuarioService : IUsuarioService
             Celular = usuario.Celular,
             Password = usuario.Password,
             EstadoUsuario = usuario.EstadoUsuario.ToString(),
-            Rol = usuario.Rol.Nombre
+            Rol = usuario.Rol?.Nombre
         };
     }
 }

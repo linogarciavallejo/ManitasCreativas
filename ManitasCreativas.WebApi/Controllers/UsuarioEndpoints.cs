@@ -9,7 +9,7 @@ public static class UsuarioEndpoints
             return Results.Ok(await usuarioService.GetAllUsuariosAsync());
         });
 
-        app.MapGet("/usuarios/{id}", async (int id, IUsuarioService usuarioService) =>
+        app.MapGet("/usuarios/{id:int}", async (int id, IUsuarioService usuarioService) =>
         {
             var usuario = await usuarioService.GetUsuarioByIdAsync(id);
             return usuario is not null ? Results.Ok(usuario) : Results.NotFound();
@@ -21,17 +21,24 @@ public static class UsuarioEndpoints
             return Results.Created($"/usuarios/{usuarioDto.Id}", usuarioDto);
         });
 
-        app.MapPut("/usuarios/{id}", async (int id, UsuarioDto usuarioDto, IUsuarioService usuarioService) =>
+        app.MapPut("/usuarios/{id:int}", async (int id, UsuarioDto usuarioDto, IUsuarioService usuarioService) =>
         {
             usuarioDto.Id = id;
             await usuarioService.UpdateUsuarioAsync(usuarioDto);
             return Results.NoContent();
         });
 
-        app.MapDelete("/usuarios/{id}", async (int id, IUsuarioService usuarioService) =>
+        app.MapDelete("/usuarios/{id:int}", async (int id, IUsuarioService usuarioService) =>
         {
             await usuarioService.DeleteUsuarioAsync(id);
             return Results.NoContent();
         });
+
+        app.MapGet("/usuarios/codigo/{codigoUsuario}", async (string codigoUsuario, string password, IUsuarioService usuarioService) =>
+        {
+            var usuario = await usuarioService.GetUsuarioByCodigoUsuarioAsync(codigoUsuario, password);
+            return usuario is not null ? Results.Ok(usuario) : Results.NotFound();
+        });
+
     }
 }
