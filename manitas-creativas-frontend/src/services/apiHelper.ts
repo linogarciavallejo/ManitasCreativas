@@ -2,7 +2,7 @@ import axios from "axios";
 
 type RequestMethod = "GET" | "POST" | "PUT" | "DELETE";
 
-const API_BASE_URL = "/api";
+const API_BASE_URL = "https://localhost:7144";
 
 const getFullUrl = (endpoint: string): string => {
   return `${API_BASE_URL}${endpoint}`;

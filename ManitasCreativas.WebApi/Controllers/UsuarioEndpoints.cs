@@ -34,7 +34,7 @@ public static class UsuarioEndpoints
             return Results.NoContent();
         });
 
-        app.MapPost("/usuarios/codigo", async (UsuarioLoginDto loginDto, IUsuarioService usuarioService) =>
+        app.MapPost("/usuarios/signin", async (UsuarioLoginDto loginDto, IUsuarioService usuarioService) =>
         {
             var usuario = await usuarioService.GetUsuarioByCodigoUsuarioAsync(loginDto.CodigoUsuario, loginDto.Password);
             return usuario is not null ? Results.Ok(usuario) : Results.NotFound();

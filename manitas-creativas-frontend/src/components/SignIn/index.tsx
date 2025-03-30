@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { signIn } from '../../services/AuthService';
+import { signIn } from '../../services/authService';
 //import './SignIn.css';
 
 const SignIn: React.FC = () => {
