@@ -15,6 +15,16 @@ builder.Services.AddOpenApiDocument(config =>
     config.Description = "API documentation for Manitas Creativas";
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+
 // Dependency Injection for Services
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IAlumnoService, AlumnoService>();
@@ -39,6 +49,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowAll");
 
 // Map Endpoints
 app.MapUsuarioEndpoints();
