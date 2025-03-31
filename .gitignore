@@ -54,3 +54,5 @@ TestResult.xml
 nunit-*.xml
 /.vs
 /ManitasCreativas.WebApi/appsettings.json
+node_modules
+/package-lock.json

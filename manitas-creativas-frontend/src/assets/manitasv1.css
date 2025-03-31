@@ -1,0 +1,79 @@
+/* Paleta de Colores Personalizada basada en imagen compartida */
+
+:root {
+    --rose-quartz: #AEA5AF;
+    --powder-blue: #B3C6DE;
+    --seasalt: #FBFAF9;
+    --orange-peel: #F99F1F;
+    --straw: #E6D969;
+  
+    /* Colores adicionales sugeridos */
+    --charcoal-grey: #454545;
+    --success-green: #A3D9B1;
+  
+    /* Color para textos principales */
+    --text-primary: var(--charcoal-grey);
+  }
+  
+  /* Estilos generales del cuerpo usando Seasalt como fondo */
+  body {
+    background-color: var(--seasalt);
+    color: var(--text-primary);
+    font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  /* Personalización Ant Design Botones */
+  .ant-btn-primary {
+    background-color: var(--orange-peel);
+    border-color: var(--orange-peel);
+    color: var(--seasalt);
+  }
+  
+  .ant-btn-primary:hover,
+  .ant-btn-primary:focus {
+    background-color: var(--straw);
+    border-color: var(--straw);
+    color: var(--charcoal-grey);
+  }
+  
+  /* Personalización Ant Design Inputs */
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-select-selector {
+    border-color: var(--powder-blue);
+  }
+  
+  .ant-input:focus,
+  .ant-input-affix-wrapper:focus,
+  .ant-select-focused .ant-select-selector {
+    border-color: var(--orange-peel);
+    box-shadow: 0 0 0 2px rgba(249, 159, 31, 0.2);
+  }
+  
+  /* Personalización Ant Design Cards */
+  .ant-card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(174, 165, 175, 0.2);
+  }
+  
+  /* Personalización Ant Design Alert Success usando color sugerido adicional */
+  .ant-alert-success {
+    background-color: var(--success-green);
+    border: 1px solid var(--success-green);
+    color: var(--charcoal-grey);
+  }
+  
+  /* Enlaces personalizados */
+  a {
+    color: var(--powder-blue);
+  }
+  
+  a:hover {
+    color: var(--orange-peel);
+  }
+  
+  /* Encabezados personalizados */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--rose-quartz);
+  }
+  
