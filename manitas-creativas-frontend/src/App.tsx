@@ -9,7 +9,8 @@ import { Layout } from 'antd';
 import './assets/manitasv1.css';
 //import logo from './assets/logo_v1.jpg';
 
-const { Header, Content } = Layout;
+//const { Header, Content } = Layout;
+const { Content } = Layout;
 
 const App: React.FC = () => {
   return (

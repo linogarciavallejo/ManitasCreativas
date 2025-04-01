@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, message } from 'antd';
 import { signIn } from '../../services/authService';
+import { useNavigate } from "react-router-dom";
 import 'antd/dist/reset.css'; // Import Ant Design styles
 import './SignIn.css';
 
 const SignIn: React.FC = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (values: { codigoUsuario: string; password: string }) => {
@@ -13,6 +15,7 @@ const SignIn: React.FC = () => {
       const user = await signIn(values.codigoUsuario, values.password);
       message.success(`Bienvenido, ${user.nombre}!`);
       console.log('User signed in:', user);
+      navigate('/main'); // Redirect to the main page after successful sign-in
       // Handle successful sign-in (e.g., redirect or store user info)
     } catch (err) {
       message.error('Credenciales inválidas. Por favor inténtelo de nuevo.');

@@ -7,10 +7,12 @@
   background-color: var(--seasalt);
   text-align: center;
   margin: 0 auto; /* Ensure horizontal centering */
+  margin-top: -150px;
 }
 
 .logo {
-  width: 150px;
+  width: 280px;
+  margin-top: 0px;
   margin-bottom: 20px;
   opacity: 0.8;
   display: block;
