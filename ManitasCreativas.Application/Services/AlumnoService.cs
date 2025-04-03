@@ -150,4 +150,39 @@ public class AlumnoService : IAlumnoService
             }).ToList()
         };
     }
+
+    public async Task<IEnumerable<AlumnoDto>> GetAlumnosByNamesAsync(string nombre, string apellido)
+    {
+        var alumnos = await _alumnoRepository.GetAlumnosByNamesAsync(nombre, apellido);
+        return alumnos.Select(a => new AlumnoDto
+        {
+            Id = a.Id,
+            Codigo = a.Codigo,
+            PrimerNombre = a.PrimerNombre,
+            SegundoNombre = a.SegundoNombre,
+            PrimerApellido = a.PrimerApellido,
+            SegundoApellido = a.SegundoApellido,
+            SedeId = a.SedeId,
+            SedeNombre = a.Sede != null ? a.Sede.Nombre : string.Empty,
+            GradoId = a.GradoId,
+            GradoNombre = a.Grado != null ? a.Grado.Nombre : string.Empty,
+            Becado = a.Becado,
+            BecaParcialPorcentaje = a.BecaParcialPorcentaje,
+            Pagos = a.Pagos.Select(p => new PagoDto
+            {
+                Id = p.Id,
+                Monto = p.Monto,
+                Fecha = p.Fecha,
+                CicloEscolar = p.CicloEscolar,
+                MedioPago = p.MedioPago,
+                RubroNombre = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
+                ImagenesPago = p.ImagenesPago.Select(i => new PagoImagenDto
+                {
+                    Id = i.Id,
+                    PagoId = i.PagoId,
+                    Url = i.ImagenUrl.ToString()
+                }).ToList()
+            }).ToList()
+        });
+    }
 }

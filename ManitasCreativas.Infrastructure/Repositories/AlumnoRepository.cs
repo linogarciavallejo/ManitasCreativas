@@ -49,4 +49,24 @@ public class AlumnoRepository : IAlumnoRepository
     {
         return await _context.Alumnos.FirstOrDefaultAsync(a => a.Codigo == codigo);
     }
+
+    public async Task<Alumno?> GetAlumnoByCodigoAsync(string codigo)
+    {
+        return await _context.Alumnos
+            .Include(a => a.Sede)
+            .Include(a => a.Grado)
+            .FirstOrDefaultAsync(a => a.Codigo == codigo);
+    }
+
+    public async Task<IEnumerable<Alumno>> GetAlumnosByNamesAsync(string nombre, string apellido)
+    {
+        return await _context.Alumnos
+            .Include(a => a.Sede)
+            .Include(a => a.Grado)
+            .Where(a =>
+                (a.PrimerNombre.Contains(nombre) || a.SegundoNombre.Contains(nombre)) &&
+                (a.PrimerApellido.Contains(apellido) || a.SegundoApellido.Contains(apellido))
+            )
+            .ToListAsync();
+    }
 }

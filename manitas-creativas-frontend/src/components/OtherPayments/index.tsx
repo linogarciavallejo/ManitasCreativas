@@ -4,7 +4,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import 'antd/dist/reset.css';
 //import './Payments.css';
 
-const Tuitions: React.FC = () => {
+const OtherPayments: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (values: { cicloEscolar: string; monto: number; medioPago: string; rubroId: string; alumnoId: string; imagenesPago: File[] }) => {
@@ -22,7 +22,7 @@ const Tuitions: React.FC = () => {
 
   return (
     <div className="payments-container">
-      <h2>Realizar un Pago de Matrícula</h2>
+      <h2>Realizar un Pago</h2>
       <Form
         name="payments"
         layout="vertical"
@@ -91,4 +91,4 @@ const Tuitions: React.FC = () => {
   );
 };
 
-export default Tuitions;
+export default OtherPayments;

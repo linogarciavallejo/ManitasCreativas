@@ -5,7 +5,8 @@ import { Route, Routes } from "react-router-dom";
 
 const SignIn = React.lazy(() => import("../components/SignIn"));
 const Main = React.lazy(() => import("../components/Main"));
-const Payments = React.lazy(() => import("../components/Payments"));
+const Tuitions = React.lazy(() => import("../components/Tuitions"));
+const OtherPayments = React.lazy(() => import("../components/OtherPayments"));
 
 const AppRoutes: React.FC = () => {
   //userStore();
@@ -14,7 +15,8 @@ const AppRoutes: React.FC = () => {
     <Routes>
       <Route path="/" element={<SignIn />} />
       <Route path="/main" element={<Main />}>
-        <Route path="payments" element={<Payments />} />
+        <Route path="tuitions" element={<Tuitions />} />
+        <Route path="other-payments" element={<OtherPayments />} />
       </Route>
     </Routes>
   );

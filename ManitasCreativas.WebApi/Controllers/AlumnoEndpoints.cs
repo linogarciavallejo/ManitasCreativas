@@ -40,5 +40,18 @@ public static class AlumnoEndpoints
             await alumnoService.DeleteAlumnoAsync(id);
             return Results.NoContent();
         });
+
+        app.MapGet("/alumnos/codigo/{codigo}", async (string codigo, IAlumnoService alumnoService) =>
+        {
+            var alumno = await alumnoService.GetAlumnoByCodigoAsync(codigo);
+            return Results.Ok(alumno);
+        });
+
+        // Endpoint for querying alumnos by names
+        app.MapGet("/alumnos/search", async (string nombre, string apellido, IAlumnoService alumnoService) =>
+        {
+            var alumnos = await alumnoService.GetAlumnosByNamesAsync(nombre, apellido);
+            return Results.Ok(alumnos);
+        });
     }
 }

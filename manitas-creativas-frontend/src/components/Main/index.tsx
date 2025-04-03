@@ -29,17 +29,17 @@ const Main: React.FC = () => {
             {
               key: "1",
               icon: <UserOutlined />,
-              label: <Link to="payments">Pagos</Link>,
+              label: <Link to="tuitions">Colegiaturas</Link>,
             },
             {
               key: "2",
               icon: <VideoCameraOutlined />,
-              label: <Link to="/nav2">Nav 2</Link>,
+              label: <Link to="other-payments">Otros Pagos</Link>,
             },
             {
               key: "3",
               icon: <UploadOutlined />,
-              label: <Link to="/nav3">Nav 3</Link>,
+              label: <Link to="/nav3">Estado de Cuenta</Link>,
             },
           ]}
         />
