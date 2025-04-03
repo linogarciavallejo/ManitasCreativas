@@ -168,7 +168,7 @@ public class AlumnoService : IAlumnoService
             GradoNombre = a.Grado != null ? a.Grado.Nombre : string.Empty,
             Becado = a.Becado,
             BecaParcialPorcentaje = a.BecaParcialPorcentaje,
-            Pagos = a.Pagos.Select(p => new PagoDto
+            Pagos = (a.Pagos ?? new List<Pago>()).Select(p => new PagoDto
             {
                 Id = p.Id,
                 Monto = p.Monto,
@@ -176,7 +176,7 @@ public class AlumnoService : IAlumnoService
                 CicloEscolar = p.CicloEscolar,
                 MedioPago = p.MedioPago,
                 RubroNombre = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
-                ImagenesPago = p.ImagenesPago.Select(i => new PagoImagenDto
+                ImagenesPago = (p.ImagenesPago ?? new List<PagoImagen>()).Select(i => new PagoImagenDto
                 {
                     Id = i.Id,
                     PagoId = i.PagoId,
@@ -185,4 +185,5 @@ public class AlumnoService : IAlumnoService
             }).ToList()
         });
     }
+
 }
