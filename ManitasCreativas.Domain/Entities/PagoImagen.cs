@@ -11,6 +11,6 @@ namespace ManitasCreativas.Domain.Entities
         public int Id { get; set; }
         public required Uri ImagenUrl { get; set; } // URL of the image
         public int PagoId { get; set; }
-        public required Pago Pago { get; set; }
+        public Pago Pago { get; set; }
     }
 }

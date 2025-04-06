@@ -17,8 +17,8 @@ namespace ManitasCreativas.Domain.Entities
         public string? Notas { get; set; }
         public ICollection<PagoImagen> ImagenesPago { get; set; }
         public int AlumnoId { get; set; }
-        public required Alumno Alumno { get; set; }
+        public Alumno Alumno { get; set; }
         public int RubroId { get; set; }
-        public required Rubro Rubro { get; set; }
+        public Rubro Rubro { get; set; }
     }
 }

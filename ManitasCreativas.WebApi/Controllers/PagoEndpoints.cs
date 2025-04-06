@@ -10,5 +10,11 @@ public static class PagoEndpoints
             var pagos = await pagoService.GetPagosByCriteriaAsync(cicloEscolar, rubroId, gradoId, month);
             return Results.Ok(pagos);
         });
+
+        app.MapPost("/pagos", async (PagoDto pagoDto, IPagoService pagoService) =>
+        {
+            var nuevoPago = await pagoService.AddPagoAsync(pagoDto);
+            return Results.Created($"/pagos/{nuevoPago.Id}", nuevoPago);
+        });
     }
 }

@@ -17,5 +17,5 @@ public class PagoDto
     public int AlumnoId { get; set; }
     public string AlumnoNombre { get; set; }
     public string Notas { get; set; } = string.Empty;
-    public List<PagoImagenDto> ImagenesPago { get; set; } // Add this property
+    public List<PagoImagenDto> ImagenesPago { get; set; } = new List<PagoImagenDto>();
 }

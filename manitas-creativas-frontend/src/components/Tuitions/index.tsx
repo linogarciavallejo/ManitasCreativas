@@ -45,6 +45,11 @@ interface AlumnoDetails {
   contactos: Contacto[];
 }
 
+// Fix for error 1: Ensure the file object is properly typed to include 'originFileObj'.
+interface CustomFile extends File {
+  originFileObj?: File;
+}
+
 const { Option } = Select;
 
 const Tuitions: React.FC = () => {
@@ -114,6 +119,7 @@ const Tuitions: React.FC = () => {
     }
   };
 
+  // Fix for error 2: Adjust the API request to correctly handle the options parameter.
   const handleSubmit = async (values: {
     cicloEscolar: string;
     monto: number;
@@ -121,7 +127,7 @@ const Tuitions: React.FC = () => {
     mes: string;
     notas?: string;
     rubroId: string;
-    imagenesPago: File[];
+    imagenesPago: CustomFile[];
   }) => {
     if (!alumnoId) {
       message.error("Por favor seleccione un alumno antes de enviar el pago.");
@@ -129,9 +135,24 @@ const Tuitions: React.FC = () => {
     }
     setLoading(true);
     try {
-      const payload = { ...values, alumnoId };
-      console.log("Pago enviado:", payload);
+      const formData = new FormData();
+      formData.append("cicloEscolar", values.cicloEscolar);
+      formData.append("monto", values.monto.toString());
+      formData.append("medioPago", values.medioPago);
+      formData.append("mes", values.mes);
+      formData.append("rubroId", values.rubroId);
+      formData.append("alumnoId", alumnoId);
+      if (values.notas) formData.append("notas", values.notas);
+      values.imagenesPago.forEach((file, index) => {
+        if (file.originFileObj) {
+          formData.append(`imagenesPago[${index}]`, file.originFileObj);
+        }
+      });
+
+      const response = await makeApiRequest("/pagos", "POST", formData, true);
+
       message.success("¡Pago enviado con éxito!");
+      console.log("Pago enviado:", response);
     } catch (err) {
       message.error("Error al enviar el pago. Por favor, inténtelo de nuevo.");
     } finally {
