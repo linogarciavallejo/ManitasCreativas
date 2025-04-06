@@ -102,7 +102,7 @@ public class AlumnoService : IAlumnoService
 
     public async Task<AlumnoDto?> GetAlumnoByCodigoAsync(string codigo)
     {
-        var alumno = await _alumnoRepository.GetByCodigoAsync(codigo);
+        var alumno = await _alumnoRepository.GetAlumnoByCodigoAsync(codigo);
         return alumno == null ? null : new AlumnoDto
         {
             Id = alumno.Id,
@@ -110,7 +110,44 @@ public class AlumnoService : IAlumnoService
             SegundoNombre = alumno.SegundoNombre,
             PrimerApellido = alumno.PrimerApellido,
             SegundoApellido = alumno.SegundoApellido,
-            Codigo = alumno.Codigo
+            Codigo = alumno.Codigo,
+            SedeId = alumno.SedeId,
+            SedeNombre = alumno.Sede != null ? alumno.Sede.Nombre : string.Empty,
+            GradoId = alumno.GradoId,
+            GradoNombre = alumno.Grado != null ? alumno.Grado.Nombre : string.Empty,
+            Becado = alumno.Becado,
+            BecaParcialPorcentaje = alumno.BecaParcialPorcentaje != null ? alumno.BecaParcialPorcentaje : 0,
+            Pagos = (alumno.Pagos ?? Enumerable.Empty<Pago>()).Select(p => new PagoDto
+            {
+                Id = p.Id,
+                Monto = p.Monto,
+                Fecha = p.Fecha,
+                CicloEscolar = p.CicloEscolar,
+                MedioPago = p.MedioPago,
+                RubroNombre = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
+                ImagenesPago = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
+                    .Select(i => new PagoImagenDto
+                    {
+                        Id = i.Id,
+                        PagoId = i.PagoId,
+                        Url = i.ImagenUrl.ToString()
+                    })
+                    .ToList()
+            }).ToList(),
+            Contactos = (alumno.AlumnoContactos ?? Enumerable.Empty<AlumnoContacto>())
+            .Select(ac => new AlumnoContactoDto
+            {
+                AlumnoId = ac.AlumnoId,
+                ContactoId = ac.ContactoId,
+                Contacto = new ContactoDto
+                {
+                    Id = ac.Contacto.Id,
+                    Nombre = ac.Contacto.Nombre,
+                    Telefono = ac.Contacto.Telefono,
+                    Email = ac.Contacto.Email,
+                },
+                Parentesco = ac.Parentesco,
+            }).ToList()
         };
     }
 

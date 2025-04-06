@@ -55,6 +55,9 @@ public class AlumnoRepository : IAlumnoRepository
         return await _context.Alumnos
             .Include(a => a.Sede)
             .Include(a => a.Grado)
+            .Include(a => a.Pagos)
+            .Include(a => a.AlumnoContactos)
+            .ThenInclude(ac => ac.Contacto)
             .FirstOrDefaultAsync(a => a.Codigo == codigo);
     }
 

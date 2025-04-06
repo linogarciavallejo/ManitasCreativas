@@ -4,5 +4,7 @@ public class AlumnoContactoDto
 {
     public int AlumnoId { get; set; }
     public int ContactoId { get; set; }
-    public string Relacion { get; set; } = string.Empty;
+    public ContactoDto Contacto { get; set; } = new();
+    public string Parentesco { get; set; } = string.Empty;
+
 }

@@ -15,4 +15,5 @@ public class AlumnoDto
     public bool? Becado { get; set; }
     public decimal? BecaParcialPorcentaje { get; set; }
     public List<PagoDto> Pagos { get; set; } = new();
+    public List<AlumnoContactoDto> Contactos { get; set; } = new();
 }

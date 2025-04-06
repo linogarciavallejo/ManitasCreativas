@@ -13,5 +13,6 @@ namespace ManitasCreativas.Domain.Entities
         public Alumno Alumno { get; set; }
         public int ContactoId { get; set; }
         public Contacto Contacto { get; set; }
+        public string Parentesco { get; set; }
     }
 }

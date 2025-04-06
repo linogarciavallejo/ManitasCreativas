@@ -14,6 +14,7 @@ namespace ManitasCreativas.Domain.Entities
         public DateTime Fecha { get; set; }
         public decimal Monto { get; set; }
         public MedioPago MedioPago { get; set; }
+        public string? Notas { get; set; }
         public ICollection<PagoImagen> ImagenesPago { get; set; }
         public int AlumnoId { get; set; }
         public required Alumno Alumno { get; set; }
