@@ -16,6 +16,18 @@ interface AlumnoOption {
   codigo: string;
 }
 
+interface Contacto {
+  alumnoId: number;
+  contactoId: number;
+  contacto: {
+    id: number;
+    nombre: string;
+    telefono: string;
+    email: string;
+  };
+  parentesco: string;
+}
+
 interface AlumnoDetails {
   id: number;
   codigo: string;
@@ -30,9 +42,10 @@ interface AlumnoDetails {
   becado: boolean | null;
   becaParcialPorcentaje: number | null;
   pagos: any[];
+  contactos: Contacto[];
 }
 
-const { Option } = Select; 
+const { Option } = Select;
 
 const Tuitions: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -41,11 +54,12 @@ const Tuitions: React.FC = () => {
   const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
+  const [contactos, setContactos] = useState<Contacto[]>([]);
 
   const currentYear = new Date().getFullYear();
-  // JavaScript months are 0-indexed. Adding 1 to get the proper month number.
-  const currentMonth = new Date().getMonth() + 1;
+  const currentMonth = new Date().getMonth() + 1; // 1-based month number
 
+  // Search by codigo input
   const handleCodigoSearch = async (codigo: string) => {
     try {
       const response = await makeApiRequest(`/alumnos/codigo/${codigo}`, "GET");
@@ -54,6 +68,8 @@ const Tuitions: React.FC = () => {
       setSelectedStudent(
         `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim()
       );
+      // Update contactos info from the response
+      setContactos(response.contactos || []);
       message.success("Alumno encontrado por código.");
     } catch (error) {
       message.error("No se encontró ningún alumno con ese código.");
@@ -68,9 +84,7 @@ const Tuitions: React.FC = () => {
       return;
     }
     try {
-      const response: Alumno[] = await makeApiRequest(`/alumnos/full`, "GET", {
-        query: trimmedQuery,
-      });
+      const response: Alumno[] = await makeApiRequest(`/alumnos/full`, "GET", { query: trimmedQuery });
       const filtered = response.filter((alumno) =>
         alumno.fullName.toLowerCase().includes(trimmedQuery.toLowerCase())
       );
@@ -90,11 +104,10 @@ const Tuitions: React.FC = () => {
     setAlumnoId(value);
     setSelectedStudent(option.label);
     try {
-      const response: AlumnoDetails = await makeApiRequest(
-        `/alumnos/codigo/${option.codigo}`,
-        "GET"
-      );
+      const response: AlumnoDetails = await makeApiRequest(`/alumnos/codigo/${option.codigo}`, "GET");
       setSelectedCodigo(response.codigo);
+      // Update contactos info from the response
+      setContactos(response.contactos || []);
       message.success("Alumno seleccionado correctamente.");
     } catch (error) {
       message.error("Error al obtener los datos del alumno seleccionado.");
@@ -173,6 +186,7 @@ const Tuitions: React.FC = () => {
                 setAlumnoId(null);
                 setSelectedCodigo(null);
                 setAutoCompleteValue("");
+                setContactos([]);
               }}
             >
               Limpiar
@@ -190,6 +204,20 @@ const Tuitions: React.FC = () => {
         )}
       </div>
 
+      {/* Display contacts info above the Ciclo Escolar input */}
+      {contactos.length > 0 && (
+        <div style={{ marginBottom: "20px" }}>
+          <h3>Contactos</h3>
+          <ul style={{ paddingLeft: "20px" }}>
+            {contactos.map((contacto) => (
+              <li key={contacto.contactoId}>
+                <strong>{contacto.parentesco}:</strong> {contacto.contacto.nombre} — {contacto.contacto.telefono} — {contacto.contacto.email}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <Form
         name="payments"
         layout="vertical"
@@ -205,9 +233,7 @@ const Tuitions: React.FC = () => {
         <Form.Item
           label="Ciclo Escolar"
           name="cicloEscolar"
-          rules={[
-            { required: true, message: "¡Por favor ingrese el ciclo escolar!" },
-          ]}
+          rules={[{ required: true, message: "¡Por favor ingrese el ciclo escolar!" }]}
         >
           <Input placeholder="Ingrese el ciclo escolar" />
         </Form.Item>
@@ -242,10 +268,10 @@ const Tuitions: React.FC = () => {
             style={{ width: "100%" }}
             placeholder="Ingrese el monto"
             formatter={(value) =>
-              `Q ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+              `Q ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             }
             parser={(value) =>
-              value ? value.replace(/Q\s?|(,*)/g, '') : ''
+              value ? value.replace(/Q\s?|(,*)/g, "") : ""
             }
             onKeyPress={(event) => {
               if (!/[0-9.]/.test(event.key)) {
@@ -258,9 +284,7 @@ const Tuitions: React.FC = () => {
         <Form.Item
           label="Medio de Pago"
           name="medioPago"
-          rules={[
-            { required: true, message: "¡Por favor ingrese el medio de pago!" },
-          ]}
+          rules={[{ required: true, message: "¡Por favor ingrese el medio de pago!" }]}
         >
           <Select placeholder="Seleccione el medio de pago">
             <Option value={1}>Efectivo</Option>
