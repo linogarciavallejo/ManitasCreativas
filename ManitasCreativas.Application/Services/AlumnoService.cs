@@ -153,7 +153,8 @@ public class AlumnoService : IAlumnoService
 
     public async Task<IEnumerable<AlumnoDto>> GetAlumnosByNamesAsync(string nombre, string apellido)
     {
-        var alumnos = await _alumnoRepository.GetAlumnosByNamesAsync(nombre, apellido);
+        var alumnos = await _alumnoRepository.GetAlumnosByNamesAsync(nombre, apellido) ?? Enumerable.Empty<Alumno>();
+
         return alumnos.Select(a => new AlumnoDto
         {
             Id = a.Id,
@@ -168,7 +169,7 @@ public class AlumnoService : IAlumnoService
             GradoNombre = a.Grado != null ? a.Grado.Nombre : string.Empty,
             Becado = a.Becado,
             BecaParcialPorcentaje = a.BecaParcialPorcentaje,
-            Pagos = (a.Pagos ?? new List<Pago>()).Select(p => new PagoDto
+            Pagos = (a.Pagos ?? Enumerable.Empty<Pago>()).Select(p => new PagoDto
             {
                 Id = p.Id,
                 Monto = p.Monto,
@@ -176,14 +177,34 @@ public class AlumnoService : IAlumnoService
                 CicloEscolar = p.CicloEscolar,
                 MedioPago = p.MedioPago,
                 RubroNombre = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
-                ImagenesPago = (p.ImagenesPago ?? new List<PagoImagen>()).Select(i => new PagoImagenDto
-                {
-                    Id = i.Id,
-                    PagoId = i.PagoId,
-                    Url = i.ImagenUrl.ToString()
-                }).ToList()
+                ImagenesPago = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
+                                .Select(i => new PagoImagenDto
+                                {
+                                    Id = i.Id,
+                                    PagoId = i.PagoId,
+                                    Url = i.ImagenUrl.ToString()
+                                })
+                                .ToList()
             }).ToList()
         });
     }
 
+    public async Task<IEnumerable<AlumnoSimpleDto>> GetAlumnosWithFullNameAsync()
+    {
+        var alumnos = await _alumnoRepository.GetAllAsync();
+        return alumnos.Select(a => new AlumnoSimpleDto
+        {
+            Id = a.Id,
+            Codigo = a.Codigo,
+            FullName = string.Join(" ", new string?[]
+            {
+                a.PrimerNombre,
+                a.SegundoNombre,
+                a.PrimerApellido,
+                a.SegundoApellido
+            }.Where(s => !string.IsNullOrWhiteSpace(s)))
+        })
+        .OrderBy(dto => dto.FullName)
+        .ToList();
+    }
 }

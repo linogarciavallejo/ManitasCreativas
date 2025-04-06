@@ -12,6 +12,7 @@ namespace ManitasCreativas.Domain.Enums
         TarjetaCredito,
         TarjetaDebito,
         TransferenciaBancaria,
-        Cheque
+        Cheque,
+        BoletaDeposito
     }
 }

@@ -20,6 +20,16 @@ export default defineConfig({
         secure: false,
         rewrite: (path) => path.startsWith('/api/') ? path : `/${path}`
       },
+      '/alumnos': {
+        target: 'https://localhost:7144',
+        changeOrigin: true,
+        secure: false, // Disable SSL verification for development
+      },
+      '/usuarios': {
+        target: 'https://localhost:7144',
+        changeOrigin: true,
+        secure: false, // Disable SSL verification for development
+      },
     },
     port: 5173,
     // https: {

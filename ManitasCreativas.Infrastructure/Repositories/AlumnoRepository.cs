@@ -64,7 +64,7 @@ public class AlumnoRepository : IAlumnoRepository
             .Include(a => a.Sede)
             .Include(a => a.Grado)
             .Where(a =>
-                (a.PrimerNombre.Contains(nombre) || a.SegundoNombre.Contains(nombre)) &&
+                (a.PrimerNombre.Contains(nombre) || a.SegundoNombre.Contains(nombre)) ||
                 (a.PrimerApellido.Contains(apellido) || a.SegundoApellido.Contains(apellido))
             )
             .ToListAsync();

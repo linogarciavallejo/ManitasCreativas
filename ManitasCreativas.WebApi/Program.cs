@@ -17,11 +17,12 @@ builder.Services.AddOpenApiDocument(config =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddPolicy("AllowSpecificOrigins", builder =>
     {
-        builder.AllowAnyOrigin()
+        builder.WithOrigins("http://localhost:5173") // Allow specific origin
                .AllowAnyMethod()
-               .AllowAnyHeader();
+               .AllowAnyHeader()
+               .AllowCredentials(); // Enable credentials
     });
 });
 
@@ -50,7 +51,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowAll");
+// Ensure CORS middleware is applied before mapping endpoints
+app.UseCors("AllowSpecificOrigins");
 
 // Map Endpoints
 app.MapUsuarioEndpoints();

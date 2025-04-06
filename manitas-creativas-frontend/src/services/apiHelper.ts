@@ -29,7 +29,6 @@ export async function makeApiRequest<T>(
     throw new Error("Invalid request method");
   }
 
-
   if (response) {
     return response.data;
   } else {
