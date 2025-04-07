@@ -125,7 +125,7 @@ public class AlumnoService : IAlumnoService
                 CicloEscolar = p.CicloEscolar,
                 MedioPago = p.MedioPago,
                 RubroNombre = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
-                ImagenesPago = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
+                ImagenesPagoRead = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
                     .Select(i => new PagoImagenDto
                     {
                         Id = i.Id,
@@ -178,7 +178,7 @@ public class AlumnoService : IAlumnoService
                 CicloEscolar = p.CicloEscolar,
                 MedioPago = p.MedioPago,
                 RubroNombre = p.Rubro.Descripcion,
-                ImagenesPago = p.ImagenesPago.Select(pi => new PagoImagenDto
+                ImagenesPagoRead = p.ImagenesPago.Select(pi => new PagoImagenDto
                 {
                     Id = pi.Id,
                     PagoId = pi.PagoId,
@@ -214,7 +214,7 @@ public class AlumnoService : IAlumnoService
                 CicloEscolar = p.CicloEscolar,
                 MedioPago = p.MedioPago,
                 RubroNombre = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
-                ImagenesPago = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
+                ImagenesPagoRead = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
                                 .Select(i => new PagoImagenDto
                                 {
                                     Id = i.Id,

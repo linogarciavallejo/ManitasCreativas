@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Form, Input, Button, Upload, message, AutoComplete, Select, InputNumber } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-import { makeApiRequest } from "../../services/apiHelper";
+import { makeApiRequest, getAntiforgeryToken } from "../../services/apiHelper";
 import "antd/dist/reset.css";
 
 interface Alumno {
@@ -136,20 +136,30 @@ const Tuitions: React.FC = () => {
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("cicloEscolar", values.cicloEscolar);
-      formData.append("monto", values.monto.toString());
-      formData.append("medioPago", values.medioPago);
-      formData.append("mes", values.mes);
-      formData.append("rubroId", values.rubroId);
-      formData.append("alumnoId", alumnoId);
-      if (values.notas) formData.append("notas", values.notas);
+      formData.append("CicloEscolar", values.cicloEscolar);
+      formData.append("Monto", values.monto.toString());
+      formData.append("MedioPago", values.medioPago);
+      formData.append("MesColegiatura", values.mes);
+      formData.append("RubroId", values.rubroId);
+      formData.append("AlumnoId", alumnoId);
+      formData.append("EsColegiatura", "true");
+      formData.append("AnioColegiatura", new Date().getFullYear().toString());
+      if (values.notas) formData.append("Notas", values.notas);
       values.imagenesPago.forEach((file, index) => {
         if (file.originFileObj) {
-          formData.append(`imagenesPago[${index}]`, file.originFileObj);
+          formData.append(`ImagenesPagoUpload[${index}]`, file.originFileObj);
         }
       });
 
-      const response = await makeApiRequest("/pagos", "POST", formData, true);
+      const token = await getAntiforgeryToken();
+
+      const response = await makeApiRequest("/pagos", "POST", formData, {
+        headers: {
+          "X-CSRF-TOKEN": token,
+          "X-XSRF-TOKEN": token, // Include the anti-forgery token in the header
+        },
+        withCredentials: true, // Ensure cookies are sent with the request
+      });
 
       message.success("¡Pago enviado con éxito!");
       console.log("Pago enviado:", response);

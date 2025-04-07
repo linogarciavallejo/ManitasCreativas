@@ -31,7 +31,7 @@ public class PagoService : IPagoService
                 CicloEscolar = p.CicloEscolar,
                 MedioPago = p.MedioPago, // Fix: MedioPago is already of type MedioPago
                 RubroNombre = p.Rubro.Descripcion,
-                ImagenesPago = p.ImagenesPago.Select(pi => new PagoImagenDto
+                ImagenesPagoRead = p.ImagenesPago.Select(pi => new PagoImagenDto
                 {
                     Id = pi.Id,
                     PagoId = pi.PagoId,
@@ -54,15 +54,14 @@ public class PagoService : IPagoService
             ImagenesPago = new List<PagoImagen>()
         };
 
-        if (pagoDto.ImagenesPago != null)
+        if (pagoDto.ImagenesPagoUpload != null && pagoDto.ImagenesPagoUpload.Any())
         {
-            foreach (var imagen in pagoDto.ImagenesPago)
+            foreach (var stream in pagoDto.ImagenesPagoUpload)
             {
-                using (var stream = new MemoryStream(Convert.FromBase64String(imagen.Base64Content)))
-                {
-                    var url = await _s3Service.UploadFileAsync(stream, imagen.FileName, imagen.ContentType);
-                    pago.ImagenesPago.Add(new PagoImagen { ImagenUrl = new Uri(url) });
-                }
+                var fileName = $"pago_{Guid.NewGuid()}.jpg"; // Example file naming convention
+                var contentType = "image/jpeg"; // Assuming JPEG images for simplicity
+                var url = await _s3Service.UploadFileAsync(stream, fileName, contentType);
+                pago.ImagenesPago.Add(new PagoImagen { ImagenUrl = new Uri(url) });
             }
         }
 
@@ -78,7 +77,7 @@ public class PagoService : IPagoService
             Notas = pago.Notas,
             AlumnoId = pago.AlumnoId,
             RubroId = pago.RubroId,
-            ImagenesPago = pago.ImagenesPago.Select(pi => new PagoImagenDto
+            ImagenesPagoRead = pago.ImagenesPago.Select(pi => new PagoImagenDto
             {
                 Id = pi.Id,
                 PagoId = pi.PagoId,
