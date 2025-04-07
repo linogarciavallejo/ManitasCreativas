@@ -23,7 +23,7 @@ public class S3Service
             Key = fileName,
             BucketName = _s3Config.BucketName,
             ContentType = contentType,
-            CannedACL = S3CannedACL.PublicRead
+            //CannedACL = S3CannedACL.PublicRead
         };
 
         using (var transferUtility = new TransferUtility(_s3Client))

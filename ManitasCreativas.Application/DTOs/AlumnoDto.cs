@@ -14,6 +14,6 @@ public class AlumnoDto
     public string GradoNombre { get; set; } = string.Empty;
     public bool? Becado { get; set; }
     public decimal? BecaParcialPorcentaje { get; set; }
-    public List<PagoDto> Pagos { get; set; } = new();
+    public List<PagoReadDto> Pagos { get; set; } = new();
     public List<AlumnoContactoDto> Contactos { get; set; } = new();
 }

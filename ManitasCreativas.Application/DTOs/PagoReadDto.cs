@@ -4,7 +4,7 @@ using System.IO;
 
 namespace ManitasCreativas.Application.DTOs;
 
-public class PagoDto
+public class PagoReadDto
 {
     public int Id { get; set; }
     public decimal Monto { get; set; }
@@ -19,6 +19,5 @@ public class PagoDto
     public int AlumnoId { get; set; }
     public string AlumnoNombre { get; set; }
     public string Notas { get; set; } = string.Empty;
-    public List<Stream> ImagenesPagoUpload { get; set; } = new List<Stream>();
-    public List<PagoImagenDto> ImagenesPagoRead { get; set; } = new List<PagoImagenDto>();
+    public List<PagoImagenDto>? ImagenesPago { get; set; } = new List<PagoImagenDto>();
 }

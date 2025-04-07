@@ -29,7 +29,7 @@ public class AlumnoService : IAlumnoService
             GradoNombre = a.Grado.Nombre,
             Becado = a.Becado,
             BecaParcialPorcentaje = a.BecaParcialPorcentaje,
-            Pagos = a.Pagos.Select(p => new PagoDto
+            Pagos = a.Pagos.Select(p => new PagoReadDto
             {
                 Id = p.Id,
                 Monto = p.Monto,
@@ -55,7 +55,7 @@ public class AlumnoService : IAlumnoService
             GradoNombre = alumno.Grado.Nombre,
             Becado = alumno.Becado,
             BecaParcialPorcentaje = alumno.BecaParcialPorcentaje,
-            Pagos = alumno.Pagos.Select(p => new PagoDto
+            Pagos = alumno.Pagos.Select(p => new PagoReadDto
             {
                 Id = p.Id,
                 Monto = p.Monto,
@@ -117,7 +117,7 @@ public class AlumnoService : IAlumnoService
             GradoNombre = alumno.Grado != null ? alumno.Grado.Nombre : string.Empty,
             Becado = alumno.Becado,
             BecaParcialPorcentaje = alumno.BecaParcialPorcentaje != null ? alumno.BecaParcialPorcentaje : 0,
-            Pagos = (alumno.Pagos ?? Enumerable.Empty<Pago>()).Select(p => new PagoDto
+            Pagos = (alumno.Pagos ?? Enumerable.Empty<Pago>()).Select(p => new PagoReadDto
             {
                 Id = p.Id,
                 Monto = p.Monto,
@@ -125,7 +125,7 @@ public class AlumnoService : IAlumnoService
                 CicloEscolar = p.CicloEscolar,
                 MedioPago = p.MedioPago,
                 RubroNombre = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
-                ImagenesPagoRead = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
+                ImagenesPago = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
                     .Select(i => new PagoImagenDto
                     {
                         Id = i.Id,
@@ -170,7 +170,7 @@ public class AlumnoService : IAlumnoService
             GradoNombre = alumno.Grado.Nombre,
             Becado = alumno.Becado,
             BecaParcialPorcentaje = alumno.BecaParcialPorcentaje,
-            Pagos = alumno.Pagos.Select(p => new PagoDto
+            Pagos = alumno.Pagos.Select(p => new PagoReadDto
             {
                 Id = p.Id,
                 Monto = p.Monto,
@@ -178,7 +178,7 @@ public class AlumnoService : IAlumnoService
                 CicloEscolar = p.CicloEscolar,
                 MedioPago = p.MedioPago,
                 RubroNombre = p.Rubro.Descripcion,
-                ImagenesPagoRead = p.ImagenesPago.Select(pi => new PagoImagenDto
+                ImagenesPago = p.ImagenesPago.Select(pi => new PagoImagenDto
                 {
                     Id = pi.Id,
                     PagoId = pi.PagoId,
@@ -206,7 +206,7 @@ public class AlumnoService : IAlumnoService
             GradoNombre = a.Grado != null ? a.Grado.Nombre : string.Empty,
             Becado = a.Becado,
             BecaParcialPorcentaje = a.BecaParcialPorcentaje,
-            Pagos = (a.Pagos ?? Enumerable.Empty<Pago>()).Select(p => new PagoDto
+            Pagos = (a.Pagos ?? Enumerable.Empty<Pago>()).Select(p => new PagoReadDto
             {
                 Id = p.Id,
                 Monto = p.Monto,
@@ -214,7 +214,7 @@ public class AlumnoService : IAlumnoService
                 CicloEscolar = p.CicloEscolar,
                 MedioPago = p.MedioPago,
                 RubroNombre = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
-                ImagenesPagoRead = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
+                ImagenesPago = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
                                 .Select(i => new PagoImagenDto
                                 {
                                     Id = i.Id,

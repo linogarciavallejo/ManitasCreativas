@@ -20,5 +20,11 @@ namespace ManitasCreativas.Domain.Entities
         public Alumno Alumno { get; set; }
         public int RubroId { get; set; }
         public Rubro Rubro { get; set; }
+        public bool EsColegiatura { get; set; }
+        public int MesColegiatura { get; set; }
+        public int AnioColegiatura { get; set; }
+        public int? UsuarioId { get; set; }
+        public Usuario? Usuario { get; set; } // Relación opcional con Usuario
+
     }
 }

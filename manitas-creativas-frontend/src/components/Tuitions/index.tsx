@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Form, Input, Button, Upload, message, AutoComplete, Select, InputNumber } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-import { makeApiRequest, getAntiforgeryToken } from "../../services/apiHelper";
+import { makeApiRequest } from "../../services/apiHelper";
 import "antd/dist/reset.css";
 
 interface Alumno {
@@ -129,13 +129,18 @@ const Tuitions: React.FC = () => {
     rubroId: string;
     imagenesPago: CustomFile[];
   }) => {
+    console.log("Form submitted with values:", values); // Debugging log
+
     if (!alumnoId) {
       message.error("Por favor seleccione un alumno antes de enviar el pago.");
       return;
     }
+
     setLoading(true);
     try {
       const formData = new FormData();
+      formData.append("Id", 0);
+      formData.append("Fecha", new Date().toISOString());
       formData.append("CicloEscolar", values.cicloEscolar);
       formData.append("Monto", values.monto.toString());
       formData.append("MedioPago", values.medioPago);
@@ -143,23 +148,19 @@ const Tuitions: React.FC = () => {
       formData.append("RubroId", values.rubroId);
       formData.append("AlumnoId", alumnoId);
       formData.append("EsColegiatura", "true");
+      formData.append("MesColegiatura", values.mes);
       formData.append("AnioColegiatura", new Date().getFullYear().toString());
       if (values.notas) formData.append("Notas", values.notas);
+      formData.append("UsuarioId", 1); // Assuming 1 is the logged-in user ID
       values.imagenesPago.forEach((file, index) => {
         if (file.originFileObj) {
-          formData.append(`ImagenesPagoUpload[${index}]`, file.originFileObj);
+          formData.append(`ImagenesPago[${index}]`, file.originFileObj);
         }
       });
 
-      const token = await getAntiforgeryToken();
+      //const token = await getAntiforgeryToken();
 
-      const response = await makeApiRequest("/pagos", "POST", formData, {
-        headers: {
-          "X-CSRF-TOKEN": token,
-          "X-XSRF-TOKEN": token, // Include the anti-forgery token in the header
-        },
-        withCredentials: true, // Ensure cookies are sent with the request
-      });
+      const response = await makeApiRequest("/pagos", "POST", formData);
 
       message.success("¡Pago enviado con éxito!");
       console.log("Pago enviado:", response);

@@ -4,8 +4,9 @@ using ManitasCreativas.Application.Interfaces.Repositories;
 using ManitasCreativas.Infrastructure;
 using ManitasCreativas.Infrastructure.Repositories;
 using Amazon.S3;
-using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.Extensions.Options;
+using ManitasCreativas.Application.DTOs;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,15 +28,6 @@ builder.Services.AddCors(options =>
                .AllowAnyHeader()
                .AllowCredentials(); // Enable credentials
     });
-});
-
-// Add Anti-forgery services
-builder.Services.AddAntiforgery(options =>
-{
-    options.HeaderName = "X-XSRF-TOKEN"; // Ensure the header name is set correctly
-    options.Cookie.Name = ".AspNetCore.Antiforgery"; // Explicitly set the cookie name
-    options.Cookie.SameSite = SameSiteMode.None; // Allow cross-origin requests
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Ensure the cookie is sent over HTTPS
 });
 
 // Dependency Injection for Services
@@ -79,31 +71,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Add anti-forgery middleware
-app.UseAntiforgery();
-
-app.Use(async (context, next) =>
-{
-    if (context.Request.Path == "/antiforgery-token")
-    {
-        var antiforgery = context.RequestServices.GetRequiredService<IAntiforgery>();
-        var tokens = antiforgery.GetAndStoreTokens(context);
-        var cookieName = context.RequestServices.GetRequiredService<IOptions<AntiforgeryOptions>>().Value.Cookie.Name;
-        context.Response.Cookies.Append(
-            cookieName,
-            tokens.RequestToken,
-            new CookieOptions
-            {
-                HttpOnly = true, // Ensure the cookie is HTTP-only
-                Secure = true, // Ensure the cookie is sent over HTTPS
-                SameSite = SameSiteMode.None // Allow cross-origin requests
-            });
-    }
-    await next();
-});
 // Ensure CORS middleware is applied before mapping endpoints
 app.UseCors("AllowSpecificOrigins");
-
 
 // Map Endpoints
 app.MapUsuarioEndpoints();

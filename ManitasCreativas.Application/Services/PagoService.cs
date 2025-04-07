@@ -14,7 +14,7 @@ public class PagoService : IPagoService
         _s3Service = s3Service;
     }
 
-    public async Task<IEnumerable<PagoDto>> GetPagosByCriteriaAsync(int cicloEscolar, int rubroId, int gradoId, int month)
+    public async Task<IEnumerable<PagoReadDto>> GetPagosByCriteriaAsync(int cicloEscolar, int rubroId, int gradoId, int month)
     {
         var pagos = await _pagoRepository.GetAllAsync();
 
@@ -23,7 +23,7 @@ public class PagoService : IPagoService
                         p.RubroId == rubroId &&
                         p.Alumno.GradoId == gradoId &&
                         p.Fecha.Month == month)
-            .Select(p => new PagoDto
+            .Select(p => new PagoReadDto
             {
                 Id = p.Id,
                 Monto = p.Monto,
@@ -31,7 +31,7 @@ public class PagoService : IPagoService
                 CicloEscolar = p.CicloEscolar,
                 MedioPago = p.MedioPago, // Fix: MedioPago is already of type MedioPago
                 RubroNombre = p.Rubro.Descripcion,
-                ImagenesPagoRead = p.ImagenesPago.Select(pi => new PagoImagenDto
+                ImagenesPago = p.ImagenesPago.Select(pi => new PagoImagenDto
                 {
                     Id = pi.Id,
                     PagoId = pi.PagoId,
@@ -40,26 +40,33 @@ public class PagoService : IPagoService
             });
     }
 
-    public async Task<PagoDto> AddPagoAsync(PagoDto pagoDto)
+    public async Task<PagoUploadDto> AddPagoAsync(PagoUploadDto pagoDto)
     {
         var pago = new Pago
         {
+            Fecha = DateTime.SpecifyKind(pagoDto.Fecha, DateTimeKind.Utc),
             CicloEscolar = pagoDto.CicloEscolar,
-            Fecha = pagoDto.Fecha,
             Monto = pagoDto.Monto,
             MedioPago = pagoDto.MedioPago,
-            Notas = pagoDto.Notas,
-            AlumnoId = pagoDto.AlumnoId,
             RubroId = pagoDto.RubroId,
+            AlumnoId = pagoDto.AlumnoId,
+            EsColegiatura = pagoDto.EsColegiatura,
+            MesColegiatura = pagoDto.MesColegiatura,
+            AnioColegiatura = pagoDto.AnioColegiatura,
+            Notas = pagoDto.Notas,
+            UsuarioId = pagoDto.UsuarioId,
             ImagenesPago = new List<PagoImagen>()
         };
 
-        if (pagoDto.ImagenesPagoUpload != null && pagoDto.ImagenesPagoUpload.Any())
+        if (pagoDto.ImagenesPago is { Count: > 0 })
         {
-            foreach (var stream in pagoDto.ImagenesPagoUpload)
+            foreach (var formFile in pagoDto.ImagenesPago)
             {
-                var fileName = $"pago_{Guid.NewGuid()}.jpg"; // Example file naming convention
-                var contentType = "image/jpeg"; // Assuming JPEG images for simplicity
+                // Correct way to get the stream from IFormFile:
+                await using var stream = formFile.OpenReadStream();
+                var fileName = $"pago_{Guid.NewGuid()}{Path.GetExtension(formFile.FileName)}";
+                var contentType = formFile.ContentType;
+
                 var url = await _s3Service.UploadFileAsync(stream, fileName, contentType);
                 pago.ImagenesPago.Add(new PagoImagen { ImagenUrl = new Uri(url) });
             }
@@ -67,7 +74,7 @@ public class PagoService : IPagoService
 
         await _pagoRepository.AddAsync(pago);
 
-        return new PagoDto
+        return new PagoUploadDto
         {
             Id = pago.Id,
             CicloEscolar = pago.CicloEscolar,
@@ -76,13 +83,7 @@ public class PagoService : IPagoService
             MedioPago = pago.MedioPago,
             Notas = pago.Notas,
             AlumnoId = pago.AlumnoId,
-            RubroId = pago.RubroId,
-            ImagenesPagoRead = pago.ImagenesPago.Select(pi => new PagoImagenDto
-            {
-                Id = pi.Id,
-                PagoId = pi.PagoId,
-                Url = pi.ImagenUrl.ToString()
-            }).ToList()
+            RubroId = pago.RubroId
         };
     }
 }

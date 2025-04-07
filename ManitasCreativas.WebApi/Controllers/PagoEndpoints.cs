@@ -1,7 +1,6 @@
 using ManitasCreativas.Application.Interfaces.Services;
 using ManitasCreativas.Application.DTOs;
-using Microsoft.AspNetCore.Antiforgery;
-
+using Microsoft.AspNetCore.Http;
 public static class PagoEndpoints
 {
     public static void MapPagoEndpoints(this WebApplication app)
@@ -12,22 +11,10 @@ public static class PagoEndpoints
             return Results.Ok(pagos);
         });
 
-        app.MapGet("/antiforgery-token", (IAntiforgery antiforgery, HttpContext context) =>
+        app.MapPost("/pagos", async ([Microsoft.AspNetCore.Mvc.FromForm] PagoUploadDto pagoDto, IPagoService pagoService) =>
         {
-            var tokens = antiforgery.GetAndStoreTokens(context);
-            return Results.Ok(new { token = tokens.RequestToken });
-        });
-
-        app.MapPost("/pagos", async (HttpContext context, [Microsoft.AspNetCore.Mvc.FromForm] PagoDto pagoDto, IPagoService pagoService, IAntiforgery antiforgery) =>
-        {
-            var tokens = antiforgery.GetAndStoreTokens(context);
-            if (!antiforgery.IsRequestValidAsync(context).Result)
-            {
-                return Results.BadRequest("Invalid anti-forgery token.");
-            }
-
             var nuevoPago = await pagoService.AddPagoAsync(pagoDto);
             return Results.Created($"/pagos/{nuevoPago.Id}", nuevoPago);
-        });
+        }).DisableAntiforgery();
     }
 }
