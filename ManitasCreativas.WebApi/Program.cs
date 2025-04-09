@@ -7,6 +7,7 @@ using Amazon.S3;
 using Microsoft.Extensions.Options;
 using ManitasCreativas.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using ManitasCreativas.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +34,7 @@ builder.Services.AddCors(options =>
 // Dependency Injection for Services
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IAlumnoService, AlumnoService>();
+builder.Services.AddScoped<IRubroService, RubroService>();
 
 // Inject S3Service into PagoService
 builder.Services.AddScoped<S3Service>();
@@ -47,6 +49,7 @@ builder.Services.AddScoped<IPagoService, PagoService>(sp =>
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IAlumnoRepository, AlumnoRepository>();
 builder.Services.AddScoped<IPagoRepository, PagoRepository>();
+builder.Services.AddScoped<IRubroRepository, RubroRepository>();
 
 // Add DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -78,5 +81,6 @@ app.UseCors("AllowSpecificOrigins");
 app.MapUsuarioEndpoints();
 app.MapAlumnoEndpoints();
 app.MapPagoEndpoints();
+app.MapRubroEndpoints();
 
 app.Run();

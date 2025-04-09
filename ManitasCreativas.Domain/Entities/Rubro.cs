@@ -19,6 +19,7 @@ namespace ManitasCreativas.Domain.Entities
         // Si decides mantener los campos actuales, podrías evaluarlos o incluso eliminarlos
         public int? DiaLimitePago { get; set; }
         public int? MesLimitePago { get; set; }
+        public decimal? MontoPreestablecido { get; set; }
         public ICollection<Pago> Pagos { get; set; }
     }
 }
