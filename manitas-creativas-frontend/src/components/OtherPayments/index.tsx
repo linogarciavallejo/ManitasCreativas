@@ -79,7 +79,7 @@ const OtherPayments: React.FC = () => {
   useEffect(() => {
     const fetchRubros = async () => {
       try {
-        const response: Rubro[] = await makeApiRequest("/rubros", "GET");
+        const response: Rubro[] = await makeApiRequest("/rubrosactivos", "GET");
         setRubros(response);
       } catch (error) {
         message.error("Error al cargar los rubros.");

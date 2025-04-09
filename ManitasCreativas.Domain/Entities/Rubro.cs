@@ -20,6 +20,9 @@ namespace ManitasCreativas.Domain.Entities
         public int? DiaLimitePago { get; set; }
         public int? MesLimitePago { get; set; }
         public decimal? MontoPreestablecido { get; set; }
+
+        public bool? Activo { get; set; } = true;
+
         public ICollection<Pago> Pagos { get; set; }
     }
 }

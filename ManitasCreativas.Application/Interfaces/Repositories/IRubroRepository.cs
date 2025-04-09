@@ -9,4 +9,6 @@ public interface IRubroRepository
     Task AddAsync(Rubro rubro);
     Task UpdateAsync(Rubro rubro);
     Task DeleteAsync(int id);
+    Task<IEnumerable<Rubro>> GetAllActiveAsync();
+
 }

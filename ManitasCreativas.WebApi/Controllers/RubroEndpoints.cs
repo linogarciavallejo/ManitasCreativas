@@ -34,5 +34,11 @@ public static class RubroEndpoints
             await rubroService.DeleteRubroAsync(id);
             return Results.NoContent();
         });
+
+        app.MapGet("/rubrosactivos", async (IRubroService rubroService) =>
+        {
+            return Results.Ok(await rubroService.GetAllRubrosAsync());
+        });
+
     }
 }

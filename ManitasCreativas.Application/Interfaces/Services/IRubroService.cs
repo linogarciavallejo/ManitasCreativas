@@ -9,4 +9,6 @@ public interface IRubroService
     Task AddRubroAsync(RubroDto rubroDto);
     Task UpdateRubroAsync(RubroDto rubroDto);
     Task DeleteRubroAsync(int id);
+    Task<IEnumerable<RubroDto>> GetAllActiveRubrosAsync();
+
 }

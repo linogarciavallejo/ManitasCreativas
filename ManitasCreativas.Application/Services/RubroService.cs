@@ -27,7 +27,8 @@ public class RubroService : IRubroService
             MesColegiatura = r.MesColegiatura,
             DiaLimitePago = r.DiaLimitePago,
             MesLimitePago = r.MesLimitePago,
-            MontoPreestablecido = r.MontoPreestablecido
+            MontoPreestablecido = r.MontoPreestablecido,
+            Activo = r.Activo
         });
     }
 
@@ -44,7 +45,8 @@ public class RubroService : IRubroService
             MesColegiatura = rubro.MesColegiatura,
             DiaLimitePago = rubro.DiaLimitePago,
             MesLimitePago = rubro.MesLimitePago,
-            MontoPreestablecido = rubro.MontoPreestablecido
+            MontoPreestablecido = rubro.MontoPreestablecido,
+            Activo = rubro.Activo
         };
     }
 
@@ -59,7 +61,8 @@ public class RubroService : IRubroService
             MesColegiatura = rubroDto.MesColegiatura,
             DiaLimitePago = rubroDto.DiaLimitePago,
             MesLimitePago = rubroDto.MesLimitePago,
-            MontoPreestablecido = rubroDto.MontoPreestablecido
+            MontoPreestablecido = rubroDto.MontoPreestablecido,
+            Activo = rubroDto.Activo
         };
         await _rubroRepository.AddAsync(rubro);
     }
@@ -76,7 +79,8 @@ public class RubroService : IRubroService
             MesColegiatura = rubroDto.MesColegiatura,
             DiaLimitePago = rubroDto.DiaLimitePago,
             MesLimitePago = rubroDto.MesLimitePago,
-            MontoPreestablecido = rubroDto.MontoPreestablecido
+            MontoPreestablecido = rubroDto.MontoPreestablecido,
+            Activo = rubroDto.Activo
         };
         await _rubroRepository.UpdateAsync(rubro);
     }
@@ -84,5 +88,23 @@ public class RubroService : IRubroService
     public async Task DeleteRubroAsync(int id)
     {
         await _rubroRepository.DeleteAsync(id);
+    }
+
+    public async Task<IEnumerable<RubroDto>> GetAllActiveRubrosAsync()
+    {
+        var rubros = await _rubroRepository.GetAllActiveAsync();
+        return rubros.Select(r => new RubroDto
+        {
+            Id = r.Id,
+            Descripcion = r.Descripcion,
+            Tipo = r.Tipo,
+            PenalizacionPorMora = r.PenalizacionPorMora,
+            FechaLimitePago = r.FechaLimitePago,
+            MesColegiatura = r.MesColegiatura,
+            DiaLimitePago = r.DiaLimitePago,
+            MesLimitePago = r.MesLimitePago,
+            MontoPreestablecido = r.MontoPreestablecido,
+            Activo = r.Activo
+        });
     }
 }

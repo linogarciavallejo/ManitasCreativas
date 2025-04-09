@@ -20,7 +20,7 @@ public class RubroRepository : IRubroRepository
 
     public async Task<IEnumerable<Rubro>> GetAllAsync()
     {
-        return await _context.Rubros.ToListAsync();
+        return await _context.Rubros.OrderBy(r => r.Descripcion).ToListAsync();
     }
 
     public async Task AddAsync(Rubro rubro)
@@ -43,5 +43,13 @@ public class RubroRepository : IRubroRepository
             _context.Rubros.Remove(rubro);
             await _context.SaveChangesAsync();
         }
+    }
+
+    public async Task<IEnumerable<Rubro>> GetAllActiveAsync()
+    {
+        return await _context.Rubros
+            .Where(r => r.Activo == true)
+            .OrderBy(r => r.Descripcion)
+            .ToListAsync();
     }
 }
