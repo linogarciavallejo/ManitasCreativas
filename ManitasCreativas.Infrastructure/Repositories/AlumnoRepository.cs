@@ -72,4 +72,17 @@ public class AlumnoRepository : IAlumnoRepository
             )
             .ToListAsync();
     }
+
+    public async Task<Alumno?> GetAlumnoWithFullPaymentDetailsAsync(int id)
+    {
+        return await _context.Alumnos
+            .Include(a => a.Pagos.OrderBy(p => p.Fecha))
+                .ThenInclude(p => p.Rubro)
+            .Include(a => a.Pagos)
+                .ThenInclude(p => p.ImagenesPago)
+            .Include(a => a.Pagos)
+                .ThenInclude(p => p.Usuario)
+            .FirstOrDefaultAsync(a => a.Id == id);
+    }
+
 }

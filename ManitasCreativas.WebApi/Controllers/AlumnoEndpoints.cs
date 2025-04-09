@@ -59,5 +59,11 @@ public static class AlumnoEndpoints
             var alumnos = await alumnoService.GetAlumnosWithFullNameAsync();
             return Results.Ok(alumnos);
         });
+
+        app.MapGet("/alumnos/{id}/statement", async (int id, IAlumnoService alumnoService) =>
+        {
+            var statement = await alumnoService.GetAlumnoStatementAsync(id);
+            return statement.Any() ? Results.Ok(statement) : Results.NotFound();
+        });
     }
 }

@@ -2,6 +2,7 @@ using ManitasCreativas.Application.DTOs;
 using ManitasCreativas.Application.Interfaces.Repositories;
 using ManitasCreativas.Application.Interfaces.Services;
 using ManitasCreativas.Domain.Entities;
+using ManitasCreativas.Domain.Enums;
 
 public class AlumnoService : IAlumnoService
 {
@@ -124,7 +125,7 @@ public class AlumnoService : IAlumnoService
                 Fecha = p.Fecha,
                 CicloEscolar = p.CicloEscolar,
                 MedioPago = p.MedioPago,
-                RubroNombre = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
+                RubroDescripcion = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
                 ImagenesPago = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
                     .Select(i => new PagoImagenDto
                     {
@@ -177,7 +178,7 @@ public class AlumnoService : IAlumnoService
                 Fecha = p.Fecha,
                 CicloEscolar = p.CicloEscolar,
                 MedioPago = p.MedioPago,
-                RubroNombre = p.Rubro.Descripcion,
+                RubroDescripcion = p.Rubro.Descripcion,
                 ImagenesPago = p.ImagenesPago.Select(pi => new PagoImagenDto
                 {
                     Id = pi.Id,
@@ -213,7 +214,7 @@ public class AlumnoService : IAlumnoService
                 Fecha = p.Fecha,
                 CicloEscolar = p.CicloEscolar,
                 MedioPago = p.MedioPago,
-                RubroNombre = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
+                RubroDescripcion = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
                 ImagenesPago = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
                                 .Select(i => new PagoImagenDto
                                 {
@@ -244,4 +245,46 @@ public class AlumnoService : IAlumnoService
         .OrderBy(dto => dto.FullName)
         .ToList();
     }
+
+    // In AlumnoService.cs
+    public async Task<IEnumerable<PagoReadDto>> GetAlumnoStatementAsync(int id)
+    {
+        var alumno = await _alumnoRepository.GetAlumnoWithFullPaymentDetailsAsync(id);
+
+        if (alumno == null)
+            return Enumerable.Empty<PagoReadDto>();
+
+        return alumno.Pagos.Select(p => new PagoReadDto
+        {
+            Id = p.Id,
+            Monto = p.Monto,
+            Fecha = p.Fecha,
+            CicloEscolar = p.CicloEscolar,
+            MedioPago = p.MedioPago,
+            MedioPagoDescripcion = p.MedioPago.ToString(),
+            RubroId = p.RubroId,
+            RubroDescripcion = p.Rubro?.Descripcion ?? string.Empty,
+            TipoRubro = p.Rubro?.Tipo ?? TipoRubro.Otro,
+            TipoRubroDescripcion = p.Rubro?.Tipo.ToString() ?? string.Empty,
+            EsColegiatura = p.Rubro?.Tipo == TipoRubro.Colegiatura,
+            MesColegiatura = p.MesColegiatura,
+            AnioColegiatura = p.AnioColegiatura,
+            Notas = p.Notas ?? string.Empty,
+            MontoPreestablecido = p.Rubro?.MontoPreestablecido,
+            PenalizacionPorMora = p.Rubro?.PenalizacionPorMora,
+            ImagenesPago = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
+                .Select(i => new PagoImagenDto
+                {
+                    Id = i.Id,
+                    PagoId = i.PagoId,
+                    Url = i.ImagenUrl?.ToString() ?? string.Empty
+                    //FileName = i.FileName ?? string.Empty,
+                    //ContentType = i.ContentType ?? string.Empty
+                })
+                .ToList()
+        })
+        .OrderByDescending(p => p.Fecha)
+        .ToList();
+    }
+
 }

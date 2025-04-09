@@ -30,7 +30,7 @@ public class PagoService : IPagoService
                 Fecha = p.Fecha,
                 CicloEscolar = p.CicloEscolar,
                 MedioPago = p.MedioPago, // Fix: MedioPago is already of type MedioPago
-                RubroNombre = p.Rubro.Descripcion,
+                RubroDescripcion = p.Rubro.Descripcion,
                 ImagenesPago = p.ImagenesPago.Select(pi => new PagoImagenDto
                 {
                     Id = pi.Id,

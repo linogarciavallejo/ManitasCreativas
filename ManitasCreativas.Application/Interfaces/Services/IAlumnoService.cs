@@ -15,4 +15,6 @@ public interface IAlumnoService
     Task<IEnumerable<AlumnoDto>> GetAlumnosByNamesAsync(string nombre, string apellido);
 
     Task<IEnumerable<AlumnoSimpleDto>> GetAlumnosWithFullNameAsync();
+
+    Task<IEnumerable<PagoReadDto>> GetAlumnoStatementAsync(int id);
 }
