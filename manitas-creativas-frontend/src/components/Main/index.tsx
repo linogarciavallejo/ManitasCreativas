@@ -39,7 +39,7 @@ const Main: React.FC = () => {
             {
               key: "3",
               icon: <UploadOutlined />,
-              label: <Link to="/nav3">Estado de Cuenta</Link>,
+              label: <Link to="statement">Estado de Cuenta</Link>,
             },
           ]}
         />

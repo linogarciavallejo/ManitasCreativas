@@ -7,6 +7,8 @@ const SignIn = React.lazy(() => import("../components/SignIn"));
 const Main = React.lazy(() => import("../components/Main"));
 const Tuitions = React.lazy(() => import("../components/Tuitions"));
 const OtherPayments = React.lazy(() => import("../components/OtherPayments"));
+const Statement = React.lazy(() => import("../components/Statement"));
+
 
 const AppRoutes: React.FC = () => {
   //userStore();
@@ -17,6 +19,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/main" element={<Main />}>
         <Route path="tuitions" element={<Tuitions />} />
         <Route path="other-payments" element={<OtherPayments />} />
+        <Route path="statement" element={<Statement />} />
       </Route>
     </Routes>
   );

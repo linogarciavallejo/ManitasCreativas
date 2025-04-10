@@ -254,7 +254,9 @@ public class AlumnoService : IAlumnoService
         if (alumno == null)
             return Enumerable.Empty<PagoReadDto>();
 
-        return alumno.Pagos.Select(p => new PagoReadDto
+        return alumno.Pagos
+            .OrderBy(p => p.Fecha)
+            .Select(p => new PagoReadDto
         {
             Id = p.Id,
             Monto = p.Monto,
@@ -272,6 +274,10 @@ public class AlumnoService : IAlumnoService
             Notas = p.Notas ?? string.Empty,
             MontoPreestablecido = p.Rubro?.MontoPreestablecido,
             PenalizacionPorMora = p.Rubro?.PenalizacionPorMora,
+            UsuarioId = p.UsuarioId,
+            UsuarioNombre = p.Usuario != null
+                ? $"{p.Usuario.Nombres} {p.Usuario.Apellidos}"
+                : string.Empty,
             ImagenesPago = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
                 .Select(i => new PagoImagenDto
                 {
@@ -283,7 +289,6 @@ public class AlumnoService : IAlumnoService
                 })
                 .ToList()
         })
-        .OrderByDescending(p => p.Fecha)
         .ToList();
     }
 
