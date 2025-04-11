@@ -34,6 +34,13 @@ builder.Services.AddCors(options =>
                .AllowAnyHeader()
                .AllowCredentials(); // Enable credentials
     });
+    options.AddPolicy("AllowAllOrigins", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+        // Note: AllowAnyOrigin and AllowCredentials cannot be used together
+    });
 });
 
 // Dependency Injection for Services
@@ -81,6 +88,7 @@ app.UseHttpsRedirection();
 
 // Ensure CORS middleware is applied before mapping endpoints
 app.UseCors("AllowSpecificOrigins");
+app.UseCors("AllowAllOrigins");
 
 // Map Endpoints
 app.UseDefaultFiles();

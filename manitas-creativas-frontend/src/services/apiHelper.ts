@@ -4,7 +4,13 @@ import axios from "axios";
 
 type RequestMethod = "GET" | "POST" | "PUT" | "DELETE";
 
-const API_BASE_URL = "https://localhost:7144";
+// Dynamically determine the API base URL
+// In development, use the hardcoded URL
+// In production (when served from the API), use the current origin
+const isDevelopment = import.meta.env.DEV;
+const API_BASE_URL = isDevelopment 
+  ? "https://localhost:7144" 
+  : ""; // Empty string means it will use relative URLs from current origin
 
 const getFullUrl = (endpoint: string): string => {
   return `${API_BASE_URL}${endpoint}`;

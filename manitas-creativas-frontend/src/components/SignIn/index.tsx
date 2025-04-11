@@ -4,6 +4,7 @@ import { signIn } from '../../services/authService';
 import { useNavigate } from "react-router-dom";
 import 'antd/dist/reset.css'; // Import Ant Design styles
 import './SignIn.css';
+import logoImage from '../../assets/logo_v1.jpg'; // Import the logo properly
 
 const SignIn: React.FC = () => {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ const SignIn: React.FC = () => {
 
   return (
     <div className="sign-in-container">
-      <img src="/src/assets/logo_v1.jpg" alt="Logo" className="logo" />
+      <img src={logoImage} alt="Logo" className="logo" />
       <Form
         name="signIn"
         layout="vertical"
