@@ -79,7 +79,7 @@ const OtherPayments: React.FC = () => {
   useEffect(() => {
     const fetchRubros = async () => {
       try {
-        const response: Rubro[] = await makeApiRequest("/rubrosactivos", "GET");
+        const response = await makeApiRequest<Rubro[]>("/rubrosactivos", "GET");
         setRubros(response);
       } catch (error) {
         message.error("Error al cargar los rubros.");
@@ -92,7 +92,7 @@ const OtherPayments: React.FC = () => {
   // Search by codigo input
   const handleCodigoSearch = async (codigo: string) => {
     try {
-      const response = await makeApiRequest(`/alumnos/codigo/${codigo}`, "GET");
+      const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${codigo}`, "GET");
       setAlumnoId(response.id.toString());
       setSelectedCodigo(response.codigo);
       setSelectedStudent(
@@ -114,7 +114,7 @@ const OtherPayments: React.FC = () => {
       return;
     }
     try {
-      const response: Alumno[] = await makeApiRequest(`/alumnos/full`, "GET", { query: trimmedQuery });
+      const response = await makeApiRequest<Alumno[]>(`/alumnos/full`, "GET");
       const filtered = response.filter((alumno) =>
         alumno.fullName.toLowerCase().includes(trimmedQuery.toLowerCase())
       );
@@ -134,7 +134,7 @@ const OtherPayments: React.FC = () => {
     setAlumnoId(value);
     setSelectedStudent(option.label);
     try {
-      const response: AlumnoDetails = await makeApiRequest(`/alumnos/codigo/${option.codigo}`, "GET");
+      const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${option.codigo}`, "GET");
       setSelectedCodigo(response.codigo);
       // Update contactos info from the response
       setContactos(response.contactos || []);
@@ -191,9 +191,7 @@ const OtherPayments: React.FC = () => {
         }
       });
 
-      //const token = await getAntiforgeryToken();
-
-      const response = await makeApiRequest("/pagos", "POST", formData);
+      const response = await makeApiRequest<any>("/pagos", "POST", formData);
 
       message.success("¡Pago enviado con éxito!");
       console.log("Pago enviado:", response);
@@ -222,7 +220,6 @@ const OtherPayments: React.FC = () => {
             options={typeaheadOptions}
             onSearch={handleTypeaheadSearch}
             onSelect={handleTypeaheadSelect}
-            optionLabelProp="label"
             placeholder="Buscar por Nombre o Apellido"
             style={{ width: "100%" }}
             allowClear
@@ -230,6 +227,7 @@ const OtherPayments: React.FC = () => {
               setAutoCompleteValue("");
               setTypeaheadOptions([]);
             }}
+            fieldNames={{ label: 'label', value: 'value' }}
           />
         </div>
 

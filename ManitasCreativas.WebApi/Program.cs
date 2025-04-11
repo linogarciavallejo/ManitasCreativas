@@ -11,6 +11,11 @@ using ManitasCreativas.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSpaStaticFiles(configuration =>
+{
+    configuration.RootPath = "wwwroot";
+});
+
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument(config =>
@@ -78,9 +83,13 @@ app.UseHttpsRedirection();
 app.UseCors("AllowSpecificOrigins");
 
 // Map Endpoints
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.MapUsuarioEndpoints();
 app.MapAlumnoEndpoints();
 app.MapPagoEndpoints();
 app.MapRubroEndpoints();
+
+app.MapFallbackToFile("index.html"); // Serve the SPA
 
 app.Run();

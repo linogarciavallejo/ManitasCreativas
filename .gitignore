@@ -56,3 +56,5 @@ nunit-*.xml
 /ManitasCreativas.WebApi/appsettings.json
 node_modules
 /package-lock.json
+/ManitasCreativas.WebApi/wwwroot/assets
+/manitas-creativas-frontend/package-lock.json

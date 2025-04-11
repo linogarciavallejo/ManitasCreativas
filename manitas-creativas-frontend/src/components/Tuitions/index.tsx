@@ -67,7 +67,7 @@ const Tuitions: React.FC = () => {
   // Search by codigo input
   const handleCodigoSearch = async (codigo: string) => {
     try {
-      const response = await makeApiRequest(`/alumnos/codigo/${codigo}`, "GET");
+      const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${codigo}`, "GET");
       setAlumnoId(response.id.toString());
       setSelectedCodigo(response.codigo);
       setSelectedStudent(
@@ -89,7 +89,7 @@ const Tuitions: React.FC = () => {
       return;
     }
     try {
-      const response: Alumno[] = await makeApiRequest(`/alumnos/full`, "GET", { query: trimmedQuery });
+      const response = await makeApiRequest<Alumno[]>(`/alumnos/full`, "GET");
       const filtered = response.filter((alumno) =>
         alumno.fullName.toLowerCase().includes(trimmedQuery.toLowerCase())
       );
@@ -109,7 +109,7 @@ const Tuitions: React.FC = () => {
     setAlumnoId(value);
     setSelectedStudent(option.label);
     try {
-      const response: AlumnoDetails = await makeApiRequest(`/alumnos/codigo/${option.codigo}`, "GET");
+      const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${option.codigo}`, "GET");
       setSelectedCodigo(response.codigo);
       // Update contactos info from the response
       setContactos(response.contactos || []);
@@ -139,7 +139,7 @@ const Tuitions: React.FC = () => {
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("Id", 0);
+      formData.append("Id", "0");
       formData.append("Fecha", new Date().toISOString());
       formData.append("CicloEscolar", values.cicloEscolar);
       formData.append("Monto", values.monto.toString());
@@ -151,7 +151,7 @@ const Tuitions: React.FC = () => {
       formData.append("MesColegiatura", values.mes);
       formData.append("AnioColegiatura", new Date().getFullYear().toString());
       if (values.notas) formData.append("Notas", values.notas);
-      formData.append("UsuarioId", 1); // Assuming 1 is the logged-in user ID
+      formData.append("UsuarioId", "1"); // Assuming 1 is the logged-in user ID
       values.imagenesPago.forEach((file, index) => {
         if (file.originFileObj) {
           formData.append(`ImagenesPago[${index}]`, file.originFileObj);
@@ -160,7 +160,7 @@ const Tuitions: React.FC = () => {
 
       //const token = await getAntiforgeryToken();
 
-      const response = await makeApiRequest("/pagos", "POST", formData);
+      const response = await makeApiRequest<any>("/pagos", "POST", formData);
 
       message.success("¡Pago enviado con éxito!");
       console.log("Pago enviado:", response);
@@ -189,10 +189,10 @@ const Tuitions: React.FC = () => {
             options={typeaheadOptions}
             onSearch={handleTypeaheadSearch}
             onSelect={handleTypeaheadSelect}
-            optionLabelProp="label"
             placeholder="Buscar por Nombre o Apellido"
             style={{ width: "100%" }}
             allowClear
+            fieldNames={{ label: 'label', value: 'value' }}
             onClear={() => {
               setAutoCompleteValue("");
               setTypeaheadOptions([]);
