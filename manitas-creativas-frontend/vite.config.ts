@@ -20,6 +20,11 @@ export default defineConfig({
         secure: false,
         rewrite: (path) => path.startsWith('/api/') ? path : `/${path}`
       },
+      '/api/grados': {
+        target: apiBaseUrl,
+        changeOrigin: true,
+        secure: false,
+      },
       '/alumnos': {
         target: 'https://localhost:7144',
         changeOrigin: true,

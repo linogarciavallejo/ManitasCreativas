@@ -86,8 +86,6 @@ public class RubroService : IRubroService
             Tipo = rubroDto.Tipo,
             PenalizacionPorMoraMonto = rubroDto.PenalizacionPorMoraMonto,
             PenalizacionPorMoraPorcentaje = rubroDto.PenalizacionPorMoraPorcentaje,
-            FechaLimitePagoAmarillo = rubroDto.FechaLimitePagoAmarillo,
-            FechaLimitePagoRojo = rubroDto.FechaLimitePagoRojo,
             MesColegiatura = rubroDto.MesColegiatura,
             DiaLimitePagoAmarillo = rubroDto.DiaLimitePagoAmarillo,
             DiaLimitePagoRojo = rubroDto.DiaLimitePagoRojo,
@@ -97,10 +95,25 @@ public class RubroService : IRubroService
             MontoPreestablecido = rubroDto.MontoPreestablecido,
             Notas = rubroDto.Notas,
             Activo = rubroDto.Activo,
-            // Set audit fields for new entity
-            FechaCreacion = DateTime.Now,
             UsuarioCreacion = rubroDto.UsuarioCreacion
         };
+        
+        // Handle DateTime properties explicitly to ensure UTC format for PostgreSQL
+        if (rubroDto.FechaLimitePagoAmarillo.HasValue)
+        {
+            rubro.FechaLimitePagoAmarillo = DateTime.SpecifyKind(
+                rubroDto.FechaLimitePagoAmarillo.Value, DateTimeKind.Utc);
+        }
+        
+        if (rubroDto.FechaLimitePagoRojo.HasValue)
+        {
+            rubro.FechaLimitePagoRojo = DateTime.SpecifyKind(
+                rubroDto.FechaLimitePagoRojo.Value, DateTimeKind.Utc);
+        }
+        
+        // Set FechaCreacion using UTC format
+        rubro.FechaCreacion = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
+        
         await _rubroRepository.AddAsync(rubro);
     }
 
@@ -120,8 +133,6 @@ public class RubroService : IRubroService
             Tipo = rubroDto.Tipo,
             PenalizacionPorMoraMonto = rubroDto.PenalizacionPorMoraMonto,
             PenalizacionPorMoraPorcentaje = rubroDto.PenalizacionPorMoraPorcentaje,
-            FechaLimitePagoAmarillo = rubroDto.FechaLimitePagoAmarillo,
-            FechaLimitePagoRojo = rubroDto.FechaLimitePagoRojo,
             MesColegiatura = rubroDto.MesColegiatura,
             DiaLimitePagoAmarillo = rubroDto.DiaLimitePagoAmarillo,
             DiaLimitePagoRojo = rubroDto.DiaLimitePagoRojo,
@@ -135,9 +146,25 @@ public class RubroService : IRubroService
             FechaCreacion = existingRubro.FechaCreacion,
             UsuarioCreacion = existingRubro.UsuarioCreacion,
             // Update modification information
-            FechaActualizacion = DateTime.Now,
             UsuarioActualizacion = rubroDto.UsuarioActualizacion
         };
+        
+        // Handle DateTime properties explicitly to ensure UTC format for PostgreSQL
+        if (rubroDto.FechaLimitePagoAmarillo.HasValue)
+        {
+            rubro.FechaLimitePagoAmarillo = DateTime.SpecifyKind(
+                rubroDto.FechaLimitePagoAmarillo.Value, DateTimeKind.Utc);
+        }
+        
+        if (rubroDto.FechaLimitePagoRojo.HasValue)
+        {
+            rubro.FechaLimitePagoRojo = DateTime.SpecifyKind(
+                rubroDto.FechaLimitePagoRojo.Value, DateTimeKind.Utc);
+        }
+        
+        // Set FechaActualizacion using UTC format
+        rubro.FechaActualizacion = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
+        
         await _rubroRepository.UpdateAsync(rubro);
     }
 

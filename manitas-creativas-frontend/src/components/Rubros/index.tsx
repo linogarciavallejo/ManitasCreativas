@@ -6,6 +6,7 @@ import './Rubros.css';
 import dayjs from 'dayjs';
 import { rubroService, Rubro } from '../../services/rubroService';
 import { nivelEducativoService, NivelEducativo } from '../../services/nivelEducativoService';
+import { gradoService, Grado } from '../../services/gradoService';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -30,6 +31,8 @@ const Rubros: React.FC = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [nivelesEducativos, setNivelesEducativos] = useState<NivelEducativo[]>([]);
   const [loadingNivelesEducativos, setLoadingNivelesEducativos] = useState<boolean>(false);
+  const [grados, setGrados] = useState<Grado[]>([]);
+  const [loadingGrados, setLoadingGrados] = useState<boolean>(false);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -69,11 +72,39 @@ const Rubros: React.FC = () => {
     }
   };
 
+  // Function to fetch grados by nivel educativo id
+  const fetchGradosByNivelEducativo = async (nivelEducativoId: number) => {
+    if (!nivelEducativoId) {
+      setGrados([]);
+      return;
+    }
+    
+    try {
+      console.log('Fetching grados for nivel educativo ID:', nivelEducativoId);
+      setLoadingGrados(true);
+      const gradosData = await gradoService.getGradosByNivelEducativoId(nivelEducativoId);
+      console.log('Grados fetched successfully:', gradosData);
+      setGrados(gradosData);
+    } catch (error) {
+      console.error('Error fetching grados:', error);
+      message.error('No se pudieron cargar los grados');
+    } finally {
+      setLoadingGrados(false);
+    }
+  };
+
   // Helper function to get nivel educativo name by id
   const getNivelEducativoName = (id: number | undefined): string => {
     if (!id) return '-';
     const nivel = nivelesEducativos.find(nivel => nivel.id === id);
     return nivel ? nivel.nombre : `ID: ${id}`;
+  };
+
+  // Helper function to get grado name by id
+  const getGradoName = (id: number | undefined): string => {
+    if (!id) return '-';
+    const grado = grados.find(grado => grado.id === id);
+    return grado ? grado.nombre : `ID: ${id}`;
   };
 
   // Columns for the table
@@ -100,6 +131,12 @@ const Rubros: React.FC = () => {
       dataIndex: 'nivelEducativoId',
       key: 'nivelEducativoId',
       render: (id: number | undefined) => getNivelEducativoName(id),
+    },
+    {
+      title: 'Grado',
+      dataIndex: 'gradoId',
+      key: 'gradoId',
+      render: (id: number | undefined, record: Rubro) => record.gradoNombre || getGradoName(id) || (id ? `ID: ${id}` : '-'),
     },
     {
       title: 'Monto',
@@ -286,7 +323,6 @@ const Rubros: React.FC = () => {
             <Form.Item
               label="Mes de Colegiatura"
               name="mesColegiatura"
-              rules={[{ required: true, message: 'Por favor seleccione el mes' }]}
             >
               <Select placeholder="Seleccione el mes">
                 <Option value={1}>Enero</Option>
@@ -398,6 +434,16 @@ const Rubros: React.FC = () => {
             allowClear
             showSearch
             optionFilterProp="children"
+            onChange={(value) => {
+              if (value) {
+                fetchGradosByNivelEducativo(value as number);
+                // Clear the grado value when nivel educativo changes
+                form.setFieldsValue({ gradoId: undefined });
+              } else {
+                setGrados([]);
+                form.setFieldsValue({ gradoId: undefined });
+              }
+            }}
             filterOption={(input, option) => 
               option?.children?.toLowerCase().indexOf(input.toLowerCase()) >= 0
             }
@@ -412,11 +458,21 @@ const Rubros: React.FC = () => {
           label="Grado"
           name="gradoId"
         >
-          <InputNumber 
-            placeholder="ID del grado" 
-            min={1}
-            style={{ width: '100%' }}
-          />
+          <Select
+            placeholder="Seleccione el grado"
+            loading={loadingGrados}
+            disabled={form.getFieldValue('nivelEducativoId') === undefined || loadingGrados}
+            allowClear
+            showSearch
+            optionFilterProp="children"
+            filterOption={(input, option) => 
+              option?.children?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            }
+          >
+            {grados.map(grado => (
+              <Option key={grado.id} value={grado.id}>{grado.nombre}</Option>
+            ))}
+          </Select>
         </Form.Item>
         
         <Form.Item

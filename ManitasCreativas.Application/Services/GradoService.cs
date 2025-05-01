@@ -46,7 +46,6 @@ public class GradoService : IGradoService
         var grado = new Grado
         {
             Nombre = gradoDto.Nombre,
-            Descripcion = gradoDto.Descripcion,
             NivelEducativoId = gradoDto.NivelEducativoId,
         };
 
@@ -70,7 +69,6 @@ public class GradoService : IGradoService
         }
 
         existingGrado.Nombre = gradoDto.Nombre;
-        existingGrado.Descripcion = gradoDto.Descripcion;
         existingGrado.NivelEducativoId = gradoDto.NivelEducativoId;
 
         await _gradoRepository.UpdateAsync(existingGrado);
@@ -93,7 +91,6 @@ public class GradoService : IGradoService
         {
             Id = grado.Id,
             Nombre = grado.Nombre,
-            Descripcion = grado.Descripcion,
             NivelEducativoId = grado.NivelEducativoId,
             NivelEducativoNombre = grado.NivelEducativo?.Nombre ?? string.Empty,
         };
