@@ -18,15 +18,6 @@ public static class GradoEndpoints
         .WithName("GetAllGrados")
         .WithDescription("Obtener todos los grados");
 
-        // GET: api/grados/activos  
-        group.MapGet("activos", async (IGradoService gradoService) =>
-        {
-            var grados = await gradoService.GetActiveAsync(); // Fixed method name  
-            return Results.Ok(grados);
-        })
-        .WithName("GetActiveGrados")
-        .WithDescription("Obtener grados activos");
-
         // GET: api/grados/{id}  
         group.MapGet("{id:int}", async (int id, IGradoService gradoService) =>
         {

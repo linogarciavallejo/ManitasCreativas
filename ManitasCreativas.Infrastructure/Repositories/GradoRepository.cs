@@ -35,15 +35,6 @@ public class GradoRepository : IGradoRepository
             .ToListAsync();
     }
 
-    // Remove this method or replace with appropriate logic
-    // since Activo property no longer exists
-    public async Task<IEnumerable<Grado>> GetActiveAsync()
-    {
-        return await _context.Grados
-            .Include(g => g.NivelEducativo)
-            .ToListAsync(); // Return all grades since we don't have Activo flag anymore
-    }
-
     public async Task<Grado> CreateAsync(Grado grado)
     {
         _context.Grados.Add(grado);

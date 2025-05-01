@@ -8,7 +8,6 @@ using Microsoft.Extensions.Options;
 using ManitasCreativas.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using ManitasCreativas.Application.Services;
-using ManitasCreativas.WebApi.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -34,12 +34,6 @@ public class GradoService : IGradoService
         return grados.Select(MapToDto);
     }
 
-    public async Task<IEnumerable<GradoDto>> GetActiveAsync()
-    {
-        var grados = await _gradoRepository.GetActiveAsync();
-        return grados.Select(MapToDto);
-    }
-
     public async Task<GradoDto> CreateAsync(GradoDto gradoDto, string usuarioCreacion)
     {
         // Validate that the NivelEducativo exists
