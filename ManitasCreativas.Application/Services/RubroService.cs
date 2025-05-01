@@ -22,15 +22,29 @@ public class RubroService : IRubroService
             Id = r.Id,
             Descripcion = r.Descripcion,
             Tipo = r.Tipo,
-            PenalizacionPorMora = r.PenalizacionPorMora,
-            FechaLimitePago = r.FechaLimitePago,
+            PenalizacionPorMoraMonto = r.PenalizacionPorMoraMonto,
+            PenalizacionPorMoraPorcentaje = r.PenalizacionPorMoraPorcentaje,
+            FechaLimitePagoAmarillo = r.FechaLimitePagoAmarillo,
+            FechaLimitePagoRojo = r.FechaLimitePagoRojo,
             MesColegiatura = r.MesColegiatura,
-            DiaLimitePago = r.DiaLimitePago,
+            DiaLimitePagoAmarillo = r.DiaLimitePagoAmarillo,
+            DiaLimitePagoRojo = r.DiaLimitePagoRojo,
             MesLimitePago = r.MesLimitePago,
+            NivelEducativoId = r.NivelEducativoId,
+            NivelEducativoNombre = r.NivelEducativo?.Nombre,
+            GradoId = r.GradoId,
+            GradoNombre = r.Grado?.Nombre,
             MontoPreestablecido = r.MontoPreestablecido,
-            Activo = r.Activo
+            Notas = r.Notas,
+            Activo = r.Activo,
+            // Add mapping for audit fields
+            FechaCreacion = r.FechaCreacion,
+            FechaActualizacion = r.FechaActualizacion,
+            UsuarioCreacion = r.UsuarioCreacion,
+            UsuarioActualizacion = r.UsuarioActualizacion
         });
     }
+
 
     public async Task<RubroDto?> GetRubroByIdAsync(int id)
     {
@@ -40,15 +54,29 @@ public class RubroService : IRubroService
             Id = rubro.Id,
             Descripcion = rubro.Descripcion,
             Tipo = rubro.Tipo,
-            PenalizacionPorMora = rubro.PenalizacionPorMora,
-            FechaLimitePago = rubro.FechaLimitePago,
+            PenalizacionPorMoraMonto = rubro.PenalizacionPorMoraMonto,
+            PenalizacionPorMoraPorcentaje = rubro.PenalizacionPorMoraPorcentaje,
+            FechaLimitePagoAmarillo = rubro.FechaLimitePagoAmarillo,
+            FechaLimitePagoRojo = rubro.FechaLimitePagoRojo,
             MesColegiatura = rubro.MesColegiatura,
-            DiaLimitePago = rubro.DiaLimitePago,
+            DiaLimitePagoAmarillo = rubro.DiaLimitePagoAmarillo,
+            DiaLimitePagoRojo = rubro.DiaLimitePagoRojo,
             MesLimitePago = rubro.MesLimitePago,
+            NivelEducativoId = rubro.NivelEducativoId,
+            NivelEducativoNombre = rubro.NivelEducativo?.Nombre,
+            GradoId = rubro.GradoId,
+            GradoNombre = rubro.Grado?.Nombre,
             MontoPreestablecido = rubro.MontoPreestablecido,
-            Activo = rubro.Activo
+            Notas = rubro.Notas,
+            Activo = rubro.Activo,
+            // Add mapping for audit fields
+            FechaCreacion = rubro.FechaCreacion,
+            FechaActualizacion = rubro.FechaActualizacion,
+            UsuarioCreacion = rubro.UsuarioCreacion,
+            UsuarioActualizacion = rubro.UsuarioActualizacion
         };
     }
+
 
     public async Task AddRubroAsync(RubroDto rubroDto)
     {
@@ -56,34 +84,63 @@ public class RubroService : IRubroService
         {
             Descripcion = rubroDto.Descripcion,
             Tipo = rubroDto.Tipo,
-            PenalizacionPorMora = rubroDto.PenalizacionPorMora,
-            FechaLimitePago = rubroDto.FechaLimitePago,
+            PenalizacionPorMoraMonto = rubroDto.PenalizacionPorMoraMonto,
+            PenalizacionPorMoraPorcentaje = rubroDto.PenalizacionPorMoraPorcentaje,
+            FechaLimitePagoAmarillo = rubroDto.FechaLimitePagoAmarillo,
+            FechaLimitePagoRojo = rubroDto.FechaLimitePagoRojo,
             MesColegiatura = rubroDto.MesColegiatura,
-            DiaLimitePago = rubroDto.DiaLimitePago,
+            DiaLimitePagoAmarillo = rubroDto.DiaLimitePagoAmarillo,
+            DiaLimitePagoRojo = rubroDto.DiaLimitePagoRojo,
             MesLimitePago = rubroDto.MesLimitePago,
+            NivelEducativoId = rubroDto.NivelEducativoId,
+            GradoId = rubroDto.GradoId,
             MontoPreestablecido = rubroDto.MontoPreestablecido,
-            Activo = rubroDto.Activo
+            Notas = rubroDto.Notas,
+            Activo = rubroDto.Activo,
+            // Set audit fields for new entity
+            FechaCreacion = DateTime.Now,
+            UsuarioCreacion = rubroDto.UsuarioCreacion
         };
         await _rubroRepository.AddAsync(rubro);
     }
 
     public async Task UpdateRubroAsync(RubroDto rubroDto)
     {
+        // First get the existing rubro to preserve creation info
+        var existingRubro = await _rubroRepository.GetByIdAsync(rubroDto.Id);
+        if (existingRubro == null)
+        {
+            throw new KeyNotFoundException($"Rubro with ID {rubroDto.Id} not found.");
+        }
+
         var rubro = new Rubro
         {
             Id = rubroDto.Id,
             Descripcion = rubroDto.Descripcion,
             Tipo = rubroDto.Tipo,
-            PenalizacionPorMora = rubroDto.PenalizacionPorMora,
-            FechaLimitePago = rubroDto.FechaLimitePago,
+            PenalizacionPorMoraMonto = rubroDto.PenalizacionPorMoraMonto,
+            PenalizacionPorMoraPorcentaje = rubroDto.PenalizacionPorMoraPorcentaje,
+            FechaLimitePagoAmarillo = rubroDto.FechaLimitePagoAmarillo,
+            FechaLimitePagoRojo = rubroDto.FechaLimitePagoRojo,
             MesColegiatura = rubroDto.MesColegiatura,
-            DiaLimitePago = rubroDto.DiaLimitePago,
+            DiaLimitePagoAmarillo = rubroDto.DiaLimitePagoAmarillo,
+            DiaLimitePagoRojo = rubroDto.DiaLimitePagoRojo,
             MesLimitePago = rubroDto.MesLimitePago,
+            NivelEducativoId = rubroDto.NivelEducativoId,
+            GradoId = rubroDto.GradoId,
             MontoPreestablecido = rubroDto.MontoPreestablecido,
-            Activo = rubroDto.Activo
+            Notas = rubroDto.Notas,
+            Activo = rubroDto.Activo,
+            // Preserve original creation information
+            FechaCreacion = existingRubro.FechaCreacion,
+            UsuarioCreacion = existingRubro.UsuarioCreacion,
+            // Update modification information
+            FechaActualizacion = DateTime.Now,
+            UsuarioActualizacion = rubroDto.UsuarioActualizacion
         };
         await _rubroRepository.UpdateAsync(rubro);
     }
+
 
     public async Task DeleteRubroAsync(int id)
     {
@@ -98,13 +155,26 @@ public class RubroService : IRubroService
             Id = r.Id,
             Descripcion = r.Descripcion,
             Tipo = r.Tipo,
-            PenalizacionPorMora = r.PenalizacionPorMora,
-            FechaLimitePago = r.FechaLimitePago,
+            PenalizacionPorMoraMonto = r.PenalizacionPorMoraMonto,
+            PenalizacionPorMoraPorcentaje = r.PenalizacionPorMoraPorcentaje,
+            FechaLimitePagoAmarillo = r.FechaLimitePagoAmarillo,
+            FechaLimitePagoRojo = r.FechaLimitePagoRojo,
             MesColegiatura = r.MesColegiatura,
-            DiaLimitePago = r.DiaLimitePago,
+            DiaLimitePagoAmarillo = r.DiaLimitePagoAmarillo,
+            DiaLimitePagoRojo = r.DiaLimitePagoRojo,
             MesLimitePago = r.MesLimitePago,
+            NivelEducativoId = r.NivelEducativoId,
+            NivelEducativoNombre = r.NivelEducativo?.Nombre,
+            GradoId = r.GradoId,
+            GradoNombre = r.Grado?.Nombre,
             MontoPreestablecido = r.MontoPreestablecido,
-            Activo = r.Activo
+            Notas = r.Notas,
+            Activo = r.Activo,
+            // Add mapping for audit fields
+            FechaCreacion = r.FechaCreacion,
+            FechaActualizacion = r.FechaActualizacion,
+            UsuarioCreacion = r.UsuarioCreacion,
+            UsuarioActualizacion = r.UsuarioActualizacion
         });
     }
 }

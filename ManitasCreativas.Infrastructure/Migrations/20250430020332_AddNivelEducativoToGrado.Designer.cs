@@ -3,6 +3,7 @@ using System;
 using ManitasCreativas.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ManitasCreativas.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250430020332_AddNivelEducativoToGrado")]
+    partial class AddNivelEducativoToGrado
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -40,17 +43,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("Estado")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("FechaActualizacion")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
                     b.Property<int>("GradoId")
                         .HasColumnType("integer");
 
@@ -60,9 +52,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.Property<string>("PrimerNombre")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Seccion")
                         .HasColumnType("text");
 
                     b.Property<int>("SedeId")
@@ -76,22 +65,13 @@ namespace ManitasCreativas.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("UsuarioActualizacion")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("UsuarioCreacion")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("GradoId");
 
                     b.HasIndex("SedeId");
 
-                    b.ToTable("Alumnos", (string)null);
+                    b.ToTable("Alumnos");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.AlumnoContacto", b =>
@@ -118,7 +98,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasIndex("ContactoId");
 
-                    b.ToTable("AlumnoContactos", (string)null);
+                    b.ToTable("AlumnoContactos");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Contacto", b =>
@@ -132,43 +112,26 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.Property<int>("AlumnoId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Celular")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Direccion")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Nit")
                         .HasColumnType("text");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("TelefonoTrabajo")
+                    b.Property<string>("Telefono")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Contactos", (string)null);
+                    b.ToTable("Contactos");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Grado", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("NivelEducativoId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Nombre")
@@ -177,9 +140,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("NivelEducativoId");
-
-                    b.ToTable("Grados", (string)null);
+                    b.ToTable("Grados");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.NivelEducativo", b =>
@@ -199,7 +160,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("NivelesEducativos", (string)null);
+                    b.ToTable("NivelesEducativos");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Pago", b =>
@@ -225,14 +186,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("FechaActualizacion")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
                     b.Property<int>("MedioPago")
                         .HasColumnType("integer");
 
@@ -248,15 +201,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.Property<int>("RubroId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("UsuarioActualizacion")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("UsuarioCreacion")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.Property<int?>("UsuarioId")
                         .HasColumnType("integer");
 
@@ -268,7 +212,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Pagos", (string)null);
+                    b.ToTable("Pagos");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.PagoImagen", b =>
@@ -279,14 +223,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime?>("FechaActualizacion")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
                     b.Property<string>("ImagenUrl")
                         .IsRequired()
                         .HasColumnType("text");
@@ -294,20 +230,11 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.Property<int>("PagoId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("UsuarioActualizacion")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("UsuarioCreacion")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("PagoId");
 
-                    b.ToTable("PagoImagenes", (string)null);
+                    b.ToTable("PagoImagenes");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Rol", b =>
@@ -327,7 +254,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles", (string)null);
+                    b.ToTable("Roles");
 
                     b.HasData(
                         new
@@ -359,28 +286,11 @@ namespace ManitasCreativas.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("DiaLimitePagoAmarillo")
+                    b.Property<int?>("DiaLimitePago")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("DiaLimitePagoRojo")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("FechaActualizacion")
+                    b.Property<DateTime?>("FechaLimitePago")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<DateTime?>("FechaLimitePagoAmarillo")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("FechaLimitePagoRojo")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("GradoId")
-                        .HasColumnType("integer");
 
                     b.Property<int?>("MesColegiatura")
                         .HasColumnType("integer");
@@ -391,37 +301,15 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.Property<decimal?>("MontoPreestablecido")
                         .HasColumnType("numeric");
 
-                    b.Property<int?>("NivelEducativoId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Notas")
-                        .HasColumnType("text");
-
-                    b.Property<decimal?>("PenalizacionPorMoraMonto")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal?>("PenalizacionPorMoraPorcentaje")
+                    b.Property<decimal?>("PenalizacionPorMora")
                         .HasColumnType("numeric");
 
                     b.Property<int>("Tipo")
                         .HasColumnType("integer");
 
-                    b.Property<string>("UsuarioActualizacion")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("UsuarioCreacion")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("GradoId");
-
-                    b.HasIndex("NivelEducativoId");
-
-                    b.ToTable("Rubros", (string)null);
+                    b.ToTable("Rubros");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Sede", b =>
@@ -442,7 +330,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Sedes", (string)null);
+                    b.ToTable("Sedes");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Usuario", b =>
@@ -487,7 +375,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasIndex("RolId");
 
-                    b.ToTable("Usuarios", (string)null);
+                    b.ToTable("Usuarios");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Alumno", b =>
@@ -532,7 +420,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
                 {
                     b.HasOne("ManitasCreativas.Domain.Entities.NivelEducativo", "NivelEducativo")
                         .WithMany("Grados")
-                        .HasForeignKey("NivelEducativoId")
+                        .HasForeignKey("Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -573,21 +461,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Pago");
-                });
-
-            modelBuilder.Entity("ManitasCreativas.Domain.Entities.Rubro", b =>
-                {
-                    b.HasOne("ManitasCreativas.Domain.Entities.Grado", "Grado")
-                        .WithMany()
-                        .HasForeignKey("GradoId");
-
-                    b.HasOne("ManitasCreativas.Domain.Entities.NivelEducativo", "NivelEducativo")
-                        .WithMany()
-                        .HasForeignKey("NivelEducativoId");
-
-                    b.Navigation("Grado");
-
-                    b.Navigation("NivelEducativo");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Usuario", b =>

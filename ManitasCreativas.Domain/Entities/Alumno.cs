@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ManitasCreativas.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -19,8 +20,17 @@ namespace ManitasCreativas.Domain.Entities
         public required Sede Sede { get; set; }
         public int GradoId { get; set; }
         public required Grado Grado { get; set; }
+        public string ? Seccion { get; set; }
         public bool? Becado { get; set; }
         public decimal? BecaParcialPorcentaje { get; set; }
+        public EstadoAlumno Estado { get; set; } = EstadoAlumno.Activo;
+
+        // Audit fields
+        public DateTime FechaCreacion { get; set; }
+        public DateTime? FechaActualizacion { get; set; }
+        public string UsuarioCreacion { get; set; } = string.Empty;
+        public string? UsuarioActualizacion { get; set; }
+
         public ICollection<Pago> Pagos { get; set; }
         public ICollection<AlumnoContacto> AlumnoContactos { get; set; }
     }

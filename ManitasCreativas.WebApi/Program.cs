@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using ManitasCreativas.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using ManitasCreativas.Application.Services;
+using ManitasCreativas.WebApi.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +48,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IAlumnoService, AlumnoService>();
 builder.Services.AddScoped<IRubroService, RubroService>();
+builder.Services.AddScoped<INivelEducativoService, NivelEducativoService>();
+builder.Services.AddScoped<IGradoService, GradoService>();
 
 // Inject S3Service into PagoService
 builder.Services.AddScoped<S3Service>();
@@ -62,6 +65,8 @@ builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IAlumnoRepository, AlumnoRepository>();
 builder.Services.AddScoped<IPagoRepository, PagoRepository>();
 builder.Services.AddScoped<IRubroRepository, RubroRepository>();
+builder.Services.AddScoped<INivelEducativoRepository, NivelEducativoRepository>();
+builder.Services.AddScoped<IGradoRepository, GradoRepository>();
 
 // Add DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -97,6 +102,8 @@ app.MapUsuarioEndpoints();
 app.MapAlumnoEndpoints();
 app.MapPagoEndpoints();
 app.MapRubroEndpoints();
+app.MapNivelEducativoEndpoints();
+app.MapGradoEndpoints();
 
 app.MapFallbackToFile("index.html"); // Serve the SPA
 

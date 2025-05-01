@@ -22,7 +22,21 @@ public class PagoReadDto
     public string Notas { get; set; } = string.Empty;
     public List<PagoImagenDto> ImagenesPago { get; set; } = new List<PagoImagenDto>();
     public decimal? MontoPreestablecido { get; set; }
-    public decimal? PenalizacionPorMora { get; set; }
+    public decimal? PenalizacionPorMoraMonto { get; set; }
+    public decimal? PenalizacionPorMoraPorcentaje { get; set; }
+
+    public DateTime? FechaLimitePagoAmarillo { get; set; }
+    public DateTime? FechaLimitePagoRojo { get; set; }
+    public int? DiaLimitePagoAmarillo { get; set; }
+    public int? DiaLimitePagoRojo { get; set; }
+    public int? MesLimitePago { get; set; }
+
     public int? UsuarioId { get; set; }
     public string UsuarioNombre { get; set; } = string.Empty;
+    
+    // Audit fields
+    public DateTime FechaCreacion { get; set; }
+    public DateTime? FechaActualizacion { get; set; }
+    public string UsuarioCreacion { get; set; } = string.Empty;
+    public string? UsuarioActualizacion { get; set; }
 }

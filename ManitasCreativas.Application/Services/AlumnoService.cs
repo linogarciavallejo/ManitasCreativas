@@ -3,10 +3,12 @@ using ManitasCreativas.Application.Interfaces.Repositories;
 using ManitasCreativas.Application.Interfaces.Services;
 using ManitasCreativas.Domain.Entities;
 using ManitasCreativas.Domain.Enums;
+using NivelEducativo = ManitasCreativas.Domain.Entities.NivelEducativo;
 
 public class AlumnoService : IAlumnoService
 {
     private readonly IAlumnoRepository _alumnoRepository;
+    private readonly IGradoRepository _gradoRepository;
 
     public AlumnoService(IAlumnoRepository alumnoRepository)
     {
@@ -67,6 +69,13 @@ public class AlumnoService : IAlumnoService
 
     public async Task AddAlumnoAsync(AlumnoDto alumnoDto)
     {
+        // Fetch the Grado entity, including its NivelEducativo
+        var grado = await _gradoRepository.GetByIdAsync(alumnoDto.GradoId);
+        if (grado == null)
+        {
+            throw new Exception($"Grado with ID {alumnoDto.GradoId} not found.");
+        }
+
         var alumno = new Alumno
         {
             PrimerNombre = alumnoDto.PrimerNombre,
@@ -75,13 +84,20 @@ public class AlumnoService : IAlumnoService
             SegundoApellido = alumnoDto.SegundoApellido,
             Codigo = alumnoDto.Codigo,
             Sede = new Sede { Id = alumnoDto.SedeId, Nombre = alumnoDto.SedeNombre },
-            Grado = new Grado { Id = alumnoDto.GradoId, Nombre = alumnoDto.GradoNombre }
+            Grado = grado
         };
         await _alumnoRepository.AddAsync(alumno);
     }
 
     public async Task UpdateAlumnoAsync(AlumnoDto alumnoDto)
     {
+        // Fetch the Grado entity, including its NivelEducativo
+        var grado = await _gradoRepository.GetByIdAsync(alumnoDto.GradoId);
+        if (grado == null)
+        {
+            throw new Exception($"Grado with ID {alumnoDto.GradoId} not found.");
+        }
+
         var alumno = new Alumno
         {
             Id = alumnoDto.Id,
@@ -91,7 +107,7 @@ public class AlumnoService : IAlumnoService
             SegundoApellido = alumnoDto.SegundoApellido,
             Codigo = alumnoDto.Codigo,
             Sede = new Sede { Id = alumnoDto.SedeId, Nombre = alumnoDto.SedeNombre },
-            Grado = new Grado { Id = alumnoDto.GradoId, Nombre = alumnoDto.GradoNombre }
+            Grado = grado
         };
         await _alumnoRepository.UpdateAsync(alumno);
     }
@@ -144,8 +160,11 @@ public class AlumnoService : IAlumnoService
                 {
                     Id = ac.Contacto.Id,
                     Nombre = ac.Contacto.Nombre,
-                    Telefono = ac.Contacto.Telefono,
+                    TelefonoTrabajo = ac.Contacto.TelefonoTrabajo,
+                    Celular = ac.Contacto.Celular,
+                    Direccion = ac.Contacto.Direccion,
                     Email = ac.Contacto.Email,
+                    Nit = ac.Contacto.Nit,
                 },
                 Parentesco = ac.Parentesco,
             }).ToList()
@@ -273,7 +292,13 @@ public class AlumnoService : IAlumnoService
             AnioColegiatura = p.AnioColegiatura,
             Notas = p.Notas ?? string.Empty,
             MontoPreestablecido = p.Rubro?.MontoPreestablecido,
-            PenalizacionPorMora = p.Rubro?.PenalizacionPorMora,
+            PenalizacionPorMoraMonto = p.Rubro?.PenalizacionPorMoraMonto,
+            PenalizacionPorMoraPorcentaje = p.Rubro?.PenalizacionPorMoraPorcentaje,
+            FechaLimitePagoAmarillo = p.Rubro?.FechaLimitePagoAmarillo,
+            FechaLimitePagoRojo = p.Rubro?.FechaLimitePagoRojo,
+            DiaLimitePagoAmarillo = p.Rubro?.DiaLimitePagoAmarillo,
+            DiaLimitePagoRojo = p.Rubro?.DiaLimitePagoRojo,
+            MesLimitePago = p.Rubro?.MesLimitePago,
             UsuarioId = p.UsuarioId,
             UsuarioNombre = p.Usuario != null
                 ? $"{p.Usuario.Nombres} {p.Usuario.Apellidos}"

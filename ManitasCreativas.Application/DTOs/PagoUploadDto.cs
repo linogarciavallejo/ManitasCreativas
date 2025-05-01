@@ -19,4 +19,10 @@ public class PagoUploadDto
     public string Notas { get; set; } = string.Empty;
     public int UsuarioId { get; set; } = 0;
     public List<IFormFile>? ImagenesPago { get; set; } = new();
+    
+    // Audit fields
+    public DateTime FechaCreacion { get; set; }
+    public DateTime? FechaActualizacion { get; set; }
+    public string UsuarioCreacion { get; set; } = string.Empty;
+    public string? UsuarioActualizacion { get; set; }
 }

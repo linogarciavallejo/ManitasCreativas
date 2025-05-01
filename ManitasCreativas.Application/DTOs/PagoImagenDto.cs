@@ -8,4 +8,10 @@ public class PagoImagenDto
     public string Base64Content { get; set; } = string.Empty;
     public string FileName { get; set; } = string.Empty;
     public string ContentType { get; set; } = string.Empty;
+    
+    // Audit fields
+    public DateTime FechaCreacion { get; set; }
+    public DateTime? FechaActualizacion { get; set; }
+    public string UsuarioCreacion { get; set; } = string.Empty;
+    public string? UsuarioActualizacion { get; set; }
 }

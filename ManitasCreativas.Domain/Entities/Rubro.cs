@@ -12,16 +12,50 @@ namespace ManitasCreativas.Domain.Entities
         public int Id { get; set; }
         public required string Descripcion { get; set; }
         public TipoRubro Tipo { get; set; }
-        public decimal? PenalizacionPorMora { get; set; }
-        public DateTime? FechaLimitePago { get; set; }
-        // Opcional: Si deseas tener explícitamente el mes para los rubros de colegiatura
-        public int? MesColegiatura { get; set; }
-        // Si decides mantener los campos actuales, podrías evaluarlos o incluso eliminarlos
-        public int? DiaLimitePago { get; set; }
-        public int? MesLimitePago { get; set; }
-        public decimal? MontoPreestablecido { get; set; }
+        public decimal? PenalizacionPorMoraMonto { get; set; }
+        public decimal? PenalizacionPorMoraPorcentaje { get; set; }
 
+        public DateTime? FechaLimitePagoAmarillo { get; set; }
+        // Opcional: Si deseas tener explícitamente la fecha para los rubros de colegiatura. Este campo es para el rango amarillo.
+
+        public DateTime? FechaLimitePagoRojo { get; set; }
+        // Opcional: Si deseas tener explícitamente la fecha para los rubros de colegiatura. Este campo es para el rango rojo.
+
+        public int? MesColegiatura { get; set; }
+        // Opcional: Si deseas tener explícitamente el mes para los rubros de colegiatura.
+        public int? DiaLimitePagoAmarillo { get; set; }
+        // Opcional: Si deseas tener explícitamente el dia para los rubros de colegiatura. Este campo es para el rango amarillo: 1-5 dias de atraso.
+
+        public int? DiaLimitePagoRojo { get; set; }
+        // Opcional: Si deseas tener explícitamente el dia para los rubros de colegiatura. Este campo es para el rango rojo: 6-15 dias de atraso.
+
+        public int? MesLimitePago { get; set; }
+        // Opcional: Si deseas tener explícitamente el mes para los rubros de colegiatura
+
+        public int? NivelEducativoId { get; set; }
+        // Opcional: Si deseas tener explícitamente el nivel educativo relacionado con algun rubro especifico, por ejemplo: Inscripcion, uniforme, etc.
+
+        public NivelEducativo? NivelEducativo { get; set; }
+        // Opcional: Si deseas tener explícitamente el nivel educativo relacionado con algun rubro especifico, por ejemplo: Inscripcion, uniforme, etc.
+
+        public int? GradoId { get; set; }
+        // Opcional: Si deseas tener explícitamente el grado relacionado con algun rubro especifico, por ejemplo: Inscripcion, uniforme, etc.
+
+        public Grado? Grado { get; set; }
+        // Opcional: Si deseas tener explícitamente el grado relacionado con algun rubro especifico, por ejemplo: Inscripcion, uniforme, etc.
+
+        public decimal? MontoPreestablecido { get; set; }
+        // Opcional: Si deseas tener explícitamente el monto preestablecido relacionado con algun rubro especifico, por ejemplo: Inscripcion, uniforme, etc.
+
+        public string? Notas { get; set; } = string.Empty;
+        // Opcional: Si deseas tener notas adicionales para el rubro.
         public bool? Activo { get; set; } = true;
+
+        // Audit fields
+        public DateTime FechaCreacion { get; set; }
+        public DateTime? FechaActualizacion { get; set; }
+        public string UsuarioCreacion { get; set; } = string.Empty;
+        public string? UsuarioActualizacion { get; set; }
 
         public ICollection<Pago> Pagos { get; set; }
     }

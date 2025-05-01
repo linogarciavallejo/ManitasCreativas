@@ -8,7 +8,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     public AppDbContext CreateDbContext(string[] args)
     {
         // Cadena de conexión hardcodeada
-        var connectionString = "";
+        var connectionString = "Host=manitascreativas.c1iw2yc4coaj.us-east-2.rds.amazonaws.com;Port=5432;Database=manitascreativas;Username=postgres;Password=IngenieroLonas";
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
         optionsBuilder.UseNpgsql(connectionString);

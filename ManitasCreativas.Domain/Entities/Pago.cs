@@ -26,5 +26,10 @@ namespace ManitasCreativas.Domain.Entities
         public int? UsuarioId { get; set; }
         public Usuario? Usuario { get; set; } // Relación opcional con Usuario
 
+        // Audit fields
+        public DateTime FechaCreacion { get; set; }
+        public DateTime? FechaActualizacion { get; set; }
+        public string UsuarioCreacion { get; set; } = string.Empty;
+        public string? UsuarioActualizacion { get; set; }
     }
 }

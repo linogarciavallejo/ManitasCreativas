@@ -1,0 +1,80 @@
+.rubros-container {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.rubros-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.rubros-header h2 {
+  margin-bottom: 0;
+}
+
+.rubros-filter {
+  margin-bottom: 24px;
+}
+
+/* Table styling */
+.ant-table-thead > tr > th {
+  background-color: #f7f7f7;
+  font-weight: 600;
+}
+
+/* Add some spacing around the table */
+.ant-table-wrapper {
+  margin-top: 16px;
+}
+
+/* Custom styles for action buttons */
+.ant-btn-primary {
+  background-color: #1890ff;
+}
+
+.ant-btn-danger {
+  color: #ff4d4f;
+  border-color: #ff4d4f;
+}
+
+.ant-btn-danger:hover {
+  color: #fff;
+  background-color: #ff4d4f;
+  border-color: #ff4d4f;
+}
+
+/* Make the description column wider */
+.ant-table-column-has-sorters:nth-child(2) {
+  min-width: 200px;
+}
+
+/* Style date columns */
+.ant-table-column-has-sorters:nth-child(5),
+.ant-table-column-has-sorters:nth-child(6) {
+  white-space: nowrap;
+}
+
+/* Modal form styling */
+.ant-modal-body {
+  padding: 24px;
+}
+
+.ant-modal-body .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.ant-form-item-label > label {
+  font-weight: 500;
+}
+
+.ant-input-number-prefix {
+  color: #666;
+}

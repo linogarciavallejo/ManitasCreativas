@@ -28,11 +28,11 @@ export async function makeApiRequest<T>(
   if (method === "GET") {
     response = await axios.get(url, { withCredentials });
   } else if (method === "POST") {
-    response = await axios.post(url, data);
+    response = await axios.post(url, data, { withCredentials });
   } else if (method === "PUT") {
-    response = await axios.put(url, data);
+    response = await axios.put(url, data, { withCredentials });
   } else if (method === "DELETE") {
-    response = await axios.delete(url);
+    response = await axios.delete(url, { withCredentials });
   } else {
     throw new Error("Invalid request method");
   }

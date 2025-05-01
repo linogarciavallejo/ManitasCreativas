@@ -1,5 +1,6 @@
 using ManitasCreativas.Application.Interfaces.Services;
 using ManitasCreativas.Application.DTOs;
+using System.Security.Claims;
 
 public static class RubroEndpoints
 {
@@ -16,15 +17,24 @@ public static class RubroEndpoints
             return rubro is not null ? Results.Ok(rubro) : Results.NotFound();
         });
 
-        app.MapPost("/rubros", async (RubroDto rubroDto, IRubroService rubroService) =>
+        app.MapPost("/rubros", async (RubroDto rubroDto, IRubroService rubroService, HttpContext httpContext) =>
         {
+            // Set audit fields for creation
+            rubroDto.FechaCreacion = DateTime.Now;
+            rubroDto.UsuarioCreacion = httpContext.User?.FindFirstValue(ClaimTypes.Name) ?? "system";
+            
             await rubroService.AddRubroAsync(rubroDto);
             return Results.Created($"/rubros/{rubroDto.Id}", rubroDto);
         });
 
-        app.MapPut("/rubros/{id}", async (int id, RubroDto rubroDto, IRubroService rubroService) =>
+        app.MapPut("/rubros/{id}", async (int id, RubroDto rubroDto, IRubroService rubroService, HttpContext httpContext) =>
         {
             rubroDto.Id = id;
+            
+            // Set audit fields for update
+            rubroDto.FechaActualizacion = DateTime.Now;
+            rubroDto.UsuarioActualizacion = httpContext.User?.FindFirstValue(ClaimTypes.Name) ?? "system";
+            
             await rubroService.UpdateRubroAsync(rubroDto);
             return Results.NoContent();
         });
@@ -37,8 +47,8 @@ public static class RubroEndpoints
 
         app.MapGet("/rubrosactivos", async (IRubroService rubroService) =>
         {
-            return Results.Ok(await rubroService.GetAllRubrosAsync());
+            // Fixed to call GetAllActiveRubrosAsync instead of GetAllRubrosAsync
+            return Results.Ok(await rubroService.GetAllActiveRubrosAsync());
         });
-
     }
 }

@@ -12,5 +12,11 @@ namespace ManitasCreativas.Domain.Entities
         public required Uri ImagenUrl { get; set; } // URL of the image
         public int PagoId { get; set; }
         public Pago Pago { get; set; }
+
+        // Audit fields
+        public DateTime FechaCreacion { get; set; }
+        public DateTime? FechaActualizacion { get; set; }
+        public string UsuarioCreacion { get; set; } = string.Empty;
+        public string? UsuarioActualizacion { get; set; }
     }
 }

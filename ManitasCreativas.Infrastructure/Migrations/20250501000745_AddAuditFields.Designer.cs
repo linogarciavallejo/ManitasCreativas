@@ -3,6 +3,7 @@ using System;
 using ManitasCreativas.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ManitasCreativas.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250501000745_AddAuditFields")]
+    partial class AddAuditFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -91,7 +94,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasIndex("SedeId");
 
-                    b.ToTable("Alumnos", (string)null);
+                    b.ToTable("Alumnos");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.AlumnoContacto", b =>
@@ -118,7 +121,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasIndex("ContactoId");
 
-                    b.ToTable("AlumnoContactos", (string)null);
+                    b.ToTable("AlumnoContactos");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Contacto", b =>
@@ -157,7 +160,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Contactos", (string)null);
+                    b.ToTable("Contactos");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Grado", b =>
@@ -179,7 +182,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasIndex("NivelEducativoId");
 
-                    b.ToTable("Grados", (string)null);
+                    b.ToTable("Grados");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.NivelEducativo", b =>
@@ -199,7 +202,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("NivelesEducativos", (string)null);
+                    b.ToTable("NivelesEducativos");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Pago", b =>
@@ -268,7 +271,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Pagos", (string)null);
+                    b.ToTable("Pagos");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.PagoImagen", b =>
@@ -307,7 +310,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasIndex("PagoId");
 
-                    b.ToTable("PagoImagenes", (string)null);
+                    b.ToTable("PagoImagenes");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Rol", b =>
@@ -327,7 +330,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles", (string)null);
+                    b.ToTable("Roles");
 
                     b.HasData(
                         new
@@ -421,7 +424,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasIndex("NivelEducativoId");
 
-                    b.ToTable("Rubros", (string)null);
+                    b.ToTable("Rubros");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Sede", b =>
@@ -442,7 +445,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Sedes", (string)null);
+                    b.ToTable("Sedes");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Usuario", b =>
@@ -487,7 +490,7 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.HasIndex("RolId");
 
-                    b.ToTable("Usuarios", (string)null);
+                    b.ToTable("Usuarios");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Alumno", b =>
