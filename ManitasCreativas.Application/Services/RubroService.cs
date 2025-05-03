@@ -98,21 +98,25 @@ public class RubroService : IRubroService
             UsuarioCreacion = rubroDto.UsuarioCreacion
         };
         
-        // Handle DateTime properties explicitly to ensure UTC format for PostgreSQL
+        // Handle DateTime properties correctly by converting to UTC
         if (rubroDto.FechaLimitePagoAmarillo.HasValue)
         {
-            rubro.FechaLimitePagoAmarillo = DateTime.SpecifyKind(
-                rubroDto.FechaLimitePagoAmarillo.Value, DateTimeKind.Utc);
+            var dateTime = rubroDto.FechaLimitePagoAmarillo.Value;
+            rubro.FechaLimitePagoAmarillo = dateTime.Kind != DateTimeKind.Utc 
+                ? dateTime.ToUniversalTime() 
+                : dateTime;
         }
         
         if (rubroDto.FechaLimitePagoRojo.HasValue)
         {
-            rubro.FechaLimitePagoRojo = DateTime.SpecifyKind(
-                rubroDto.FechaLimitePagoRojo.Value, DateTimeKind.Utc);
+            var dateTime = rubroDto.FechaLimitePagoRojo.Value;
+            rubro.FechaLimitePagoRojo = dateTime.Kind != DateTimeKind.Utc 
+                ? dateTime.ToUniversalTime() 
+                : dateTime;
         }
         
-        // Set FechaCreacion using UTC format
-        rubro.FechaCreacion = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
+        // Set FechaCreacion using UTC time
+        rubro.FechaCreacion = DateTime.UtcNow;
         
         await _rubroRepository.AddAsync(rubro);
     }
@@ -149,21 +153,25 @@ public class RubroService : IRubroService
             UsuarioActualizacion = rubroDto.UsuarioActualizacion
         };
         
-        // Handle DateTime properties explicitly to ensure UTC format for PostgreSQL
+        // Handle DateTime properties correctly by converting to UTC
         if (rubroDto.FechaLimitePagoAmarillo.HasValue)
         {
-            rubro.FechaLimitePagoAmarillo = DateTime.SpecifyKind(
-                rubroDto.FechaLimitePagoAmarillo.Value, DateTimeKind.Utc);
+            var dateTime = rubroDto.FechaLimitePagoAmarillo.Value;
+            rubro.FechaLimitePagoAmarillo = dateTime.Kind != DateTimeKind.Utc 
+                ? dateTime.ToUniversalTime() 
+                : dateTime;
         }
         
         if (rubroDto.FechaLimitePagoRojo.HasValue)
         {
-            rubro.FechaLimitePagoRojo = DateTime.SpecifyKind(
-                rubroDto.FechaLimitePagoRojo.Value, DateTimeKind.Utc);
+            var dateTime = rubroDto.FechaLimitePagoRojo.Value;
+            rubro.FechaLimitePagoRojo = dateTime.Kind != DateTimeKind.Utc 
+                ? dateTime.ToUniversalTime() 
+                : dateTime;
         }
         
-        // Set FechaActualizacion using UTC format
-        rubro.FechaActualizacion = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
+        // Set FechaActualizacion using UTC time
+        rubro.FechaActualizacion = DateTime.UtcNow;
         
         await _rubroRepository.UpdateAsync(rubro);
     }

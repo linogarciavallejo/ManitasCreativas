@@ -253,6 +253,12 @@ const Rubros: React.FC = () => {
       fechaLimitePagoAmarillo: record.fechaLimitePagoAmarillo ? dayjs(record.fechaLimitePagoAmarillo) : undefined,
       fechaLimitePagoRojo: record.fechaLimitePagoRojo ? dayjs(record.fechaLimitePagoRojo) : undefined,
     });
+    
+    // Fetch grados if a nivel educativo is specified
+    if (record.nivelEducativoId) {
+      fetchGradosByNivelEducativo(record.nivelEducativoId);
+    }
+    
     setModalVisible(true);
   };
 

@@ -115,13 +115,16 @@ namespace ManitasCreativas.Infrastructure
         
         private void UpdateAuditFields()
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow; // Use UTC time for all audit fields
             
             foreach (var entry in ChangeTracker.Entries())
             {
                 // Skip entities that aren't being added or modified
                 if (entry.State != EntityState.Added && entry.State != EntityState.Modified)
                     continue;
+                
+                // Convert all DateTime properties to UTC before saving
+                ConvertDateTimePropertiesToUtc(entry);
                 
                 // Handle audit fields for Rubro
                 if (entry.Entity is Rubro rubro)
@@ -196,6 +199,31 @@ namespace ManitasCreativas.Infrastructure
                         // Prevent changes to creation audit fields
                         entry.Property("FechaCreacion").IsModified = false;
                         entry.Property("UsuarioCreacion").IsModified = false;
+                    }
+                }
+            }
+        }
+
+        // Helper method to convert all DateTime properties to UTC
+        private void ConvertDateTimePropertiesToUtc(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry)
+        {
+            foreach (var property in entry.Properties)
+            {
+                // Handle regular DateTime properties
+                if (property.CurrentValue is DateTime dateTime)
+                {
+                    if (dateTime.Kind != DateTimeKind.Utc)
+                    {
+                        property.CurrentValue = dateTime.ToUniversalTime();
+                    }
+                }
+                // Handle nullable DateTime properties
+                else if (property.CurrentValue is DateTime?)
+                {
+                    var nullableDateTime = (DateTime?)property.CurrentValue;
+                    if (nullableDateTime.HasValue && nullableDateTime.Value.Kind != DateTimeKind.Utc)
+                    {
+                        property.CurrentValue = nullableDateTime.Value.ToUniversalTime();
                     }
                 }
             }

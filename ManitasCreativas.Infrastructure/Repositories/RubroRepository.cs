@@ -56,22 +56,8 @@ public class RubroRepository : IRubroRepository
 
     public async Task AddAsync(Rubro rubro)
     {
-        // Ensure all DateTime properties are in UTC format
-        if (rubro.FechaLimitePagoAmarillo.HasValue)
-        {
-            rubro.FechaLimitePagoAmarillo = DateTime.SpecifyKind(
-                rubro.FechaLimitePagoAmarillo.Value, DateTimeKind.Utc);
-        }
-        
-        if (rubro.FechaLimitePagoRojo.HasValue)
-        {
-            rubro.FechaLimitePagoRojo = DateTime.SpecifyKind(
-                rubro.FechaLimitePagoRojo.Value, DateTimeKind.Utc);
-        }
-        
-        // Ensure FechaCreacion is UTC
-        rubro.FechaCreacion = DateTime.SpecifyKind(rubro.FechaCreacion, DateTimeKind.Utc);
-        
+        // The service layer should have already converted DateTime values to UTC
+        // This simplifies the repository implementation
         await _context.Rubros.AddAsync(rubro);
         await _context.SaveChangesAsync();
     }
@@ -137,7 +123,10 @@ public class RubroRepository : IRubroRepository
             var amarilloParam = new Npgsql.NpgsqlParameter("@FechaLimitePagoAmarillo", System.Data.DbType.DateTime);
             if (rubro.FechaLimitePagoAmarillo.HasValue)
             {
-                amarilloParam.Value = DateTime.SpecifyKind(rubro.FechaLimitePagoAmarillo.Value, DateTimeKind.Utc);
+                var dateTime = rubro.FechaLimitePagoAmarillo.Value;
+                amarilloParam.Value = dateTime.Kind != DateTimeKind.Utc 
+                    ? dateTime.ToUniversalTime() 
+                    : dateTime;
             }
             else
             {
@@ -147,7 +136,10 @@ public class RubroRepository : IRubroRepository
             var rojoParam = new Npgsql.NpgsqlParameter("@FechaLimitePagoRojo", System.Data.DbType.DateTime);
             if (rubro.FechaLimitePagoRojo.HasValue)
             {
-                rojoParam.Value = DateTime.SpecifyKind(rubro.FechaLimitePagoRojo.Value, DateTimeKind.Utc);
+                var dateTime = rubro.FechaLimitePagoRojo.Value;
+                rojoParam.Value = dateTime.Kind != DateTimeKind.Utc 
+                    ? dateTime.ToUniversalTime() 
+                    : dateTime;
             }
             else
             {

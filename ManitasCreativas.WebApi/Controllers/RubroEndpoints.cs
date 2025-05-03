@@ -19,8 +19,8 @@ public static class RubroEndpoints
 
         app.MapPost("/rubros", async (RubroDto rubroDto, IRubroService rubroService, HttpContext httpContext) =>
         {
-            // Set audit fields for creation
-            rubroDto.FechaCreacion = DateTime.Now;
+            // Set audit fields for creation with UTC dates
+            rubroDto.FechaCreacion = DateTime.UtcNow;
             rubroDto.UsuarioCreacion = httpContext.User?.FindFirstValue(ClaimTypes.Name) ?? "system";
             
             await rubroService.AddRubroAsync(rubroDto);
@@ -31,8 +31,8 @@ public static class RubroEndpoints
         {
             rubroDto.Id = id;
             
-            // Set audit fields for update
-            rubroDto.FechaActualizacion = DateTime.Now;
+            // Set audit fields for update with UTC dates
+            rubroDto.FechaActualizacion = DateTime.UtcNow;
             rubroDto.UsuarioActualizacion = httpContext.User?.FindFirstValue(ClaimTypes.Name) ?? "system";
             
             await rubroService.UpdateRubroAsync(rubroDto);
