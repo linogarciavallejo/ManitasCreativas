@@ -100,134 +100,90 @@ const Rubros: React.FC = () => {
     return nivel ? nivel.nombre : `ID: ${id}`;
   };
 
-  // Helper function to get grado name by id
-  const getGradoName = (id: number | undefined): string => {
-    if (!id) return '-';
-    const grado = grados.find(grado => grado.id === id);
-    return grado ? grado.nombre : `ID: ${id}`;
-  };
-
   // Columns for the table
   const columns = [
+    // ID column - commented out
+    /*
     {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
-      width: 60,
+      width: 10,
     },
+    */
     {
       title: 'Descripción',
       dataIndex: 'descripcion',
       key: 'descripcion',
+      width: 70,
     },
+    // Tipo column - commented out for potential future use
+    /*
     {
       title: 'Tipo',
       dataIndex: 'tipo',
       key: 'tipo',
+      width: 75,
       render: (tipo: number) => tipoRubroOptions.find(option => option.value === tipo)?.label || 'Desconocido',
     },
+    */
     {
       title: 'Nivel Educativo',
       dataIndex: 'nivelEducativoId',
       key: 'nivelEducativoId',
+      width: 15, // Reduced by 50% from 30px
+      ellipsis: true,
       render: (id: number | undefined) => getNivelEducativoName(id),
-    },
-    {
-      title: 'Grado',
-      dataIndex: 'gradoId',
-      key: 'gradoId',
-      render: (id: number | undefined, record: Rubro) => record.gradoNombre || getGradoName(id) || (id ? `ID: ${id}` : '-'),
     },
     {
       title: 'Monto',
       dataIndex: 'montoPreestablecido',
       key: 'montoPreestablecido',
+      width: 35,
+      align: 'right',
       render: (value: number | undefined) => value ? `Q${value.toFixed(2)}` : '-',
     },
-    {
-      title: 'Fecha Límite Amarilla',
-      dataIndex: 'fechaLimitePagoAmarillo',
-      key: 'fechaLimitePagoAmarillo',
-      render: (date: string | undefined) => date ? dayjs(date).format('DD/MM/YYYY') : '-',
-    },
-    {
-      title: 'Fecha Límite Roja',
-      dataIndex: 'fechaLimitePagoRojo',
-      key: 'fechaLimitePagoRojo',
-      render: (date: string | undefined) => date ? dayjs(date).format('DD/MM/YYYY') : '-',
-    },
-    {
-      title: 'Día Límite Amarillo',
-      dataIndex: 'diaLimitePagoAmarillo',
-      key: 'diaLimitePagoAmarillo',
-      render: (value: number | undefined) => value || '-',
-    },
-    {
-      title: 'Día Límite Rojo',
-      dataIndex: 'diaLimitePagoRojo',
-      key: 'diaLimitePagoRojo',
-      render: (value: number | undefined) => value || '-',
-    },
-    {
-      title: 'Mes Límite',
-      dataIndex: 'mesLimitePago',
-      key: 'mesLimitePago',
-      render: (value: number | undefined) => {
-        if (!value) return '-';
-        const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-        return months[value - 1];
-      },
-    },
-    {
-      title: 'Mora Monto',
-      dataIndex: 'penalizacionPorMoraMonto',
-      key: 'penalizacionPorMoraMonto',
-      render: (value: number | undefined) => value ? `Q${value.toFixed(2)}` : '-',
-    },
-    {
-      title: 'Mora %',
-      dataIndex: 'penalizacionPorMoraPorcentaje',
-      key: 'penalizacionPorMoraPorcentaje',
-      render: (value: number | undefined) => value ? `${value}%` : '-',
-    },
+    // Estado column - commented out for potential future use
+    /*
     {
       title: 'Estado',
-      dataIndex: 'activo',
-      key: 'activo',
-      render: (activo: boolean) => (
-        <Tag color={activo ? 'green' : 'red'}>
-          {activo ? 'Activo' : 'Inactivo'}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Información',
-      key: 'audit',
+      key: 'status',
+      width: 58,
       render: (_: any, record: Rubro) => (
-        <Tooltip title={
-          <div>
-            <p><strong>Creado:</strong> {dayjs(record.fechaCreacion).format('DD/MM/YYYY HH:mm')}</p>
-            <p><strong>Por:</strong> {record.usuarioCreacion}</p>
-            {record.fechaActualizacion && (
-              <>
-                <p><strong>Actualizado:</strong> {dayjs(record.fechaActualizacion).format('DD/MM/YYYY HH:mm')}</p>
-                <p><strong>Por:</strong> {record.usuarioActualizacion}</p>
-              </>
-            )}
-          </div>
-        }>
-          <Button icon={<InfoCircleOutlined />} type="text" />
-        </Tooltip>
+        <Space size="small" style={{ display: 'flex', flexWrap: 'nowrap' }}>
+          <Tag color={record.activo ? 'green' : 'red'} style={{ fontSize: '11px', padding: '0 4px', margin: 0 }}>
+            {record.activo ? 'Activo' : 'Inactivo'}
+          </Tag>
+          <Tooltip title={
+            <div>
+              <p><strong>Creado:</strong> {dayjs(record.fechaCreacion).format('DD/MM/YYYY HH:mm')}</p>
+              <p><strong>Por:</strong> {record.usuarioCreacion}</p>
+              {record.fechaActualizacion && (
+                <>
+                  <p><strong>Actualizado:</strong> {dayjs(record.fechaActualizacion).format('DD/MM/YYYY HH:mm')}</p>
+                  <p><strong>Por:</strong> {record.usuarioActualizacion}</p>
+                </>
+              )}
+            </div>
+          }>
+            <Button icon={<InfoCircleOutlined />} type="text" size="small" style={{ padding: '0', margin: 0, minWidth: '24px', height: '24px' }} />
+          </Tooltip>
+        </Space>
       ),
     },
+    */
     {
       title: 'Acciones',
       key: 'actions',
+      width: 50,
+      align: 'center',
       render: (_: any, record: Rubro) => (
-        <Space size="middle">
+        <Space size={0} style={{ display: 'flex', justifyContent: 'center' }}>
           <Button 
             type="primary" 
             icon={<EditOutlined />} 
+            size="small"
+            style={{ padding: '0 4px', fontSize: '12px', marginRight: 4, height: '24px', minWidth: '28px' }}
             onClick={() => handleEdit(record)}
           />
           <Popconfirm
@@ -247,7 +203,9 @@ const Rubros: React.FC = () => {
           >
             <Button 
               danger 
-              icon={<DeleteOutlined />} 
+              icon={<DeleteOutlined />}
+              size="small"
+              style={{ padding: '0 4px', fontSize: '12px', height: '24px', minWidth: '28px' }}
             />
           </Popconfirm>
         </Space>
@@ -343,6 +301,57 @@ const Rubros: React.FC = () => {
     
     return (
       <>
+        <Form.Item
+          label="Nivel Educativo"
+          name="nivelEducativoId"
+        >
+          <Select 
+            placeholder="Seleccione el nivel educativo"
+            loading={loadingNivelesEducativos}
+            allowClear
+            showSearch
+            optionFilterProp="children"
+            onChange={(value) => {
+              if (value) {
+                fetchGradosByNivelEducativo(value as number);
+                // Clear the grado value when nivel educativo changes
+                form.setFieldsValue({ gradoId: undefined });
+              } else {
+                setGrados([]);
+                form.setFieldsValue({ gradoId: undefined });
+              }
+            }}
+            filterOption={(input, option) => 
+              option?.children?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            }
+          >
+            {nivelesEducativos.map(nivel => (
+              <Option key={nivel.id} value={nivel.id}>{nivel.nombre}</Option>
+            ))}
+          </Select>
+        </Form.Item>
+        
+        <Form.Item
+          label="Grado"
+          name="gradoId"
+        >
+          <Select
+            placeholder="Seleccione el grado"
+            loading={loadingGrados}
+            disabled={form.getFieldValue('nivelEducativoId') === undefined || loadingGrados}
+            allowClear
+            showSearch
+            optionFilterProp="children"
+            filterOption={(input, option) => 
+              option?.children?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            }
+          >
+            {grados.map(grado => (
+              <Option key={grado.id} value={grado.id}>{grado.nombre}</Option>
+            ))}
+          </Select>
+        </Form.Item>
+        
         {tipoValue === 0 && ( // Only show for Colegiatura
           <>
             <Form.Item
@@ -450,57 +459,6 @@ const Rubros: React.FC = () => {
         )}
         
         <Form.Item
-          label="Nivel Educativo"
-          name="nivelEducativoId"
-        >
-          <Select 
-            placeholder="Seleccione el nivel educativo"
-            loading={loadingNivelesEducativos}
-            allowClear
-            showSearch
-            optionFilterProp="children"
-            onChange={(value) => {
-              if (value) {
-                fetchGradosByNivelEducativo(value as number);
-                // Clear the grado value when nivel educativo changes
-                form.setFieldsValue({ gradoId: undefined });
-              } else {
-                setGrados([]);
-                form.setFieldsValue({ gradoId: undefined });
-              }
-            }}
-            filterOption={(input, option) => 
-              option?.children?.toLowerCase().indexOf(input.toLowerCase()) >= 0
-            }
-          >
-            {nivelesEducativos.map(nivel => (
-              <Option key={nivel.id} value={nivel.id}>{nivel.nombre}</Option>
-            ))}
-          </Select>
-        </Form.Item>
-        
-        <Form.Item
-          label="Grado"
-          name="gradoId"
-        >
-          <Select
-            placeholder="Seleccione el grado"
-            loading={loadingGrados}
-            disabled={form.getFieldValue('nivelEducativoId') === undefined || loadingGrados}
-            allowClear
-            showSearch
-            optionFilterProp="children"
-            filterOption={(input, option) => 
-              option?.children?.toLowerCase().indexOf(input.toLowerCase()) >= 0
-            }
-          >
-            {grados.map(grado => (
-              <Option key={grado.id} value={grado.id}>{grado.nombre}</Option>
-            ))}
-          </Select>
-        </Form.Item>
-        
-        <Form.Item
           label="Notas"
           name="notas"
         >
@@ -543,7 +501,8 @@ const Rubros: React.FC = () => {
         pagination={{ pageSize: 10 }}
         bordered
         loading={fetchingData}
-        scroll={{ x: 1500 }}
+        scroll={{ x: 170 }}
+        size="small"
       />
 
       <Modal
