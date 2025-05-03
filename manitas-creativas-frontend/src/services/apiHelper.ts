@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getCurrentUsername } from './authService';
 
 //axios.defaults.withCredentials = true; // Ensure cookies are sent with requests
 
@@ -16,6 +17,23 @@ const getFullUrl = (endpoint: string): string => {
   return `${API_BASE_URL}${endpoint}`;
 };
 
+// Helper function to add audit information to data payloads
+export const addAuditInfo = (data: any, isCreate: boolean): any => {
+  const username = getCurrentUsername();
+  
+  // Clone the original data
+  const dataWithAudit = { ...data };
+  
+  // Add audit information
+  if (isCreate) {
+    dataWithAudit.usuarioCreacion = username;
+  } else {
+    dataWithAudit.usuarioActualizacion = username;
+  }
+  
+  return dataWithAudit;
+};
+
 export async function makeApiRequest<T>(
   endpoint: string,
   method: RequestMethod = "GET",
@@ -23,16 +41,40 @@ export async function makeApiRequest<T>(
   withCredentials: boolean = true
 ): Promise<T> {
   const url = getFullUrl(endpoint);
+  
+  // Prepare headers
+  const headers: Record<string, string> = {};
+  
+  // Add the X-Username header to every request
+  headers['X-Username'] = getCurrentUsername();
+
+  // Add audit information for POST and PUT requests
+  let requestData = data;
+  if (data && (method === "POST" || method === "PUT")) {
+    requestData = addAuditInfo(data, method === "POST");
+  }
 
   let response;
   if (method === "GET") {
-    response = await axios.get(url, { withCredentials });
+    response = await axios.get(url, { 
+      withCredentials,
+      headers
+    });
   } else if (method === "POST") {
-    response = await axios.post(url, data, { withCredentials });
+    response = await axios.post(url, requestData, { 
+      withCredentials,
+      headers
+    });
   } else if (method === "PUT") {
-    response = await axios.put(url, data, { withCredentials });
+    response = await axios.put(url, requestData, { 
+      withCredentials,
+      headers
+    });
   } else if (method === "DELETE") {
-    response = await axios.delete(url, { withCredentials });
+    response = await axios.delete(url, { 
+      withCredentials,
+      headers
+    });
   } else {
     throw new Error("Invalid request method");
   }
