@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Form, Input, Button, Select, DatePicker, InputNumber, Switch, Modal, Space, Typography, Popconfirm, message, Tooltip, Tag } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { Table, Form, Input, Button, Select, DatePicker, InputNumber, Switch, Modal, Space, Typography, Popconfirm, message, Tooltip, Tag, Card, Row, Col } from 'antd';
+import { EditOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined, InfoCircleOutlined, SearchOutlined } from '@ant-design/icons';
 import 'antd/dist/reset.css';
 import './Rubros.css';
 import dayjs from 'dayjs';
@@ -24,7 +24,9 @@ const tipoRubroOptions = [
 
 const Rubros: React.FC = () => {
   const [form] = Form.useForm();
+  const [searchForm] = Form.useForm();
   const [data, setData] = useState<Rubro[]>([]);
+  const [filteredData, setFilteredData] = useState<Rubro[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [fetchingData, setFetchingData] = useState<boolean>(true);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
@@ -33,6 +35,10 @@ const Rubros: React.FC = () => {
   const [loadingNivelesEducativos, setLoadingNivelesEducativos] = useState<boolean>(false);
   const [grados, setGrados] = useState<Grado[]>([]);
   const [loadingGrados, setLoadingGrados] = useState<boolean>(false);
+  const [searchText, setSearchText] = useState<string>('');
+  const [selectedNivelEducativo, setSelectedNivelEducativo] = useState<number | null>(null);
+  const [montoMin, setMontoMin] = useState<number | null>(null);
+  const [montoMax, setMontoMax] = useState<number | null>(null);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -44,18 +50,72 @@ const Rubros: React.FC = () => {
     loadData();
   }, []);
 
+  // Apply filters when data or filter criteria change
+  useEffect(() => {
+    applyFilters();
+  }, [data, searchText, selectedNivelEducativo, montoMin, montoMax]);
+
   // Function to fetch rubros from API
   const fetchRubros = async () => {
     try {
       setFetchingData(true);
       const rubros = await rubroService.getAllRubros();
-      setData(rubros);
+      // Sort the rubros alphabetically by descripcion by default
+      const sortedRubros = [...rubros].sort((a, b) => 
+        a.descripcion.localeCompare(b.descripcion)
+      );
+      setData(sortedRubros);
+      setFilteredData(sortedRubros);
     } catch (error) {
       console.error('Error fetching rubros:', error);
       message.error('No se pudieron cargar los rubros');
     } finally {
       setFetchingData(false);
     }
+  };
+
+  // Function to apply filters to the data
+  const applyFilters = () => {
+    let filtered = [...data];
+    
+    // Filter by descripcion (case-insensitive)
+    if (searchText) {
+      filtered = filtered.filter(rubro => 
+        rubro.descripcion.toLowerCase().includes(searchText.toLowerCase())
+      );
+    }
+    
+    // Filter by nivel educativo
+    if (selectedNivelEducativo) {
+      filtered = filtered.filter(rubro => 
+        rubro.nivelEducativoId === selectedNivelEducativo
+      );
+    }
+    
+    // Filter by monto min
+    if (montoMin !== null) {
+      filtered = filtered.filter(rubro => 
+        rubro.montoPreestablecido !== undefined && rubro.montoPreestablecido >= montoMin
+      );
+    }
+    
+    // Filter by monto max
+    if (montoMax !== null) {
+      filtered = filtered.filter(rubro => 
+        rubro.montoPreestablecido !== undefined && rubro.montoPreestablecido <= montoMax
+      );
+    }
+    
+    setFilteredData(filtered);
+  };
+
+  // Handle search form reset
+  const handleReset = () => {
+    searchForm.resetFields();
+    setSearchText('');
+    setSelectedNivelEducativo(null);
+    setMontoMin(null);
+    setMontoMax(null);
   };
 
   // Function to fetch niveles educativos from API
@@ -102,31 +162,14 @@ const Rubros: React.FC = () => {
 
   // Columns for the table
   const columns = [
-    // ID column - commented out
-    /*
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 10,
-    },
-    */
     {
       title: 'Descripción',
       dataIndex: 'descripcion',
       key: 'descripcion',
       width: 70,
+      sorter: (a: Rubro, b: Rubro) => a.descripcion.localeCompare(b.descripcion),
+      defaultSortOrder: 'ascend',
     },
-    // Tipo column - commented out for potential future use
-    /*
-    {
-      title: 'Tipo',
-      dataIndex: 'tipo',
-      key: 'tipo',
-      width: 75,
-      render: (tipo: number) => tipoRubroOptions.find(option => option.value === tipo)?.label || 'Desconocido',
-    },
-    */
     {
       title: 'Nivel Educativo',
       dataIndex: 'nivelEducativoId',
@@ -142,36 +185,12 @@ const Rubros: React.FC = () => {
       width: 35,
       align: 'right',
       render: (value: number | undefined) => value ? `Q${value.toFixed(2)}` : '-',
+      sorter: (a: Rubro, b: Rubro) => {
+        const montoA = a.montoPreestablecido || 0;
+        const montoB = b.montoPreestablecido || 0;
+        return montoA - montoB;
+      },
     },
-    // Estado column - commented out for potential future use
-    /*
-    {
-      title: 'Estado',
-      key: 'status',
-      width: 58,
-      render: (_: any, record: Rubro) => (
-        <Space size="small" style={{ display: 'flex', flexWrap: 'nowrap' }}>
-          <Tag color={record.activo ? 'green' : 'red'} style={{ fontSize: '11px', padding: '0 4px', margin: 0 }}>
-            {record.activo ? 'Activo' : 'Inactivo'}
-          </Tag>
-          <Tooltip title={
-            <div>
-              <p><strong>Creado:</strong> {dayjs(record.fechaCreacion).format('DD/MM/YYYY HH:mm')}</p>
-              <p><strong>Por:</strong> {record.usuarioCreacion}</p>
-              {record.fechaActualizacion && (
-                <>
-                  <p><strong>Actualizado:</strong> {dayjs(record.fechaActualizacion).format('DD/MM/YYYY HH:mm')}</p>
-                  <p><strong>Por:</strong> {record.usuarioActualizacion}</p>
-                </>
-              )}
-            </div>
-          }>
-            <Button icon={<InfoCircleOutlined />} type="text" size="small" style={{ padding: '0', margin: 0, minWidth: '24px', height: '24px' }} />
-          </Tooltip>
-        </Space>
-      ),
-    },
-    */
     {
       title: 'Acciones',
       key: 'actions',
@@ -212,6 +231,80 @@ const Rubros: React.FC = () => {
       ),
     },
   ];
+
+  // Render the search panel
+  const renderSearchPanel = () => {
+    return (
+      <Card style={{ marginBottom: 16 }}>
+        <Form form={searchForm} layout="vertical">
+          <Row gutter={16}>
+            <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+              <Form.Item label="Descripción">
+                <Input 
+                  placeholder="Buscar por descripción" 
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  prefix={<SearchOutlined />}
+                  allowClear
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+              <Form.Item label="Nivel Educativo">
+                <Select 
+                  placeholder="Filtrar por nivel educativo"
+                  value={selectedNivelEducativo}
+                  onChange={(value) => setSelectedNivelEducativo(value)}
+                  loading={loadingNivelesEducativos}
+                  allowClear
+                  showSearch
+                  optionFilterProp="children"
+                >
+                  {nivelesEducativos.map(nivel => (
+                    <Option key={nivel.id} value={nivel.id}>{nivel.nombre}</Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+              <Form.Item label="Monto (Q)">
+                <Space>
+                  <InputNumber
+                    placeholder="Desde"
+                    style={{ width: 125 }}
+                    value={montoMin}
+                    onChange={(value) => setMontoMin(value)}
+                    min={0}
+                    step={50}
+                    prefix="Q"
+                    controls={false}
+                  />
+                  <span>a</span>
+                  <InputNumber
+                    placeholder="Hasta"
+                    style={{ width: 125 }}
+                    value={montoMax}
+                    onChange={(value) => setMontoMax(value)}
+                    min={montoMin || 0}
+                    step={50}
+                    prefix="Q"
+                    controls={false}
+                  />
+                </Space>
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row justify="end">
+            <Space>
+              <Button onClick={handleReset} icon={<ReloadOutlined />}>
+                Limpiar Filtros
+              </Button>
+            </Space>
+          </Row>
+        </Form>
+      </Card>
+    );
+  };
 
   const handleEdit = (record: Rubro) => {
     setEditingId(record.id);
@@ -494,9 +587,11 @@ const Rubros: React.FC = () => {
         </Space>
       </div>
 
+      {renderSearchPanel()}
+
       <Table 
         columns={columns} 
-        dataSource={data} 
+        dataSource={filteredData} 
         rowKey="id"
         pagination={{ pageSize: 10 }}
         bordered
