@@ -29,6 +29,46 @@ export interface Rubro {
   usuarioActualizacion?: string;
 }
 
+// Interface for payment data
+export interface PagoItem {
+  id: number;
+  monto: number;
+  fecha: string;
+  cicloEscolar: number;
+  medioPago: number;
+  medioPagoDescripcion: string;
+  rubroId: number;
+  rubroDescripcion: string;
+  tipoRubro: number;
+  tipoRubroDescripcion: string;
+  esColegiatura: boolean;
+  mesColegiatura?: number;
+  anioColegiatura?: number;
+  notas: string;
+  imagenesPago: Array<{
+    id: number;
+    pagoId: number;
+    url: string;
+    nombreArchivo: string;
+    fechaCreacion: string;
+    usuarioCreacion: string;
+  }>;
+  montoPreestablecido?: number;
+  penalizacionPorMoraMonto?: number;
+  penalizacionPorMoraPorcentaje?: number;
+  fechaLimitePagoAmarillo?: string;
+  fechaLimitePagoRojo?: string;
+  diaLimitePagoAmarillo?: number;
+  diaLimitePagoRojo?: number;
+  mesLimitePago?: number;
+  usuarioId?: number;
+  usuarioNombre: string;
+  fechaCreacion: string;
+  fechaActualizacion?: string;
+  usuarioCreacion: string;
+  usuarioActualizacion?: string;
+}
+
 // Service for interacting with Rubro API endpoints
 export const rubroService = {
   // Get all rubros
@@ -61,5 +101,20 @@ export const rubroService = {
   // Delete a rubro
   deleteRubro: async (id: number): Promise<void> => {
     await makeApiRequest<void>(`/rubros/${id}`, 'DELETE');
+  },
+
+  // Get all pagos for a specific rubro
+  getPagosByRubroId: async (rubroId: number): Promise<PagoItem[]> => {
+    return await makeApiRequest<PagoItem[]>(`/rubros/${rubroId}/pagos`, 'GET');
+  },
+
+  // Get the count of pagos for a specific rubro
+  getPagosCountByRubroId: async (rubroId: number): Promise<number> => {
+    return await makeApiRequest<number>(`/rubros/${rubroId}/pagoscount`, 'GET');
+  },
+  
+  // Check if a rubro can be safely deleted
+  canDeleteRubro: async (rubroId: number): Promise<boolean> => {
+    return await makeApiRequest<boolean>(`/rubros/${rubroId}/candelete`, 'GET');
   }
 };

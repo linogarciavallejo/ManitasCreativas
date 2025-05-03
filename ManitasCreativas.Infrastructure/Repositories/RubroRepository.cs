@@ -189,4 +189,29 @@ public class RubroRepository : IRubroRepository
 
         return rubros;
     }
+
+    public async Task<IEnumerable<Pago>> GetPagosByRubroIdAsync(int rubroId)
+    {
+        // Check if the rubro exists first
+        var rubroExists = await _context.Rubros.AnyAsync(r => r.Id == rubroId);
+        if (!rubroExists)
+        {
+            throw new KeyNotFoundException($"Rubro with ID {rubroId} not found.");
+        }
+
+        return await _context.Pagos
+            .Where(p => p.RubroId == rubroId)
+            .Include(p => p.Alumno)
+            .Include(p => p.Usuario)
+            .Include(p => p.ImagenesPago)
+            .OrderByDescending(p => p.Fecha)
+            .ToListAsync();
+    }
+
+    public async Task<int> GetPagosCountByRubroIdAsync(int rubroId)
+    {
+        return await _context.Pagos
+            .Where(p => p.RubroId == rubroId)
+            .CountAsync();
+    }
 }

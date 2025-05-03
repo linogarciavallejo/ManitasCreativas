@@ -212,4 +212,60 @@ public class RubroService : IRubroService
             UsuarioActualizacion = r.UsuarioActualizacion
         });
     }
+
+    public async Task<IEnumerable<PagoReadDto>> GetPagosByRubroIdAsync(int rubroId)
+    {
+        var pagos = await _rubroRepository.GetPagosByRubroIdAsync(rubroId);
+        
+        return pagos.Select(p => new PagoReadDto
+        {
+            Id = p.Id,
+            Monto = p.Monto,
+            Fecha = p.Fecha,
+            CicloEscolar = p.CicloEscolar,
+            MedioPago = p.MedioPago,
+            MedioPagoDescripcion = p.MedioPago.ToString(),
+            RubroId = p.RubroId,
+            RubroDescripcion = p.Rubro?.Descripcion ?? "N/A",
+            TipoRubro = p.Rubro?.Tipo ?? 0,
+            TipoRubroDescripcion = p.Rubro?.Tipo.ToString() ?? "N/A",
+            EsColegiatura = p.EsColegiatura,
+            MesColegiatura = p.EsColegiatura ? p.MesColegiatura : null,
+            AnioColegiatura = p.EsColegiatura ? p.AnioColegiatura : null,
+            Notas = p.Notas ?? string.Empty,
+            ImagenesPago = p.ImagenesPago?.Select(img => new PagoImagenDto
+            {
+                Id = img.Id,
+                PagoId = img.PagoId,
+                Url = img.ImagenUrl.ToString(),
+                FechaCreacion = img.FechaCreacion,
+                UsuarioCreacion = img.UsuarioCreacion
+            }).ToList() ?? new List<PagoImagenDto>(),
+            MontoPreestablecido = p.Rubro?.MontoPreestablecido,
+            PenalizacionPorMoraMonto = p.Rubro?.PenalizacionPorMoraMonto,
+            PenalizacionPorMoraPorcentaje = p.Rubro?.PenalizacionPorMoraPorcentaje,
+            FechaLimitePagoAmarillo = p.Rubro?.FechaLimitePagoAmarillo,
+            FechaLimitePagoRojo = p.Rubro?.FechaLimitePagoRojo,
+            DiaLimitePagoAmarillo = p.Rubro?.DiaLimitePagoAmarillo,
+            DiaLimitePagoRojo = p.Rubro?.DiaLimitePagoRojo,
+            MesLimitePago = p.Rubro?.MesLimitePago,
+            UsuarioId = p.UsuarioId,
+            UsuarioNombre = p.Usuario != null ? $"{p.Usuario.Nombres} {p.Usuario.Apellidos}" : "Sistema",
+            FechaCreacion = p.FechaCreacion,
+            FechaActualizacion = p.FechaActualizacion,
+            UsuarioCreacion = p.UsuarioCreacion,
+            UsuarioActualizacion = p.UsuarioActualizacion
+        });
+    }
+
+    public async Task<int> GetPagosCountByRubroIdAsync(int rubroId)
+    {
+        return await _rubroRepository.GetPagosCountByRubroIdAsync(rubroId);
+    }
+
+    public async Task<bool> CanDeleteRubroAsync(int rubroId)
+    {
+        var pagosCount = await _rubroRepository.GetPagosCountByRubroIdAsync(rubroId);
+        return pagosCount == 0; // Can only delete if there are no payments associated
+    }
 }

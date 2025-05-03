@@ -10,5 +10,7 @@ public interface IRubroService
     Task UpdateRubroAsync(RubroDto rubroDto);
     Task DeleteRubroAsync(int id);
     Task<IEnumerable<RubroDto>> GetAllActiveRubrosAsync();
-
+    Task<IEnumerable<PagoReadDto>> GetPagosByRubroIdAsync(int rubroId);
+    Task<int> GetPagosCountByRubroIdAsync(int rubroId);
+    Task<bool> CanDeleteRubroAsync(int rubroId);
 }

@@ -10,5 +10,6 @@ public interface IRubroRepository
     Task UpdateAsync(Rubro rubro);
     Task DeleteAsync(int id);
     Task<IEnumerable<Rubro>> GetAllActiveAsync();
-
+    Task<IEnumerable<Pago>> GetPagosByRubroIdAsync(int rubroId);
+    Task<int> GetPagosCountByRubroIdAsync(int rubroId);
 }

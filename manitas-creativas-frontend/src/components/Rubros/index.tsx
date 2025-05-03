@@ -231,10 +231,19 @@ const Rubros: React.FC = () => {
             onClick={() => handleEdit(record)}
           />
           <Popconfirm
-            title="¿Está seguro de eliminar este rubro?"
+            title={
+              <div>
+                <p>¿Está seguro de eliminar este rubro?</p>
+                <p style={{ fontSize: '12px', color: '#ff4d4f' }}>
+                  ADVERTENCIA: Si hay pagos asociados a este rubro, no se podrá eliminar.
+                </p>
+              </div>
+            }
             onConfirm={() => handleDelete(record.id)}
-            okText="Sí"
-            cancelText="No"
+            okText="Sí, eliminar"
+            cancelText="No, cancelar"
+            okButtonProps={{ danger: true }}
+            icon={<DeleteOutlined style={{ color: 'red' }} />}
           >
             <Button 
               danger 
@@ -265,6 +274,16 @@ const Rubros: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       setLoading(true);
+      
+      // First check if the rubro can be deleted
+      const canDelete = await rubroService.canDeleteRubro(id);
+      
+      if (!canDelete) {
+        message.error('No se puede eliminar el rubro porque tiene pagos asociados');
+        return;
+      }
+      
+      // If it can be deleted, proceed with deletion
       await rubroService.deleteRubro(id);
       setData(data.filter(item => item.id !== id));
       message.success('Rubro eliminado con éxito');
