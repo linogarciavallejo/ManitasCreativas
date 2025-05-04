@@ -15,12 +15,20 @@ public class AlumnoRepository : IAlumnoRepository
 
     public async Task<Alumno?> GetByIdAsync(int id)
     {
-        return await _context.Alumnos.FindAsync(id);
+        return await _context.Alumnos
+            .Include(a => a.Sede)
+            .Include(a => a.Grado)
+            .Include(a => a.Pagos)
+            .FirstOrDefaultAsync(a => a.Id == id);
     }
 
     public async Task<IEnumerable<Alumno>> GetAllAsync()
     {
-        return await _context.Alumnos.ToListAsync();
+        return await _context.Alumnos
+            .Include(a => a.Sede)
+            .Include(a => a.Grado)
+            .Include(a => a.Pagos)
+            .ToListAsync();
     }
 
     public async Task AddAsync(Alumno alumno)

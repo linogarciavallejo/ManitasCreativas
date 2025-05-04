@@ -9,10 +9,16 @@ public class AlumnoService : IAlumnoService
 {
     private readonly IAlumnoRepository _alumnoRepository;
     private readonly IGradoRepository _gradoRepository;
+    private readonly ISedeRepository _sedeRepository;
 
-    public AlumnoService(IAlumnoRepository alumnoRepository)
+    public AlumnoService(
+        IAlumnoRepository alumnoRepository, 
+        IGradoRepository gradoRepository,
+        ISedeRepository sedeRepository)
     {
         _alumnoRepository = alumnoRepository;
+        _gradoRepository = gradoRepository;
+        _sedeRepository = sedeRepository;
     }
 
     public async Task<IEnumerable<AlumnoDto>> GetAllAlumnosAsync()
@@ -26,13 +32,15 @@ public class AlumnoService : IAlumnoService
             SegundoNombre = a.SegundoNombre,
             PrimerApellido = a.PrimerApellido,
             SegundoApellido = a.SegundoApellido,
+            Seccion = a.Seccion, // Added Seccion property mapping
             SedeId = a.SedeId,
-            SedeNombre = a.Sede.Nombre,
+            SedeNombre = a.Sede != null ? a.Sede.Nombre : string.Empty,
             GradoId = a.GradoId,
-            GradoNombre = a.Grado.Nombre,
+            GradoNombre = a.Grado != null ? a.Grado.Nombre : string.Empty,
             Becado = a.Becado,
             BecaParcialPorcentaje = a.BecaParcialPorcentaje,
-            Pagos = a.Pagos.Select(p => new PagoReadDto
+            Estado = (int)a.Estado,
+            Pagos = (a.Pagos ?? Enumerable.Empty<Pago>()).Select(p => new PagoReadDto
             {
                 Id = p.Id,
                 Monto = p.Monto,
@@ -52,13 +60,15 @@ public class AlumnoService : IAlumnoService
             SegundoNombre = alumno.SegundoNombre,
             PrimerApellido = alumno.PrimerApellido,
             SegundoApellido = alumno.SegundoApellido,
+            Seccion = alumno.Seccion, // Added Seccion property mapping
             SedeId = alumno.SedeId,
-            SedeNombre = alumno.Sede.Nombre,
+            SedeNombre = alumno.Sede != null ? alumno.Sede.Nombre : string.Empty,
             GradoId = alumno.GradoId,
-            GradoNombre = alumno.Grado.Nombre,
+            GradoNombre = alumno.Grado != null ? alumno.Grado.Nombre : string.Empty,
             Becado = alumno.Becado,
             BecaParcialPorcentaje = alumno.BecaParcialPorcentaje,
-            Pagos = alumno.Pagos.Select(p => new PagoReadDto
+            Estado = (int)alumno.Estado,
+            Pagos = (alumno.Pagos ?? Enumerable.Empty<Pago>()).Select(p => new PagoReadDto
             {
                 Id = p.Id,
                 Monto = p.Monto,
@@ -69,11 +79,18 @@ public class AlumnoService : IAlumnoService
 
     public async Task AddAlumnoAsync(AlumnoDto alumnoDto)
     {
-        // Fetch the Grado entity, including its NivelEducativo
+        // Fetch the Grado entity
         var grado = await _gradoRepository.GetByIdAsync(alumnoDto.GradoId);
         if (grado == null)
         {
             throw new Exception($"Grado with ID {alumnoDto.GradoId} not found.");
+        }
+
+        // Fetch the Sede entity
+        var sede = await _sedeRepository.GetByIdAsync(alumnoDto.SedeId);
+        if (sede == null)
+        {
+            throw new Exception($"Sede with ID {alumnoDto.SedeId} not found.");
         }
 
         var alumno = new Alumno
@@ -83,33 +100,66 @@ public class AlumnoService : IAlumnoService
             PrimerApellido = alumnoDto.PrimerApellido,
             SegundoApellido = alumnoDto.SegundoApellido,
             Codigo = alumnoDto.Codigo,
-            Sede = new Sede { Id = alumnoDto.SedeId, Nombre = alumnoDto.SedeNombre },
-            Grado = grado
+            Seccion = alumnoDto.Seccion,
+            Becado = alumnoDto.Becado,
+            BecaParcialPorcentaje = alumnoDto.BecaParcialPorcentaje,
+            Estado = (EstadoAlumno)alumnoDto.Estado,
+            SedeId = alumnoDto.SedeId,
+            GradoId = alumnoDto.GradoId,
+            // Set the required navigation properties using the fetched entities
+            Sede = sede,
+            Grado = grado,
+            FechaCreacion = DateTime.UtcNow,
+            UsuarioCreacion = alumnoDto.UsuarioCreacion
         };
+        
         await _alumnoRepository.AddAsync(alumno);
+        
+        // Update the DTO with the new ID
+        alumnoDto.Id = alumno.Id;
     }
 
     public async Task UpdateAlumnoAsync(AlumnoDto alumnoDto)
     {
-        // Fetch the Grado entity, including its NivelEducativo
+        // Instead of creating a new entity, first fetch the existing one
+        var existingAlumno = await _alumnoRepository.GetByIdAsync(alumnoDto.Id);
+        if (existingAlumno == null)
+        {
+            throw new Exception($"Alumno with ID {alumnoDto.Id} not found.");
+        }
+
+        // Fetch the Grado entity
         var grado = await _gradoRepository.GetByIdAsync(alumnoDto.GradoId);
         if (grado == null)
         {
             throw new Exception($"Grado with ID {alumnoDto.GradoId} not found.");
         }
 
-        var alumno = new Alumno
+        // Fetch the Sede entity
+        var sede = await _sedeRepository.GetByIdAsync(alumnoDto.SedeId);
+        if (sede == null)
         {
-            Id = alumnoDto.Id,
-            PrimerNombre = alumnoDto.PrimerNombre,
-            SegundoNombre = alumnoDto.SegundoNombre,
-            PrimerApellido = alumnoDto.PrimerApellido,
-            SegundoApellido = alumnoDto.SegundoApellido,
-            Codigo = alumnoDto.Codigo,
-            Sede = new Sede { Id = alumnoDto.SedeId, Nombre = alumnoDto.SedeNombre },
-            Grado = grado
-        };
-        await _alumnoRepository.UpdateAsync(alumno);
+            throw new Exception($"Sede with ID {alumnoDto.SedeId} not found.");
+        }
+
+        // Update the properties of the existing entity
+        existingAlumno.PrimerNombre = alumnoDto.PrimerNombre;
+        existingAlumno.SegundoNombre = alumnoDto.SegundoNombre;
+        existingAlumno.PrimerApellido = alumnoDto.PrimerApellido;
+        existingAlumno.SegundoApellido = alumnoDto.SegundoApellido;
+        existingAlumno.Codigo = alumnoDto.Codigo;
+        existingAlumno.Seccion = alumnoDto.Seccion; // This will now correctly update
+        existingAlumno.Becado = alumnoDto.Becado;
+        existingAlumno.BecaParcialPorcentaje = alumnoDto.BecaParcialPorcentaje;
+        existingAlumno.Estado = (EstadoAlumno)alumnoDto.Estado;
+        existingAlumno.SedeId = alumnoDto.SedeId;
+        existingAlumno.GradoId = alumnoDto.GradoId;
+        existingAlumno.Sede = sede;
+        existingAlumno.Grado = grado;
+        existingAlumno.FechaActualizacion = DateTime.UtcNow;
+        existingAlumno.UsuarioActualizacion = alumnoDto.UsuarioActualizacion;
+        
+        await _alumnoRepository.UpdateAsync(existingAlumno);
     }
 
     public async Task DeleteAlumnoAsync(int id)

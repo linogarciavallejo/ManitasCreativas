@@ -46,6 +46,11 @@ const Main: React.FC = () => {
               icon: <UploadOutlined />,
               label: <Link to="rubros">Rubros</Link>,
             },
+            {
+              key: "5",
+              icon: <UploadOutlined />,
+              label: <Link to="students">Alumnos</Link>,
+            },
           ]}
         />
       </Sider>

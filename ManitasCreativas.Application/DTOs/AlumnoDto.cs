@@ -15,6 +15,7 @@ public class AlumnoDto
     public string? Seccion { get; set; }
     public bool? Becado { get; set; }
     public decimal? BecaParcialPorcentaje { get; set; }
+    public int Estado { get; set; } = 1; // Default to Activo (1)
     public List<PagoReadDto> Pagos { get; set; } = new();
     public List<AlumnoContactoDto> Contactos { get; set; } = new();
     

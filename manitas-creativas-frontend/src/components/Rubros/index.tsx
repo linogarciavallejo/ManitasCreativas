@@ -177,6 +177,11 @@ const Rubros: React.FC = () => {
       width: 15, // Reduced by 50% from 30px
       ellipsis: true,
       render: (id: number | undefined) => getNivelEducativoName(id),
+      sorter: (a: Rubro, b: Rubro) => {
+        const nameA = getNivelEducativoName(a.nivelEducativoId) || '';
+        const nameB = getNivelEducativoName(b.nivelEducativoId) || '';
+        return nameA.localeCompare(nameB);
+      },
     },
     {
       title: 'Monto',

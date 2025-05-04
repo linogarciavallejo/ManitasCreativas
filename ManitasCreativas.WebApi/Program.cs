@@ -45,10 +45,27 @@ builder.Services.AddCors(options =>
 
 // Dependency Injection for Services
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
-builder.Services.AddScoped<IAlumnoService, AlumnoService>();
 builder.Services.AddScoped<IRubroService, RubroService>();
 builder.Services.AddScoped<INivelEducativoService, NivelEducativoService>();
 builder.Services.AddScoped<IGradoService, GradoService>();
+builder.Services.AddScoped<ISedeService, SedeService>();
+
+// Dependency Injection for Repositories
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IAlumnoRepository, AlumnoRepository>();
+builder.Services.AddScoped<IPagoRepository, PagoRepository>();
+builder.Services.AddScoped<IRubroRepository, RubroRepository>();
+builder.Services.AddScoped<INivelEducativoRepository, NivelEducativoRepository>();
+builder.Services.AddScoped<IGradoRepository, GradoRepository>();
+builder.Services.AddScoped<ISedeRepository, SedeRepository>();
+
+// Register AlumnoService after its dependencies with all three repositories
+builder.Services.AddScoped<IAlumnoService, AlumnoService>(sp => {
+    var alumnoRepository = sp.GetRequiredService<IAlumnoRepository>();
+    var gradoRepository = sp.GetRequiredService<IGradoRepository>();
+    var sedeRepository = sp.GetRequiredService<ISedeRepository>();
+    return new AlumnoService(alumnoRepository, gradoRepository, sedeRepository);
+});
 
 // Inject S3Service into PagoService
 builder.Services.AddScoped<S3Service>();
@@ -58,14 +75,6 @@ builder.Services.AddScoped<IPagoService, PagoService>(sp =>
     var s3Service = sp.GetRequiredService<S3Service>();
     return new PagoService(pagoRepository, s3Service);
 });
-
-// Dependency Injection for Repositories
-builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-builder.Services.AddScoped<IAlumnoRepository, AlumnoRepository>();
-builder.Services.AddScoped<IPagoRepository, PagoRepository>();
-builder.Services.AddScoped<IRubroRepository, RubroRepository>();
-builder.Services.AddScoped<INivelEducativoRepository, NivelEducativoRepository>();
-builder.Services.AddScoped<IGradoRepository, GradoRepository>();
 
 // Add DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -103,6 +112,7 @@ app.MapPagoEndpoints();
 app.MapRubroEndpoints();
 app.MapNivelEducativoEndpoints();
 app.MapGradoEndpoints();
+app.MapSedeEndpoints();
 
 app.MapFallbackToFile("index.html"); // Serve the SPA
 

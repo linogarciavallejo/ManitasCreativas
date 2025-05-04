@@ -1,9 +1,10 @@
 namespace ManitasCreativas.Infrastructure.Repositories;
 
+using ManitasCreativas.Application.Interfaces.Repositories;
 using ManitasCreativas.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-public class SedeRepository
+public class SedeRepository : ISedeRepository
 {
     private readonly AppDbContext _context;
 

@@ -9,6 +9,7 @@ const Tuitions = React.lazy(() => import("../components/Tuitions"));
 const OtherPayments = React.lazy(() => import("../components/OtherPayments"));
 const Statement = React.lazy(() => import("../components/Statement"));
 const Rubros = React.lazy(() => import("../components/Rubros"));
+const Students = React.lazy(() => import("../components/Students"));
 
 
 const AppRoutes: React.FC = () => {
@@ -22,6 +23,7 @@ const AppRoutes: React.FC = () => {
         <Route path="other-payments" element={<OtherPayments />} />
         <Route path="statement" element={<Statement />} />
         <Route path="rubros" element={<Rubros />} />
+        <Route path="students" element={<Students />} />
       </Route>
     </Routes>
   );
