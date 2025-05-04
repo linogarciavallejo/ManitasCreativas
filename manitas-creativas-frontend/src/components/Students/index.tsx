@@ -487,10 +487,29 @@ const Students: React.FC = () => {
             </Col>
             <Col span={12}>
               <Form.Item
-                label="Sección"
-                name="seccion"
+                label="Sede"
+                name="sedeId"
+                rules={[{ required: true, message: 'Por favor seleccione la sede!' }]}
               >
-                <Input placeholder="Ingrese la sección" />
+                <Select 
+                  placeholder="Seleccione la sede"
+                  loading={loadingSedes}
+                  showSearch
+                  optionFilterProp="children"
+                  onChange={(value, option: any) => {
+                    // When sede is changed, update the sedeNombre field
+                    form.setFieldsValue({ 
+                      sedeNombre: option.children 
+                    });
+                  }}
+                >
+                  {sedes.map(sede => (
+                    <Option key={sede.id} value={sede.id}>{sede.nombre}</Option>
+                  ))}
+                </Select>
+              </Form.Item>
+              <Form.Item name="sedeNombre" hidden>
+                <Input />
               </Form.Item>
             </Col>
           </Row>
@@ -538,33 +557,6 @@ const Students: React.FC = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                label="Sede"
-                name="sedeId"
-                rules={[{ required: true, message: 'Por favor seleccione la sede!' }]}
-              >
-                <Select 
-                  placeholder="Seleccione la sede"
-                  loading={loadingSedes}
-                  showSearch
-                  optionFilterProp="children"
-                  onChange={(value, option: any) => {
-                    // When sede is changed, update the sedeNombre field
-                    form.setFieldsValue({ 
-                      sedeNombre: option.children 
-                    });
-                  }}
-                >
-                  {sedes.map(sede => (
-                    <Option key={sede.id} value={sede.id}>{sede.nombre}</Option>
-                  ))}
-                </Select>
-              </Form.Item>
-              <Form.Item name="sedeNombre" hidden>
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
                 label="Grado"
                 name="gradoId"
                 rules={[{ required: true, message: 'Por favor seleccione el grado!' }]}
@@ -588,6 +580,14 @@ const Students: React.FC = () => {
               </Form.Item>
               <Form.Item name="gradoNombre" hidden>
                 <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Sección"
+                name="seccion"
+              >
+                <Input placeholder="Ingrese la sección" />
               </Form.Item>
             </Col>
           </Row>
