@@ -11,7 +11,7 @@ public class RubroDto
     public decimal? PenalizacionPorMoraPorcentaje { get; set; }
     public DateTime? FechaLimitePagoAmarillo { get; set; }
     public DateTime? FechaLimitePagoRojo { get; set; }
-    public int? MesColegiatura { get; set; }
+    public bool EsColegiatura { get; set; } = false;
     public int? DiaLimitePagoAmarillo { get; set; }
     public int? DiaLimitePagoRojo { get; set; }
     public int? MesLimitePago { get; set; }
@@ -20,6 +20,8 @@ public class RubroDto
     public int? GradoId { get; set; }
     public string? GradoNombre { get; set; } // Optional: Include the name of the Grado
     public decimal? MontoPreestablecido { get; set; }
+    public DateTime? FechaInicioPromocion { get; set; }
+    public DateTime? FechaFinPromocion { get; set; }
     public string? Notas { get; set; } = string.Empty;
     public bool? Activo { get; set; } = true;
     

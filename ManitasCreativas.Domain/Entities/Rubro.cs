@@ -21,8 +21,9 @@ namespace ManitasCreativas.Domain.Entities
         public DateTime? FechaLimitePagoRojo { get; set; }
         // Opcional: Si deseas tener explícitamente la fecha para los rubros de colegiatura. Este campo es para el rango rojo.
 
-        public int? MesColegiatura { get; set; }
-        // Opcional: Si deseas tener explícitamente el mes para los rubros de colegiatura.
+        public bool EsColegiatura { get; set; } = false;
+        // Opcional: Si deseas identificar explícitamente un rubro de colegiatura. 1 = Si, 0 = No.
+
         public int? DiaLimitePagoAmarillo { get; set; }
         // Opcional: Si deseas tener explícitamente el dia para los rubros de colegiatura. Este campo es para el rango amarillo: 1-5 dias de atraso.
 
@@ -46,6 +47,11 @@ namespace ManitasCreativas.Domain.Entities
 
         public decimal? MontoPreestablecido { get; set; }
         // Opcional: Si deseas tener explícitamente el monto preestablecido relacionado con algun rubro especifico, por ejemplo: Inscripcion, uniforme, etc.
+
+        public DateTime? FechaInicioPromocion { get; set; }
+        // Opcional: Si deseas tener explícitamente la fecha de inicio de la promocion para el rubro.
+        public DateTime? FechaFinPromocion { get; set; }
+        // Opcional: Si deseas tener explícitamente la fecha de fin de la promocion para el rubro.
 
         public string? Notas { get; set; } = string.Empty;
         // Opcional: Si deseas tener notas adicionales para el rubro.
