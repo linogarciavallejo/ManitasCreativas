@@ -49,6 +49,7 @@ builder.Services.AddScoped<IRubroService, RubroService>();
 builder.Services.AddScoped<INivelEducativoService, NivelEducativoService>();
 builder.Services.AddScoped<IGradoService, GradoService>();
 builder.Services.AddScoped<ISedeService, SedeService>();
+builder.Services.AddScoped<IContactoService, ContactoService>();
 
 // Dependency Injection for Repositories
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
@@ -58,6 +59,8 @@ builder.Services.AddScoped<IRubroRepository, RubroRepository>();
 builder.Services.AddScoped<INivelEducativoRepository, NivelEducativoRepository>();
 builder.Services.AddScoped<IGradoRepository, GradoRepository>();
 builder.Services.AddScoped<ISedeRepository, SedeRepository>();
+builder.Services.AddScoped<IContactoRepository, ContactoRepository>();
+builder.Services.AddScoped<IAlumnoContactoRepository, AlumnoContactoRepository>();
 
 // Register AlumnoService after its dependencies with all three repositories
 builder.Services.AddScoped<IAlumnoService, AlumnoService>(sp => {
@@ -113,6 +116,8 @@ app.MapRubroEndpoints();
 app.MapNivelEducativoEndpoints();
 app.MapGradoEndpoints();
 app.MapSedeEndpoints();
+app.MapContactoEndpoints();
+app.MapAlumnoContactoEndpoints();
 
 app.MapFallbackToFile("index.html"); // Serve the SPA
 

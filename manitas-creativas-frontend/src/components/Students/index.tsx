@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Form, Input, Button, Select, Space, Typography, Popconfirm, message, Card, Row, Col, Tag, Modal } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, InfoCircleOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
 import { alumnoService, Alumno } from '../../services/alumnoService';
 import { sedeService, Sede } from '../../services/sedeService';
 import { gradoService, Grado } from '../../services/gradoService';
+import ContactosModal from '../ContactosModal';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -24,6 +25,11 @@ const Students: React.FC = () => {
   const [fetchingData, setFetchingData] = useState<boolean>(true);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  
+  // State for ContactosModal
+  const [contactsModalVisible, setContactsModalVisible] = useState<boolean>(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
+  const [selectedStudentName, setSelectedStudentName] = useState<string>('');
   
   // Search filters state
   const [searchText, setSearchText] = useState<string>('');
@@ -249,6 +255,12 @@ const Students: React.FC = () => {
     }
   };
 
+  const openContactsModal = (record: Alumno) => {
+    setSelectedStudentId(record.id);
+    setSelectedStudentName(getFullName(record));
+    setContactsModalVisible(true);
+  };
+
   // Columns for the table
   const columns = [
     {
@@ -295,7 +307,7 @@ const Students: React.FC = () => {
     {
       title: 'Acciones',
       key: 'actions',
-      width: 100,
+      width: 140, // Increased width to fit the new contact button
       render: (_: any, record: Alumno) => (
         <Space size={0}>
           <Button 
@@ -304,6 +316,14 @@ const Students: React.FC = () => {
             size="small"
             style={{ padding: '0 4px', fontSize: '12px', marginRight: 4, height: '24px', minWidth: '28px' }}
             onClick={() => handleEdit(record)}
+          />
+          <Button 
+            type="default" 
+            icon={<TeamOutlined />} 
+            size="small"
+            style={{ padding: '0 4px', fontSize: '12px', marginRight: 4, height: '24px', minWidth: '28px' }}
+            onClick={() => openContactsModal(record)}
+            title="Gestionar contactos"
           />
           <Popconfirm
             title={
@@ -597,14 +617,42 @@ const Students: React.FC = () => {
           </Form.Item>
 
           {editingId !== null && (
-            <div className="audit-info">
-              <Typography.Text type="secondary">
-                <InfoCircleOutlined /> La información de auditoría se actualizará automáticamente al guardar.
-              </Typography.Text>
-            </div>
+            <>
+              <Row justify="end">
+                <Button 
+                  icon={<TeamOutlined />} 
+                  onClick={() => {
+                    if (editingId) {
+                      const student = data.find(s => s.id === editingId);
+                      if (student) {
+                        setSelectedStudentId(editingId);
+                        setSelectedStudentName(getFullName(student));
+                        setContactsModalVisible(true);
+                      }
+                    }
+                  }}
+                  disabled={!editingId}
+                >
+                  Gestionar Contactos
+                </Button>
+              </Row>
+              <div className="audit-info" style={{ marginTop: 16 }}>
+                <Typography.Text type="secondary">
+                  <InfoCircleOutlined /> La información de auditoría se actualizará automáticamente al guardar.
+                </Typography.Text>
+              </div>
+            </>
           )}
         </Form>
       </Modal>
+
+      {/* ContactosModal component */}
+      <ContactosModal 
+        visible={contactsModalVisible}
+        onClose={() => setContactsModalVisible(false)}
+        alumnoId={selectedStudentId}
+        alumnoName={selectedStudentName}
+      />
     </div>
   );
 };

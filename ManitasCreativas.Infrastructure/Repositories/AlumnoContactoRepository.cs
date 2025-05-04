@@ -1,9 +1,10 @@
-namespace ManitasCreativas.Infrastructure.Repositories;
-
+using ManitasCreativas.Application.Interfaces.Repositories;
 using ManitasCreativas.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-public class AlumnoContactoRepository
+namespace ManitasCreativas.Infrastructure.Repositories;
+
+public class AlumnoContactoRepository : IAlumnoContactoRepository
 {
     private readonly AppDbContext _context;
 
@@ -12,14 +13,18 @@ public class AlumnoContactoRepository
         _context = context;
     }
 
-    public async Task<AlumnoContacto?> GetByIdAsync(int id)
+    public async Task<IEnumerable<AlumnoContacto>> GetByAlumnoIdAsync(int alumnoId)
     {
-        return await _context.AlumnoContactos.FindAsync(id);
+        return await _context.AlumnoContactos
+            .Include(ac => ac.Contacto)
+            .Where(ac => ac.AlumnoId == alumnoId)
+            .ToListAsync();
     }
 
-    public async Task<IEnumerable<AlumnoContacto>> GetAllAsync()
+    public async Task<AlumnoContacto?> GetByIdsAsync(int alumnoId, int contactoId)
     {
-        return await _context.AlumnoContactos.ToListAsync();
+        return await _context.AlumnoContactos
+            .FirstOrDefaultAsync(ac => ac.AlumnoId == alumnoId && ac.ContactoId == contactoId);
     }
 
     public async Task AddAsync(AlumnoContacto alumnoContacto)
@@ -34,13 +39,9 @@ public class AlumnoContactoRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(AlumnoContacto alumnoContacto)
     {
-        var alumnoContacto = await GetByIdAsync(id);
-        if (alumnoContacto != null)
-        {
-            _context.AlumnoContactos.Remove(alumnoContacto);
-            await _context.SaveChangesAsync();
-        }
+        _context.AlumnoContactos.Remove(alumnoContacto);
+        await _context.SaveChangesAsync();
     }
 }
