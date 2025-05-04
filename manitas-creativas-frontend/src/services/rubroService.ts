@@ -9,7 +9,7 @@ export interface Rubro {
   penalizacionPorMoraPorcentaje?: number;
   fechaLimitePagoAmarillo?: string;
   fechaLimitePagoRojo?: string;
-  mesColegiatura?: number;
+  esColegiatura: boolean; // Changed: added esColegiatura instead of mesColegiatura
   diaLimitePagoAmarillo?: number;
   diaLimitePagoRojo?: number;
   mesLimitePago?: number;
@@ -19,6 +19,8 @@ export interface Rubro {
   gradoNombre?: string;
   cicloEscolar?: number;
   montoPreestablecido?: number;
+  fechaInicioPromocion?: string; // Added: new field for promotion start date
+  fechaFinPromocion?: string; // Added: new field for promotion end date
   notas?: string;
   activo: boolean;
   

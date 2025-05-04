@@ -368,6 +368,8 @@ const Rubros: React.FC = () => {
         ...values,
         fechaLimitePagoAmarillo: values.fechaLimitePagoAmarillo ? values.fechaLimitePagoAmarillo.format('YYYY-MM-DD') : undefined,
         fechaLimitePagoRojo: values.fechaLimitePagoRojo ? values.fechaLimitePagoRojo.format('YYYY-MM-DD') : undefined,
+        fechaInicioPromocion: values.fechaInicioPromocion ? values.fechaInicioPromocion.format('YYYY-MM-DD') : undefined,
+        fechaFinPromocion: values.fechaFinPromocion ? values.fechaFinPromocion.format('YYYY-MM-DD') : undefined,
       };
 
       if (editingId === null) {
@@ -452,26 +454,6 @@ const Rubros: React.FC = () => {
         
         {tipoValue === 0 && ( // Only show for Colegiatura
           <>
-            <Form.Item
-              label="Mes de Colegiatura"
-              name="mesColegiatura"
-            >
-              <Select placeholder="Seleccione el mes">
-                <Option value={1}>Enero</Option>
-                <Option value={2}>Febrero</Option>
-                <Option value={3}>Marzo</Option>
-                <Option value={4}>Abril</Option>
-                <Option value={5}>Mayo</Option>
-                <Option value={6}>Junio</Option>
-                <Option value={7}>Julio</Option>
-                <Option value={8}>Agosto</Option>
-                <Option value={9}>Septiembre</Option>
-                <Option value={10}>Octubre</Option>
-                <Option value={11}>Noviembre</Option>
-                <Option value={12}>Diciembre</Option>
-              </Select>
-            </Form.Item>
-            
             <Form.Item
               label="Ciclo Escolar"
               name="cicloEscolar"
@@ -645,7 +627,6 @@ const Rubros: React.FC = () => {
           >
             <Select 
               placeholder="Seleccione el tipo de rubro"
-              onChange={() => form.validateFields(['mesColegiatura'])} // Re-validate month when type changes
             >
               {tipoRubroOptions.map(option => (
                 <Option key={option.value} value={option.value}>{option.label}</Option>
@@ -664,6 +645,17 @@ const Rubros: React.FC = () => {
               step={100}
               min={0}
               style={{ width: '100%' }}
+            />
+          </Form.Item>
+          
+          <Form.Item 
+            label="Es Colegiatura" 
+            name="esColegiatura" 
+            valuePropName="checked"
+          >
+            <Switch 
+              checkedChildren="Sí" 
+              unCheckedChildren="No" 
             />
           </Form.Item>
 
@@ -686,6 +678,28 @@ const Rubros: React.FC = () => {
               format="DD/MM/YYYY"
               style={{ width: '100%' }}
               placeholder="Fecha límite de mora"
+            />
+          </Form.Item>
+          
+          <Form.Item
+            label="Promoción - Fecha Inicio"
+            name="fechaInicioPromocion"
+          >
+            <DatePicker 
+              format="DD/MM/YYYY"
+              style={{ width: '100%' }}
+              placeholder="Fecha inicio de promoción"
+            />
+          </Form.Item>
+          
+          <Form.Item
+            label="Promoción - Fecha Fin"
+            name="fechaFinPromocion"
+          >
+            <DatePicker 
+              format="DD/MM/YYYY"
+              style={{ width: '100%' }}
+              placeholder="Fecha fin de promoción"
             />
           </Form.Item>
 
