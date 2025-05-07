@@ -23,6 +23,7 @@ export interface Rubro {
   fechaFinPromocion?: string; // Added: new field for promotion end date
   notas?: string;
   activo: boolean;
+  ordenVisualizacionGrid?: number; // Added: new field for display order in grid
   
   // Audit fields
   fechaCreacion: string;
@@ -63,6 +64,7 @@ export interface PagoItem {
   diaLimitePagoAmarillo?: number;
   diaLimitePagoRojo?: number;
   mesLimitePago?: number;
+  ordenVisualizacionGrid?: number; // Added: new field for display order in grid
   usuarioId?: number;
   usuarioNombre: string;
   fechaCreacion: string;

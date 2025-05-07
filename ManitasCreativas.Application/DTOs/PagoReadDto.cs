@@ -30,7 +30,7 @@ public class PagoReadDto
     public int? DiaLimitePagoAmarillo { get; set; }
     public int? DiaLimitePagoRojo { get; set; }
     public int? MesLimitePago { get; set; }
-
+    public int? OrdenVisualizacionGrid { get; set; }
     public int? UsuarioId { get; set; }
     public string UsuarioNombre { get; set; } = string.Empty;
     
@@ -39,4 +39,6 @@ public class PagoReadDto
     public DateTime? FechaActualizacion { get; set; }
     public string UsuarioCreacion { get; set; } = string.Empty;
     public string? UsuarioActualizacion { get; set; }
+
+
 }

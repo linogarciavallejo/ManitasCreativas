@@ -39,6 +39,7 @@ public class RubroService : IRubroService
             FechaFinPromocion = r.FechaFinPromocion,
             Notas = r.Notas,
             Activo = r.Activo,
+            OrdenVisualizacionGrid = r.OrdenVisualizacionGrid,
             // Add mapping for audit fields
             FechaCreacion = r.FechaCreacion,
             FechaActualizacion = r.FechaActualizacion,
@@ -73,6 +74,7 @@ public class RubroService : IRubroService
             FechaFinPromocion = rubro.FechaFinPromocion,
             Notas = rubro.Notas,
             Activo = rubro.Activo,
+            OrdenVisualizacionGrid = rubro.OrdenVisualizacionGrid,
             // Add mapping for audit fields
             FechaCreacion = rubro.FechaCreacion,
             FechaActualizacion = rubro.FechaActualizacion,
@@ -101,6 +103,7 @@ public class RubroService : IRubroService
             FechaFinPromocion = rubroDto.FechaFinPromocion,
             Notas = rubroDto.Notas,
             Activo = rubroDto.Activo,
+            OrdenVisualizacionGrid = rubroDto.OrdenVisualizacionGrid,
             UsuarioCreacion = rubroDto.UsuarioCreacion
         };
         
@@ -154,6 +157,7 @@ public class RubroService : IRubroService
             FechaFinPromocion = rubroDto.FechaFinPromocion,
             Notas = rubroDto.Notas,
             Activo = rubroDto.Activo,
+            OrdenVisualizacionGrid = rubroDto.OrdenVisualizacionGrid,
             // Preserve original creation information
             FechaCreacion = existingRubro.FechaCreacion,
             UsuarioCreacion = existingRubro.UsuarioCreacion,
@@ -215,6 +219,7 @@ public class RubroService : IRubroService
             FechaFinPromocion = r.FechaFinPromocion,
             Notas = r.Notas,
             Activo = r.Activo,
+            OrdenVisualizacionGrid = r.OrdenVisualizacionGrid,
             // Add mapping for audit fields
             FechaCreacion = r.FechaCreacion,
             FechaActualizacion = r.FechaActualizacion,
@@ -259,12 +264,13 @@ public class RubroService : IRubroService
             DiaLimitePagoAmarillo = p.Rubro?.DiaLimitePagoAmarillo,
             DiaLimitePagoRojo = p.Rubro?.DiaLimitePagoRojo,
             MesLimitePago = p.Rubro?.MesLimitePago,
+            OrdenVisualizacionGrid = p.Rubro?.OrdenVisualizacionGrid,
             UsuarioId = p.UsuarioId,
             UsuarioNombre = p.Usuario != null ? $"{p.Usuario.Nombres} {p.Usuario.Apellidos}" : "Sistema",
             FechaCreacion = p.FechaCreacion,
             FechaActualizacion = p.FechaActualizacion,
             UsuarioCreacion = p.UsuarioCreacion,
-            UsuarioActualizacion = p.UsuarioActualizacion
+            UsuarioActualizacion = p.UsuarioActualizacion,
         });
     }
 

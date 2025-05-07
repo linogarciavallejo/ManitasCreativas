@@ -25,6 +25,7 @@ export interface PagoReadDto {
   imagenesPago: PagoImagenDto[];
   montoPreestablecido?: number;
   penalizacionPorMora?: number;
+  ordenVisualizacionGrid?: number; // Added: new field for display order in grid
   usuarioId?: number;
   usuarioNombre: string;
 }

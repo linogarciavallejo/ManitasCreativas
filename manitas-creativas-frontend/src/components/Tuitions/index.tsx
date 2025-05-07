@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Form, Input, Button, Upload, message, AutoComplete, Select, InputNumber } from "antd";
+import { Form, Input, Button, Upload, message, AutoComplete, Select, InputNumber, DatePicker } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
+import moment from 'moment';
 import { makeApiRequest } from "../../services/apiHelper";
 import "antd/dist/reset.css";
 
@@ -122,6 +123,7 @@ const Tuitions: React.FC = () => {
   // Fix for error 2: Adjust the API request to correctly handle the options parameter.
   const handleSubmit = async (values: {
     cicloEscolar: string;
+    fechaPago: moment.Moment;
     monto: number;
     medioPago: string;
     mes: string;
@@ -140,7 +142,7 @@ const Tuitions: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append("Id", "0");
-      formData.append("Fecha", new Date().toISOString());
+      formData.append("Fecha", values.fechaPago.toISOString());
       formData.append("CicloEscolar", values.cicloEscolar);
       formData.append("Monto", values.monto.toString());
       formData.append("MedioPago", values.medioPago);
@@ -260,6 +262,7 @@ const Tuitions: React.FC = () => {
           cicloEscolar: currentYear,
           mes: currentMonth,
           monto: 150,
+          fechaPago: moment(),
         }}
       >
         <Form.Item
@@ -268,6 +271,18 @@ const Tuitions: React.FC = () => {
           rules={[{ required: true, message: "¡Por favor ingrese el ciclo escolar!" }]}
         >
           <Input placeholder="Ingrese el ciclo escolar" />
+        </Form.Item>
+
+        <Form.Item
+          label="Fecha de Pago"
+          name="fechaPago"
+          rules={[{ required: true, message: "¡Por favor seleccione la fecha de pago!" }]}
+        >
+          <DatePicker 
+            style={{ width: "100%" }} 
+            format="YYYY-MM-DD" 
+            placeholder="Seleccione la fecha de pago"
+          />
         </Form.Item>
 
         <Form.Item
