@@ -24,7 +24,8 @@ public class RubroDto
     public DateTime? FechaFinPromocion { get; set; }
     public string? Notas { get; set; } = string.Empty;
     public bool? Activo { get; set; } = true;
-    
+    public int? OrdenVisualizacionGrid { get; set; }
+
     // Audit fields
     public DateTime FechaCreacion { get; set; }
     public DateTime? FechaActualizacion { get; set; }

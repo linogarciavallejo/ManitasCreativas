@@ -57,6 +57,8 @@ namespace ManitasCreativas.Domain.Entities
         // Opcional: Si deseas tener notas adicionales para el rubro.
         public bool? Activo { get; set; } = true;
 
+        public int? OrdenVisualizacionGrid { get; set; }
+
         // Audit fields
         public DateTime FechaCreacion { get; set; }
         public DateTime? FechaActualizacion { get; set; }
