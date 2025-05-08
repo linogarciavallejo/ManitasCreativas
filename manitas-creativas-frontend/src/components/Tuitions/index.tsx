@@ -285,10 +285,14 @@ const Tuitions: React.FC = () => {
           />
         </Form.Item>
 
+        <Form.Item name="rubroId" initialValue="1" style={{ display: "none" }}>
+          <Input type="hidden" />
+        </Form.Item>
+
         <Form.Item
           label="Mes"
           name="mes"
-          rules={[{ required: true, message: "Por favor seleccione el mes" }]}
+          rules={[{ required: false }]}
         >
           <Select>
             <Option value={1}>Enero</Option>
@@ -342,10 +346,6 @@ const Tuitions: React.FC = () => {
 
         <Form.Item label="Notas" name="notas">
           <Input.TextArea placeholder="Agregar notas sobre el pago" rows={4} />
-        </Form.Item>
-
-        <Form.Item name="rubroId" initialValue={1} style={{ display: "none" }}>
-          <Input type="hidden" />
         </Form.Item>
 
         <Form.Item

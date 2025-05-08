@@ -35,6 +35,7 @@ interface Rubro {
   descripcion: string;
   tipo: number;
   montoPreestablecido: number | null;
+  esColegiatura: boolean; // Added esColegiatura property to match backend RubroDto
 }
 
 interface AlumnoDetails {
@@ -162,7 +163,7 @@ const OtherPayments: React.FC = () => {
     mes: string;
     rubroId: string;
     notas?: string;
-    imagenesPago: CustomFile[];
+    imagenesPago?: any[]; // Changed to optional and any[] to handle undefined case
   }) => {
     console.log("Form submitted with values:", values); // Debugging log
 
@@ -179,25 +180,35 @@ const OtherPayments: React.FC = () => {
       formData.append("CicloEscolar", values.cicloEscolar);
       formData.append("Monto", values.monto.toString());
       formData.append("MedioPago", values.medioPago);
-      formData.append("MesColegiatura", values.mes);
       formData.append("RubroId", values.rubroId);
       formData.append("AlumnoId", alumnoId);
-      formData.append("EsColegiatura", "true");
-      formData.append("MesColegiatura", values.mes);
-      formData.append("AnioColegiatura", new Date().getFullYear().toString());
+      formData.append("EsColegiatura", "false"); // Changed: this is OtherPayments, not tuition
+      
+      // Only add MesColegiatura and AnioColegiatura if needed
+      if (values.mes) {
+        formData.append("MesColegiatura", values.mes);
+        formData.append("AnioColegiatura", new Date().getFullYear().toString());
+      }
+      
       if (values.notas) formData.append("Notas", values.notas);
       formData.append("UsuarioId", "1"); // Assuming 1 is the logged-in user ID
-      values.imagenesPago.forEach((file, index) => {
-        if (file.originFileObj) {
-          formData.append(`ImagenesPago[${index}]`, file.originFileObj);
-        }
-      });
+      
+      // Handle file uploads properly, checking for undefined
+      if (values.imagenesPago && values.imagenesPago.length > 0) {
+        values.imagenesPago.forEach((file, index) => {
+          if (file.originFileObj) {
+            formData.append(`ImagenesPago[${index}]`, file.originFileObj);
+          }
+        });
+      }
 
+      console.log("Sending payment data to server..."); // Add debug log
       const response = await makeApiRequest<any>("/pagos", "POST", formData);
+      console.log("Payment response:", response); // Add debug log
 
       message.success("¡Pago enviado con éxito!");
-      console.log("Pago enviado:", response);
     } catch (err) {
+      console.error("Error submitting payment:", err); // Add error logging
       message.error("Error al enviar el pago. Por favor, inténtelo de nuevo.");
     } finally {
       setLoading(false);
@@ -206,7 +217,7 @@ const OtherPayments: React.FC = () => {
 
   return (
     <div className="payments-container">
-      <h2>Realizar un Pago de Colegiatura</h2>
+      <h2>Realizar un Pago</h2>
 
       <div style={{ marginBottom: "20px" }}>
         <Input.Search
@@ -292,7 +303,7 @@ const OtherPayments: React.FC = () => {
         className="payments-form"
         initialValues={{
           cicloEscolar: currentYear,
-          mes: currentMonth,
+          mes: null, // Changed from currentMonth to null to make "Sin mes específico" the default
           monto: 150,
           fechaPago: moment(),
         }}
@@ -316,13 +327,35 @@ const OtherPayments: React.FC = () => {
             placeholder="Seleccione la fecha de pago"
           />
         </Form.Item>
+        
+        <Form.Item
+          label="Rubro"
+          name="rubroId"
+          rules={[{ required: true, message: "Por favor seleccione un rubro" }]}
+        >
+          <Select 
+            placeholder="Seleccione el rubro" 
+            onChange={handleRubroChange}
+            loading={rubros.length === 0}
+          >
+            {rubros
+              .filter(rubro => !rubro.esColegiatura) // Filter out rubros with esColegiatura = true
+              .map(rubro => (
+                <Option key={rubro.id} value={rubro.id.toString()}>
+                  {rubro.descripcion}
+                </Option>
+              ))
+            }
+          </Select>
+        </Form.Item>
 
         <Form.Item
           label="Mes"
           name="mes"
-          rules={[{ required: true, message: "Por favor seleccione el mes" }]}
+          rules={[{ required: false }]}
         >
-          <Select>
+          <Select allowClear placeholder="Seleccione el mes (opcional)">
+            <Option value={null}>Sin mes específico</Option>
             <Option value={1}>Enero</Option>
             <Option value={2}>Febrero</Option>
             <Option value={3}>Marzo</Option>
@@ -338,24 +371,6 @@ const OtherPayments: React.FC = () => {
           </Select>
         </Form.Item>
         
-        <Form.Item
-          label="Rubro"
-          name="rubroId"
-          rules={[{ required: true, message: "Por favor seleccione un rubro" }]}
-        >
-          <Select 
-            placeholder="Seleccione el rubro" 
-            onChange={handleRubroChange}
-            loading={rubros.length === 0}
-          >
-            {rubros.map(rubro => (
-              <Option key={rubro.id} value={rubro.id.toString()}>
-                {rubro.descripcion}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-
         <Form.Item
           label="Monto"
           name="monto"

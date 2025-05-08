@@ -48,40 +48,53 @@ export async function makeApiRequest<T>(
   // Add the X-Username header to every request
   headers['X-Username'] = getCurrentUsername();
 
-  // Add audit information for POST and PUT requests
+  // Handle FormData differently than JSON data
   let requestData = data;
-  if (data && (method === "POST" || method === "PUT")) {
+  if (data && !(data instanceof FormData) && (method === "POST" || method === "PUT")) {
+    // Only add audit information for regular JSON objects, not FormData
     requestData = addAuditInfo(data, method === "POST");
+  }
+  
+  // Special config for FormData
+  const config: any = { 
+    withCredentials,
+    headers
+  };
+  
+  // FormData handling - don't set Content-Type for FormData
+  if (data instanceof FormData) {
+    console.log("Sending FormData object");
+    // Let axios set the appropriate content type with boundary for FormData
+  } else {
+    // For JSON data, explicitly set the Content-Type
+    config.headers["Content-Type"] = "application/json";
   }
 
   let response;
-  if (method === "GET") {
-    response = await axios.get(url, { 
-      withCredentials,
-      headers
-    });
-  } else if (method === "POST") {
-    response = await axios.post(url, requestData, { 
-      withCredentials,
-      headers
-    });
-  } else if (method === "PUT") {
-    response = await axios.put(url, requestData, { 
-      withCredentials,
-      headers
-    });
-  } else if (method === "DELETE") {
-    response = await axios.delete(url, { 
-      withCredentials,
-      headers
-    });
-  } else {
-    throw new Error("Invalid request method");
-  }
-
-  if (response) {
-    return response.data;
-  } else {
-    throw new Error("Response is undefined");
+  try {
+    if (method === "GET") {
+      response = await axios.get(url, config);
+    } else if (method === "POST") {
+      console.log("POST request data type:", requestData instanceof FormData ? "FormData" : typeof requestData);
+      response = await axios.post(url, requestData, config);
+    } else if (method === "PUT") {
+      response = await axios.put(url, requestData, config);
+    } else if (method === "DELETE") {
+      response = await axios.delete(url, config);
+    } else {
+      throw new Error("Invalid request method");
+    }
+    
+    if (response) {
+      return response.data;
+    } else {
+      throw new Error("Response is undefined");
+    }
+  } catch (error: any) {
+    console.error(`API request error for ${method} ${endpoint}:`, error);
+    if (error.response) {
+      console.error(`Status: ${error.response.status}, Data:`, error.response.data);
+    }
+    throw error;
   }
 }
