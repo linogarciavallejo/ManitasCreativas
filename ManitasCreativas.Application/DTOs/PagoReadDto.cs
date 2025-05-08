@@ -31,14 +31,12 @@ public class PagoReadDto
     public int? DiaLimitePagoRojo { get; set; }
     public int? MesLimitePago { get; set; }
     public int? OrdenVisualizacionGrid { get; set; }
-    public int? UsuarioId { get; set; }
     public string UsuarioNombre { get; set; } = string.Empty;
     
     // Audit fields
     public DateTime FechaCreacion { get; set; }
     public DateTime? FechaActualizacion { get; set; }
-    public string UsuarioCreacion { get; set; } = string.Empty;
-    public string? UsuarioActualizacion { get; set; }
-
+    public int? UsuarioCreacionId { get; set; }
+    public int? UsuarioActualizacionId { get; set; }
 
 }

@@ -3,6 +3,7 @@ using System;
 using ManitasCreativas.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ManitasCreativas.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250508033620_RemoveUsuarioAuditFields")]
+    partial class RemoveUsuarioAuditFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,21 +79,11 @@ namespace ManitasCreativas.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("UsuarioActualizacionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("UsuarioCreacionId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("GradoId");
 
                     b.HasIndex("SedeId");
-
-                    b.HasIndex("UsuarioActualizacionId");
-
-                    b.HasIndex("UsuarioCreacionId");
 
                     b.ToTable("Alumnos");
                 });
@@ -244,12 +237,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.Property<int>("RubroId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("UsuarioActualizacionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("UsuarioCreacionId")
-                        .HasColumnType("integer");
-
                     b.Property<int?>("UsuarioId")
                         .HasColumnType("integer");
 
@@ -258,10 +245,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.HasIndex("AlumnoId");
 
                     b.HasIndex("RubroId");
-
-                    b.HasIndex("UsuarioActualizacionId");
-
-                    b.HasIndex("UsuarioCreacionId");
 
                     b.HasIndex("UsuarioId");
 
@@ -291,19 +274,9 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.Property<int>("PagoId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("UsuarioActualizacionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("UsuarioCreacionId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("PagoId");
-
-                    b.HasIndex("UsuarioActualizacionId");
-
-                    b.HasIndex("UsuarioCreacionId");
 
                     b.ToTable("PagoImagenes");
                 });
@@ -413,21 +386,11 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.Property<int>("Tipo")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("UsuarioActualizacionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("UsuarioCreacionId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("GradoId");
 
                     b.HasIndex("NivelEducativoId");
-
-                    b.HasIndex("UsuarioActualizacionId");
-
-                    b.HasIndex("UsuarioCreacionId");
 
                     b.ToTable("Rubros");
                 });
@@ -512,16 +475,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", null)
-                        .WithMany()
-                        .HasForeignKey("UsuarioActualizacionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", null)
-                        .WithMany()
-                        .HasForeignKey("UsuarioCreacionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("Grado");
 
                     b.Navigation("Sede");
@@ -571,16 +524,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", null)
-                        .WithMany()
-                        .HasForeignKey("UsuarioActualizacionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", null)
-                        .WithMany()
-                        .HasForeignKey("UsuarioCreacionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId");
@@ -600,16 +543,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", null)
-                        .WithMany()
-                        .HasForeignKey("UsuarioActualizacionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", null)
-                        .WithMany()
-                        .HasForeignKey("UsuarioCreacionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("Pago");
                 });
 
@@ -622,16 +555,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.HasOne("ManitasCreativas.Domain.Entities.NivelEducativo", "NivelEducativo")
                         .WithMany()
                         .HasForeignKey("NivelEducativoId");
-
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", null)
-                        .WithMany()
-                        .HasForeignKey("UsuarioActualizacionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", null)
-                        .WithMany()
-                        .HasForeignKey("UsuarioCreacionId")
-                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Grado");
 

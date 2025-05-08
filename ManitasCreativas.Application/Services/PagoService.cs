@@ -54,7 +54,6 @@ public class PagoService : IPagoService
             MesColegiatura = pagoDto.MesColegiatura,
             AnioColegiatura = pagoDto.AnioColegiatura,
             Notas = pagoDto.Notas,
-            UsuarioId = pagoDto.UsuarioId,
             ImagenesPago = new List<PagoImagen>()
         };
 

@@ -110,7 +110,7 @@ public class AlumnoService : IAlumnoService
             Sede = sede,
             Grado = grado,
             FechaCreacion = DateTime.UtcNow,
-            UsuarioCreacion = alumnoDto.UsuarioCreacion
+            UsuarioCreacionId = alumnoDto.UsuarioCreacionId,
         };
         
         await _alumnoRepository.AddAsync(alumno);
@@ -157,8 +157,8 @@ public class AlumnoService : IAlumnoService
         existingAlumno.Sede = sede;
         existingAlumno.Grado = grado;
         existingAlumno.FechaActualizacion = DateTime.UtcNow;
-        existingAlumno.UsuarioActualizacion = alumnoDto.UsuarioActualizacion;
-        
+        existingAlumno.UsuarioActualizacionId = alumnoDto.UsuarioActualizacionId;
+
         await _alumnoRepository.UpdateAsync(existingAlumno);
     }
 
@@ -349,7 +349,6 @@ public class AlumnoService : IAlumnoService
             DiaLimitePagoAmarillo = p.Rubro?.DiaLimitePagoAmarillo,
             DiaLimitePagoRojo = p.Rubro?.DiaLimitePagoRojo,
             MesLimitePago = p.Rubro?.MesLimitePago,
-            UsuarioId = p.UsuarioId,
             UsuarioNombre = p.Usuario != null
                 ? $"{p.Usuario.Nombres} {p.Usuario.Apellidos}"
                 : string.Empty,

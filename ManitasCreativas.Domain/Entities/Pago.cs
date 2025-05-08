@@ -23,13 +23,13 @@ namespace ManitasCreativas.Domain.Entities
         public bool EsColegiatura { get; set; }
         public int MesColegiatura { get; set; }
         public int AnioColegiatura { get; set; }
-        public int? UsuarioId { get; set; }
         public Usuario? Usuario { get; set; } // Relación opcional con Usuario
 
         // Audit fields
         public DateTime FechaCreacion { get; set; }
         public DateTime? FechaActualizacion { get; set; }
-        public string UsuarioCreacion { get; set; } = string.Empty;
-        public string? UsuarioActualizacion { get; set; }
+        public int? UsuarioCreacionId { get; set; }
+        public int? UsuarioActualizacionId { get; set; }
+
     }
 }

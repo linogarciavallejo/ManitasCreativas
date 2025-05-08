@@ -43,8 +43,8 @@ public class RubroService : IRubroService
             // Add mapping for audit fields
             FechaCreacion = r.FechaCreacion,
             FechaActualizacion = r.FechaActualizacion,
-            UsuarioCreacion = r.UsuarioCreacion,
-            UsuarioActualizacion = r.UsuarioActualizacion
+            UsuarioCreacionId = r.UsuarioCreacionId,
+            UsuarioActualizacionId = r.UsuarioActualizacionId,
         });
     }
 
@@ -78,8 +78,8 @@ public class RubroService : IRubroService
             // Add mapping for audit fields
             FechaCreacion = rubro.FechaCreacion,
             FechaActualizacion = rubro.FechaActualizacion,
-            UsuarioCreacion = rubro.UsuarioCreacion,
-            UsuarioActualizacion = rubro.UsuarioActualizacion
+            UsuarioCreacionId = rubro.UsuarioCreacionId,
+            UsuarioActualizacionId = rubro.UsuarioActualizacionId,
         };
     }
 
@@ -104,7 +104,6 @@ public class RubroService : IRubroService
             Notas = rubroDto.Notas,
             Activo = rubroDto.Activo,
             OrdenVisualizacionGrid = rubroDto.OrdenVisualizacionGrid,
-            UsuarioCreacion = rubroDto.UsuarioCreacion
         };
         
         // Handle DateTime properties correctly by converting to UTC
@@ -126,7 +125,8 @@ public class RubroService : IRubroService
         
         // Set FechaCreacion using UTC time
         rubro.FechaCreacion = DateTime.UtcNow;
-        
+        rubro.UsuarioCreacionId = rubroDto.UsuarioCreacionId;
+
         await _rubroRepository.AddAsync(rubro);
     }
 
@@ -160,9 +160,8 @@ public class RubroService : IRubroService
             OrdenVisualizacionGrid = rubroDto.OrdenVisualizacionGrid,
             // Preserve original creation information
             FechaCreacion = existingRubro.FechaCreacion,
-            UsuarioCreacion = existingRubro.UsuarioCreacion,
+            UsuarioCreacionId = existingRubro.UsuarioCreacionId,
             // Update modification information
-            UsuarioActualizacion = rubroDto.UsuarioActualizacion
         };
         
         // Handle DateTime properties correctly by converting to UTC
@@ -184,7 +183,8 @@ public class RubroService : IRubroService
         
         // Set FechaActualizacion using UTC time
         rubro.FechaActualizacion = DateTime.UtcNow;
-        
+        rubro.UsuarioActualizacionId = rubroDto.UsuarioActualizacionId;
+
         await _rubroRepository.UpdateAsync(rubro);
     }
 
@@ -223,8 +223,8 @@ public class RubroService : IRubroService
             // Add mapping for audit fields
             FechaCreacion = r.FechaCreacion,
             FechaActualizacion = r.FechaActualizacion,
-            UsuarioCreacion = r.UsuarioCreacion,
-            UsuarioActualizacion = r.UsuarioActualizacion
+            UsuarioCreacionId = r.UsuarioCreacionId,
+            UsuarioActualizacionId = r.UsuarioActualizacionId,
         });
     }
 
@@ -254,7 +254,6 @@ public class RubroService : IRubroService
                 PagoId = img.PagoId,
                 Url = img.ImagenUrl.ToString(),
                 FechaCreacion = img.FechaCreacion,
-                UsuarioCreacion = img.UsuarioCreacion
             }).ToList() ?? new List<PagoImagenDto>(),
             MontoPreestablecido = p.Rubro?.MontoPreestablecido,
             PenalizacionPorMoraMonto = p.Rubro?.PenalizacionPorMoraMonto,
@@ -265,12 +264,11 @@ public class RubroService : IRubroService
             DiaLimitePagoRojo = p.Rubro?.DiaLimitePagoRojo,
             MesLimitePago = p.Rubro?.MesLimitePago,
             OrdenVisualizacionGrid = p.Rubro?.OrdenVisualizacionGrid,
-            UsuarioId = p.UsuarioId,
             UsuarioNombre = p.Usuario != null ? $"{p.Usuario.Nombres} {p.Usuario.Apellidos}" : "Sistema",
             FechaCreacion = p.FechaCreacion,
             FechaActualizacion = p.FechaActualizacion,
-            UsuarioCreacion = p.UsuarioCreacion,
-            UsuarioActualizacion = p.UsuarioActualizacion,
+            UsuarioCreacionId = p.UsuarioCreacionId,
+            UsuarioActualizacionId = p.UsuarioActualizacionId,
         });
     }
 

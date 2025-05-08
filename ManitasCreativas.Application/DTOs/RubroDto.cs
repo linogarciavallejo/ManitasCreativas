@@ -29,6 +29,7 @@ public class RubroDto
     // Audit fields
     public DateTime FechaCreacion { get; set; }
     public DateTime? FechaActualizacion { get; set; }
-    public string UsuarioCreacion { get; set; } = string.Empty;
-    public string? UsuarioActualizacion { get; set; }
+    public int? UsuarioCreacionId { get; set; }
+    public int? UsuarioActualizacionId { get; set; }
+
 }

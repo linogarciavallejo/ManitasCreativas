@@ -37,6 +37,9 @@ namespace ManitasCreativas.Infrastructure
                 
             // Configure audit fields for entities
             ConfigureAuditFields(modelBuilder);
+            
+            // Configure audit user relationships
+            ConfigureAuditUserRelationships(modelBuilder);
         }
         
         private void ConfigureAuditFields(ModelBuilder modelBuilder)
@@ -45,58 +48,85 @@ namespace ManitasCreativas.Infrastructure
             modelBuilder.Entity<Rubro>()
                 .Property(r => r.FechaCreacion)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
-                
-            modelBuilder.Entity<Rubro>()
-                .Property(r => r.UsuarioCreacion)
-                .HasMaxLength(100)
-                .IsRequired();
-                
-            modelBuilder.Entity<Rubro>()
-                .Property(r => r.UsuarioActualizacion)
-                .HasMaxLength(100);
-                
+               
             // Configure Alumno audit fields
             modelBuilder.Entity<Alumno>()
                 .Property(a => a.FechaCreacion)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
-                
-            modelBuilder.Entity<Alumno>()
-                .Property(a => a.UsuarioCreacion)
-                .HasMaxLength(100)
-                .IsRequired();
-                
-            modelBuilder.Entity<Alumno>()
-                .Property(a => a.UsuarioActualizacion)
-                .HasMaxLength(100);
                 
             // Configure Pago audit fields
             modelBuilder.Entity<Pago>()
                 .Property(p => p.FechaCreacion)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
                 
-            modelBuilder.Entity<Pago>()
-                .Property(p => p.UsuarioCreacion)
-                .HasMaxLength(100)
-                .IsRequired();
-                
-            modelBuilder.Entity<Pago>()
-                .Property(p => p.UsuarioActualizacion)
-                .HasMaxLength(100);
-                
             // Configure PagoImagen audit fields
             modelBuilder.Entity<PagoImagen>()
                 .Property(pi => pi.FechaCreacion)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
                 
+        }
+        
+        private void ConfigureAuditUserRelationships(ModelBuilder modelBuilder)
+        {
+            // Configure Rubro -> Usuario relationships for audit
+            modelBuilder.Entity<Rubro>()
+                .HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(r => r.UsuarioCreacionId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            modelBuilder.Entity<Rubro>()
+                .HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(r => r.UsuarioActualizacionId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            // Configure Alumno -> Usuario relationships for audit
+            modelBuilder.Entity<Alumno>()
+                .HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(a => a.UsuarioCreacionId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            modelBuilder.Entity<Alumno>()
+                .HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(a => a.UsuarioActualizacionId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            // Configure Pago -> Usuario relationships for audit
+            modelBuilder.Entity<Pago>()
+                .HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(p => p.UsuarioCreacionId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            modelBuilder.Entity<Pago>()
+                .HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(p => p.UsuarioActualizacionId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            // Configure PagoImagen -> Usuario relationships for audit
             modelBuilder.Entity<PagoImagen>()
-                .Property(pi => pi.UsuarioCreacion)
-                .HasMaxLength(100)
-                .IsRequired();
+                .HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(pi => pi.UsuarioCreacionId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
                 
             modelBuilder.Entity<PagoImagen>()
-                .Property(pi => pi.UsuarioActualizacion)
-                .HasMaxLength(100);
-                
+                .HasOne<Usuario>()
+                .WithMany()
+                .HasForeignKey(pi => pi.UsuarioActualizacionId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
         }
         
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -132,16 +162,16 @@ namespace ManitasCreativas.Infrastructure
                     if (entry.State == EntityState.Added)
                     {
                         rubro.FechaCreacion = now;
-                        // Note: UsuarioCreacion should be set by the service/controller
+                        // Note: UsuarioCreacionId should be set by the service/controller
                     }
                     else if (entry.State == EntityState.Modified)
                     {
                         rubro.FechaActualizacion = now;
-                        // Note: UsuarioActualizacion should be set by the service/controller
+                        // Note: UsuarioActualizacionId should be set by the service/controller
                         
                         // Prevent changes to creation audit fields
                         entry.Property("FechaCreacion").IsModified = false;
-                        entry.Property("UsuarioCreacion").IsModified = false;
+                        entry.Property("UsuarioCreacionId").IsModified = false;
                     }
                 }
                 
@@ -151,16 +181,16 @@ namespace ManitasCreativas.Infrastructure
                     if (entry.State == EntityState.Added)
                     {
                         alumno.FechaCreacion = now;
-                        // Note: UsuarioCreacion should be set by the service/controller
+                        // Note: UsuarioCreacionId should be set by the service/controller
                     }
                     else if (entry.State == EntityState.Modified)
                     {
                         alumno.FechaActualizacion = now;
-                        // Note: UsuarioActualizacion should be set by the service/controller
+                        // Note: UsuarioActualizacionId should be set by the service/controller
                         
                         // Prevent changes to creation audit fields
                         entry.Property("FechaCreacion").IsModified = false;
-                        entry.Property("UsuarioCreacion").IsModified = false;
+                        entry.Property("UsuarioCreacionId").IsModified = false;
                     }
                 }
                 
@@ -170,16 +200,16 @@ namespace ManitasCreativas.Infrastructure
                     if (entry.State == EntityState.Added)
                     {
                         pago.FechaCreacion = now;
-                        // Note: UsuarioCreacion should be set by the service/controller
+                        // Note: UsuarioCreacionId should be set by the service/controller
                     }
                     else if (entry.State == EntityState.Modified)
                     {
                         pago.FechaActualizacion = now;
-                        // Note: UsuarioActualizacion should be set by the service/controller
+                        // Note: UsuarioActualizacionId should be set by the service/controller
                         
                         // Prevent changes to creation audit fields
                         entry.Property("FechaCreacion").IsModified = false;
-                        entry.Property("UsuarioCreacion").IsModified = false;
+                        entry.Property("UsuarioCreacionId").IsModified = false;
                     }
                 }
                 
@@ -189,16 +219,16 @@ namespace ManitasCreativas.Infrastructure
                     if (entry.State == EntityState.Added)
                     {
                         pagoImagen.FechaCreacion = now;
-                        // Note: UsuarioCreacion should be set by the service/controller
+                        // Note: UsuarioCreacionId should be set by the service/controller
                     }
                     else if (entry.State == EntityState.Modified)
                     {
                         pagoImagen.FechaActualizacion = now;
-                        // Note: UsuarioActualizacion should be set by the service/controller
+                        // Note: UsuarioActualizacionId should be set by the service/controller
                         
                         // Prevent changes to creation audit fields
                         entry.Property("FechaCreacion").IsModified = false;
-                        entry.Property("UsuarioCreacion").IsModified = false;
+                        entry.Property("UsuarioCreacionId").IsModified = false;
                     }
                 }
             }

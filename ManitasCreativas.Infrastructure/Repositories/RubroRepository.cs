@@ -94,7 +94,7 @@ public class RubroRepository : IRubroRepository
                     ""FechaFinPromocion"" = @FechaFinPromocion,
                     ""Notas"" = @Notas,
                     ""Activo"" = @Activo,
-                    ""UsuarioActualizacion"" = @UsuarioActualizacion,
+                    ""UsuarioActualizacionId"" = @UsuarioActualizacionId,
                     ""FechaActualizacion"" = @FechaActualizacion,
                     ""FechaLimitePagoAmarillo"" = @FechaLimitePagoAmarillo,
                     ""FechaLimitePagoRojo"" = @FechaLimitePagoRojo
@@ -118,7 +118,7 @@ public class RubroRepository : IRubroRepository
                 new Npgsql.NpgsqlParameter("@FechaFinPromocion", (object)rubro.FechaFinPromocion ?? DBNull.Value),
                 new Npgsql.NpgsqlParameter("@Notas", (object)rubro.Notas ?? DBNull.Value),
                 new Npgsql.NpgsqlParameter("@Activo", rubro.Activo),
-                new Npgsql.NpgsqlParameter("@UsuarioActualizacion", (object)rubro.UsuarioActualizacion ?? DBNull.Value),
+                new Npgsql.NpgsqlParameter("@UsuarioActualizacionId", (object)rubro.UsuarioActualizacionId ?? DBNull.Value),
                 new Npgsql.NpgsqlParameter("@FechaActualizacion", DateTime.UtcNow),
                 new Npgsql.NpgsqlParameter("@Id", rubro.Id)
             };

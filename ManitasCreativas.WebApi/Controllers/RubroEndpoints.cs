@@ -23,14 +23,14 @@ public static class RubroEndpoints
             string username = httpContext.Request.Headers["X-Username"].FirstOrDefault() ?? "system";
             
             // If not found in header, check if it's already set in the DTO from request body
-            if (username == "system" && !string.IsNullOrEmpty(rubroDto.UsuarioCreacion) && rubroDto.UsuarioCreacion != "system")
-            {
-                username = rubroDto.UsuarioCreacion;
-            }
+            //if (username == "system" && !string.IsNullOrEmpty(rubroDto.UsuarioCreacion) && rubroDto.UsuarioCreacion != "system")
+            //{
+            //    username = rubroDto.UsuarioCreacion;
+            //}
             
             // Set creation data
             rubroDto.FechaCreacion = DateTime.UtcNow;
-            rubroDto.UsuarioCreacion = username;
+            //rubroDto.UsuarioCreacion = username;
             
             await rubroService.AddRubroAsync(rubroDto);
             return Results.Created($"/rubros/{rubroDto.Id}", rubroDto);
@@ -44,14 +44,14 @@ public static class RubroEndpoints
             string username = httpContext.Request.Headers["X-Username"].FirstOrDefault() ?? "system";
             
             // If not found in header, check if it's already set in the DTO from request body
-            if (username == "system" && !string.IsNullOrEmpty(rubroDto.UsuarioActualizacion) && rubroDto.UsuarioActualizacion != "system")
-            {
-                username = rubroDto.UsuarioActualizacion;
-            }
+            //if (username == "system" && !string.IsNullOrEmpty(rubroDto.UsuarioActualizacion) && rubroDto.UsuarioActualizacion != "system")
+            //{
+            //    username = rubroDto.UsuarioActualizacion;
+            //}
             
             // Set update data
             rubroDto.FechaActualizacion = DateTime.UtcNow;
-            rubroDto.UsuarioActualizacion = username;
+            //rubroDto.UsuarioActualizacion = username;
             
             await rubroService.UpdateRubroAsync(rubroDto);
             return Results.NoContent();
