@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Form, Input, Button, Upload, message, AutoComplete, Select, InputNumber, DatePicker } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import moment from 'moment';
 import { makeApiRequest } from "../../services/apiHelper";
 import { getCurrentUserId } from "../../services/authService";
+import { gradoService } from "../../services/gradoService";
+import { rubroService } from "../../services/rubroService";
 import "antd/dist/reset.css";
 
 interface Alumno {
@@ -43,7 +45,13 @@ interface AlumnoDetails {
   gradoNombre: string;
   becado: boolean | null;
   becaParcialPorcentaje: number | null;
-  pagos: any[];
+  pagos: Array<{
+    id: number;
+    fecha: string;
+    monto: number;
+    rubroDescripcion: string;
+    // Add other payment fields as needed
+  }>;
   contactos: Contacto[];
 }
 
@@ -56,15 +64,80 @@ const { Option } = Select;
 
 const Tuitions: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const [loadingRubro, setLoadingRubro] = useState<boolean>(false);
   const [alumnoId, setAlumnoId] = useState<string | null>(null);
   const [selectedCodigo, setSelectedCodigo] = useState<string | null>(null);
   const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
   const [contactos, setContactos] = useState<Contacto[]>([]);
+  const [dinamicRubroId, setDinamicRubroId] = useState<string>("1"); // Default to "1" but will be updated
+  const [gradoId, setGradoId] = useState<number | null>(null);
+  const [form] = Form.useForm(); // Add Form instance
 
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1; // 1-based month number
+
+  // Update form values when dinamicRubroId changes
+  useEffect(() => {
+    form.setFieldsValue({ rubroId: dinamicRubroId });
+  }, [dinamicRubroId, form]);
+
+  // Function to fetch the appropriate RubroId for a student's grade
+  const fetchRubroIdForGrado = async (studentGradoId: number) => {
+    if (!studentGradoId) {
+      console.error("No GradoId provided");
+      return;
+    }
+
+    try {
+      setLoadingRubro(true);
+      
+      // Step 1: Get the Grado details to find the NivelEducativoId
+      const gradoDetails = await gradoService.getGradoById(studentGradoId);
+      const nivelEducativoId = gradoDetails.nivelEducativoId;
+      
+      if (!nivelEducativoId) {
+        console.error("No NivelEducativoId found for Grado:", studentGradoId);
+        return;
+      }
+      
+      // Step 2: Get all active Rubros
+      const activeRubros = await rubroService.getActiveRubros();
+      
+      // Step 3: Filter Rubros for the matching NivelEducativoId and EsColegiatura=true
+      const tuitionRubros = activeRubros.filter(rubro => 
+        rubro.nivelEducativoId === nivelEducativoId && rubro.esColegiatura === true
+      );
+      
+      if (tuitionRubros.length === 0) {
+        console.warn("No matching tuition Rubro found for NivelEducativoId:", nivelEducativoId);
+        message.warning("No se encontró un rubro de colegiatura para este estudiante. Se usará el valor predeterminado.");
+        return;
+      }
+      
+      // If multiple matches, preferably take the one with montoPreestablecido
+      const selectedRubro = tuitionRubros.find(r => r.montoPreestablecido !== undefined) || tuitionRubros[0];
+      
+      // Step 4: Update the RubroId state and form value
+      setDinamicRubroId(selectedRubro.id.toString());
+      console.log("Selected RubroId for tuition payment:", selectedRubro.id);
+      
+      // Update the form's rubroId field with the dynamic value
+      form.setFieldsValue({ rubroId: selectedRubro.id.toString() });
+      
+      // Optionally pre-fill the monto if available
+      if (selectedRubro.montoPreestablecido) {
+        // Update the form's monto field if a predefined amount exists
+        form.setFieldsValue({ monto: selectedRubro.montoPreestablecido });
+      }
+    } catch (error) {
+      console.error("Error fetching appropriate RubroId:", error);
+      message.error("Error al obtener el rubro de colegiatura. Se usará el valor predeterminado.");
+    } finally {
+      setLoadingRubro(false);
+    }
+  };
 
   // Search by codigo input
   const handleCodigoSearch = async (codigo: string) => {
@@ -77,8 +150,19 @@ const Tuitions: React.FC = () => {
       );
       // Update contactos info from the response
       setContactos(response.contactos || []);
+      
+      // Set gradoId and fetch appropriate RubroId
+      const studentGradoId = response.gradoId;
+      setGradoId(studentGradoId);
+      
+      // Call the function to fetch the correct RubroId for this student's grade
+      if (studentGradoId) {
+        await fetchRubroIdForGrado(studentGradoId);
+      }
+      
       message.success("Alumno encontrado por código.");
     } catch (error: unknown) {
+      console.error("Error fetching student by code:", error);
       message.error("No se encontró ningún alumno con ese código.");
     }
   };
@@ -116,6 +200,16 @@ const Tuitions: React.FC = () => {
       setSelectedCodigo(response.codigo);
       // Update contactos info from the response
       setContactos(response.contactos || []);
+      
+      // Set gradoId and fetch appropriate RubroId
+      const studentGradoId = response.gradoId;
+      setGradoId(studentGradoId);
+      
+      // Call the function to fetch the correct RubroId for this student's grade
+      if (studentGradoId) {
+        await fetchRubroIdForGrado(studentGradoId);
+      }
+      
       message.success("Alumno seleccionado correctamente.");
     } catch (error: unknown) {
       console.error("Error fetching student details:", error);
@@ -132,7 +226,7 @@ const Tuitions: React.FC = () => {
     mes: string | number;
     notas?: string;
     rubroId: string;
-    imagenesPago?: any[];
+    imagenesPago?: { originFileObj?: File }[];
   }) => {
     console.log("Form submitted with values:", values); // Debugging log
 
@@ -181,7 +275,7 @@ const Tuitions: React.FC = () => {
         console.log(pair[0] + ': ' + pair[1]);
       }
       
-      const response = await makeApiRequest<any>("/pagos", "POST", formData);
+      const response = await makeApiRequest<{ id: number }>("/pagos", "POST", formData);
 
       message.success("¡Pago enviado con éxito!");
       console.log("Pago enviado:", response);
@@ -241,6 +335,10 @@ const Tuitions: React.FC = () => {
                 setSelectedCodigo(null);
                 setAutoCompleteValue("");
                 setContactos([]);
+                setGradoId(null);
+                // Reset to default RubroId
+                setDinamicRubroId("1");
+                form.setFieldsValue({ rubroId: "1" });
               }}
             >
               Limpiar
@@ -273,6 +371,7 @@ const Tuitions: React.FC = () => {
       )}
 
       <Form
+        form={form}
         name="payments"
         layout="vertical"
         onFinish={handleSubmit}
@@ -283,6 +382,7 @@ const Tuitions: React.FC = () => {
           mes: currentMonth,
           monto: 150,
           fechaPago: moment(),
+          rubroId: dinamicRubroId, // Initialize with the dynamic RubroId
         }}
       >
         <Form.Item
@@ -305,8 +405,15 @@ const Tuitions: React.FC = () => {
           />
         </Form.Item>
 
-        <Form.Item name="rubroId" initialValue="1" style={{ display: "none" }}>
-          <Input type="hidden" />
+        <Form.Item 
+          name="rubroId" 
+          initialValue={dinamicRubroId} 
+          style={{ display: "none" }}
+        >
+          <Input 
+            type="hidden" 
+            disabled={loadingRubro}
+          />
         </Form.Item>
 
         <Form.Item
@@ -385,8 +492,14 @@ const Tuitions: React.FC = () => {
         </Form.Item>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit" block loading={loading} disabled={!alumnoId}>
-            Enviar Pago
+          <Button 
+            type="primary" 
+            htmlType="submit" 
+            block 
+            loading={loading || loadingRubro} 
+            disabled={!alumnoId}
+          >
+            {loadingRubro ? "Obteniendo rubro..." : "Enviar Pago"}
           </Button>
         </Form.Item>
       </Form>

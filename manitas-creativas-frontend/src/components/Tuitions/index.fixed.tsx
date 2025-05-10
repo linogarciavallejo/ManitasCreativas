@@ -4,6 +4,8 @@ import { UploadOutlined } from "@ant-design/icons";
 import moment from 'moment';
 import { makeApiRequest } from "../../services/apiHelper";
 import { getCurrentUserId } from "../../services/authService";
+import { gradoService } from "../../services/gradoService";
+import { rubroService } from "../../services/rubroService";
 import "antd/dist/reset.css";
 
 interface Alumno {
@@ -62,6 +64,9 @@ const Tuitions: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
   const [contactos, setContactos] = useState<Contacto[]>([]);
+  const [dinamicRubroId, setDinamicRubroId] = useState<string>("1"); // Default to "1" but will be updated
+  const [gradoId, setGradoId] = useState<number | null>(null);
+  const [loadingRubro, setLoadingRubro] = useState<boolean>(false);
 
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1; // 1-based month number
@@ -120,6 +125,60 @@ const Tuitions: React.FC = () => {
     } catch (error: unknown) {
       console.error("Error fetching student details:", error);
       message.error("Error al obtener los datos del alumno seleccionado.");
+    }
+  };
+
+  // New function to fetch the appropriate RubroId based on student's GradoId
+  const fetchRubroIdForGrado = async (studentGradoId: number) => {
+    if (!studentGradoId) {
+      console.error("No GradoId provided");
+      return;
+    }
+
+    try {
+      setLoadingRubro(true);
+      
+      // Step 1: Get the Grado details to find the NivelEducativoId
+      const gradoDetails = await gradoService.getGradoById(studentGradoId);
+      const nivelEducativoId = gradoDetails.nivelEducativoId;
+      
+      if (!nivelEducativoId) {
+        console.error("No NivelEducativoId found for Grado:", studentGradoId);
+        return;
+      }
+      
+      // Step 2: Get all active Rubros
+      const activeRubros = await rubroService.getActiveRubros();
+      
+      // Step 3: Filter Rubros for the matching NivelEducativoId and EsColegiatura=true
+      const tuitionRubros = activeRubros.filter(rubro => 
+        rubro.nivelEducativoId === nivelEducativoId && rubro.esColegiatura === true
+      );
+      
+      if (tuitionRubros.length === 0) {
+        console.warn("No matching tuition Rubro found for NivelEducativoId:", nivelEducativoId);
+        message.warning("No se encontró un rubro de colegiatura para este estudiante. Se usará el valor predeterminado.");
+        return;
+      }
+      
+      // If multiple matches, preferably take the one with montoPreestablecido
+      const selectedRubro = tuitionRubros.find(r => r.montoPreestablecido !== undefined) || tuitionRubros[0];
+      
+      // Step 4: Update the RubroId state
+      setDinamicRubroId(selectedRubro.id.toString());
+      console.log("Selected RubroId for tuition payment:", selectedRubro.id);
+      
+      // Optionally pre-fill the monto if available
+      if (selectedRubro.montoPreestablecido) {
+        // Update the form's monto field if a predefined amount exists
+        form.setFieldsValue({ monto: selectedRubro.montoPreestablecido });
+      }
+      
+    } catch (error) {
+      console.error("Error fetching appropriate RubroId:", error);
+      message.error("Error al obtener el rubro de colegiatura. Se usará el valor predeterminado.");
+    } finally {
+      setLoadingRubro(false);
     }
   };
 
