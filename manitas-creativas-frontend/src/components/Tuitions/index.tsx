@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Upload, message, AutoComplete, Select, InputNumber, DatePicker } from "antd";
+import { Form, Input, Button, Upload, AutoComplete, Select, InputNumber, DatePicker } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import moment from 'moment';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { makeApiRequest } from "../../services/apiHelper";
 import { getCurrentUserId } from "../../services/authService";
 import { gradoService } from "../../services/gradoService";
@@ -121,7 +123,7 @@ const Tuitions: React.FC = () => {
       
       if (tuitionRubros.length === 0) {
         console.warn("No matching tuition Rubro found for NivelEducativoId:", nivelEducativoId);
-        message.warning("No se encontró un rubro de colegiatura para este estudiante. Se usará el valor predeterminado.");
+        toast.warning("No se encontró un rubro de colegiatura para este estudiante. Se usará el valor predeterminado.");
         return;
       }
       
@@ -142,7 +144,7 @@ const Tuitions: React.FC = () => {
       }
     } catch (error) {
       console.error("Error fetching appropriate RubroId:", error);
-      message.error("Error al obtener el rubro de colegiatura. Se usará el valor predeterminado.");
+      toast.error("Error al obtener el rubro de colegiatura. Se usará el valor predeterminado.");
     } finally {
       setLoadingRubro(false);
     }
@@ -188,12 +190,11 @@ const Tuitions: React.FC = () => {
       // Call the function to fetch the correct RubroId for this student's grade
       if (studentGradoId) {
         await fetchRubroIdForGrado(studentGradoId);
-      }
-      
-      message.success("Alumno encontrado por código.");
+      }      
+      // No need for toast notification when student is found by code
     } catch (error: unknown) {
       console.error("Error fetching student by code:", error);
-      message.error("No se encontró ningún alumno con ese código.");
+      toast.error("No se encontró ningún alumno con ese código.");
     }
   };
 
@@ -217,7 +218,7 @@ const Tuitions: React.FC = () => {
       setTypeaheadOptions(options);
     } catch (error: unknown) {
       console.error("Error searching for students:", error);
-      message.error("Error al buscar alumnos.");
+      toast.error("Error al buscar alumnos.");
     }
   };
 
@@ -226,8 +227,7 @@ const Tuitions: React.FC = () => {
     setAlumnoId(value);
     setSelectedStudent(option.label);
     try {
-      const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${option.codigo}`, "GET");
-      setSelectedCodigo(response.codigo);
+      const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${option.codigo}`, "GET");      setSelectedCodigo(response.codigo);
       // Update contactos info from the response
       setContactos(response.contactos || []);
       
@@ -240,10 +240,10 @@ const Tuitions: React.FC = () => {
         await fetchRubroIdForGrado(studentGradoId);
       }
       
-      message.success("Alumno seleccionado correctamente.");
+      // Success notification removed as it's not necessary
     } catch (error: unknown) {
       console.error("Error fetching student details:", error);
-      message.error("Error al obtener los datos del alumno seleccionado.");
+      toast.error("Error al obtener los datos del alumno seleccionado.");
     }
   };
 
@@ -261,7 +261,7 @@ const Tuitions: React.FC = () => {
     console.log("Form submitted with values:", values); // Debugging log
 
     if (!alumnoId) {
-      message.error("Por favor seleccione un alumno antes de enviar el pago.");
+      toast.error("Por favor seleccione un alumno antes de enviar el pago.");
       return;
     }
 
@@ -307,14 +307,14 @@ const Tuitions: React.FC = () => {
       
       const response = await makeApiRequest<{ id: number }>("/pagos", "POST", formData);
 
-      message.success("¡Pago enviado con éxito!");
+      toast.success("¡Pago enviado con éxito!");
       console.log("Pago enviado:", response);
       
       // Reset the form after successful submission
       resetForm();
     } catch (err: unknown) {
       console.error("Error details:", err); // Add detailed error logging
-      message.error("Error al enviar el pago. Por favor, inténtelo de nuevo.");
+      toast.error("Error al enviar el pago. Por favor, inténtelo de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -322,6 +322,17 @@ const Tuitions: React.FC = () => {
 
   return (
     <div className="payments-container">
+      <ToastContainer
+        position="top-center"
+        autoClose={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <h2>Realizar un Pago de Colegiatura</h2>
 
       <div style={{ marginBottom: "20px" }}>
@@ -519,8 +530,7 @@ const Tuitions: React.FC = () => {
             disabled={!alumnoId}
           >
             {loadingRubro ? "Obteniendo rubro..." : "Enviar Pago"}
-          </Button>
-        </Form.Item>
+          </Button>        </Form.Item>
       </Form>
     </div>
   );
