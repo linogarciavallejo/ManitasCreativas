@@ -93,6 +93,12 @@ public class AlumnoService : IAlumnoService
             throw new Exception($"Sede with ID {alumnoDto.SedeId} not found.");
         }
 
+        // Verify that UsuarioCreacionId is provided
+        if (alumnoDto.UsuarioCreacionId <= 0)
+        {
+            throw new Exception("UsuarioCreacionId is required and must be a valid user ID.");
+        }
+
         var alumno = new Alumno
         {
             PrimerNombre = alumnoDto.PrimerNombre,
@@ -110,7 +116,7 @@ public class AlumnoService : IAlumnoService
             Sede = sede,
             Grado = grado,
             FechaCreacion = DateTime.UtcNow,
-            UsuarioCreacionId = alumnoDto.UsuarioCreacionId,
+            UsuarioCreacionId = alumnoDto.UsuarioCreacionId, // Set the user ID from DTO
         };
         
         await _alumnoRepository.AddAsync(alumno);
@@ -142,13 +148,19 @@ public class AlumnoService : IAlumnoService
             throw new Exception($"Sede with ID {alumnoDto.SedeId} not found.");
         }
 
+        // Verify that UsuarioActualizacionId is provided
+        if (alumnoDto.UsuarioActualizacionId <= 0)
+        {
+            throw new Exception("UsuarioActualizacionId is required and must be a valid user ID.");
+        }
+
         // Update the properties of the existing entity
         existingAlumno.PrimerNombre = alumnoDto.PrimerNombre;
         existingAlumno.SegundoNombre = alumnoDto.SegundoNombre;
         existingAlumno.PrimerApellido = alumnoDto.PrimerApellido;
         existingAlumno.SegundoApellido = alumnoDto.SegundoApellido;
         existingAlumno.Codigo = alumnoDto.Codigo;
-        existingAlumno.Seccion = alumnoDto.Seccion; // This will now correctly update
+        existingAlumno.Seccion = alumnoDto.Seccion;
         existingAlumno.Becado = alumnoDto.Becado;
         existingAlumno.BecaParcialPorcentaje = alumnoDto.BecaParcialPorcentaje;
         existingAlumno.Estado = (EstadoAlumno)alumnoDto.Estado;
@@ -157,7 +169,7 @@ public class AlumnoService : IAlumnoService
         existingAlumno.Sede = sede;
         existingAlumno.Grado = grado;
         existingAlumno.FechaActualizacion = DateTime.UtcNow;
-        existingAlumno.UsuarioActualizacionId = alumnoDto.UsuarioActualizacionId;
+        existingAlumno.UsuarioActualizacionId = alumnoDto.UsuarioActualizacionId; // Set the user ID from DTO
 
         await _alumnoRepository.UpdateAsync(existingAlumno);
     }
@@ -349,8 +361,8 @@ public class AlumnoService : IAlumnoService
             DiaLimitePagoAmarillo = p.Rubro?.DiaLimitePagoAmarillo,
             DiaLimitePagoRojo = p.Rubro?.DiaLimitePagoRojo,
             MesLimitePago = p.Rubro?.MesLimitePago,
-            UsuarioNombre = p.Usuario != null
-                ? $"{p.Usuario.Nombres} {p.Usuario.Apellidos}"
+            UsuarioNombre = p.UsuarioCreacion != null
+                ? $"{p.UsuarioCreacion.Nombres} {p.UsuarioCreacion.Apellidos}"
                 : string.Empty,
             ImagenesPago = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
                 .Select(i => new PagoImagenDto

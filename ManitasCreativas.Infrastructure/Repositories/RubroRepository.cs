@@ -206,7 +206,6 @@ public class RubroRepository : IRubroRepository
         return await _context.Pagos
             .Where(p => p.RubroId == rubroId)
             .Include(p => p.Alumno)
-            .Include(p => p.Usuario)
             .Include(p => p.ImagenesPago)
             .OrderByDescending(p => p.Fecha)
             .ToListAsync();

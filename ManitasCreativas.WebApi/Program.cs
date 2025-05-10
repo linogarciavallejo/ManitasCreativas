@@ -70,14 +70,40 @@ builder.Services.AddScoped<IAlumnoService, AlumnoService>(sp => {
     return new AlumnoService(alumnoRepository, gradoRepository, sedeRepository);
 });
 
-// Inject S3Service into PagoService
-builder.Services.AddScoped<S3Service>();
+// Fix for CS1643: Ensure all code paths return a value in the lambda expression
 builder.Services.AddScoped<IPagoService, PagoService>(sp =>
 {
     var pagoRepository = sp.GetRequiredService<IPagoRepository>();
     var s3Service = sp.GetRequiredService<S3Service>();
-    return new PagoService(pagoRepository, s3Service);
+    var alumnoRepository = sp.GetRequiredService<IAlumnoRepository>();
+    var rubroRepository = sp.GetRequiredService<IRubroRepository>();
+    var usuarioRepository = sp.GetRequiredService<IUsuarioRepository>();
+    var pagoImagenRepository = sp.GetRequiredService<IPagoImagenRepository>();
+
+    // Return a new instance of PagoService
+    return new PagoService(pagoRepository, s3Service, alumnoRepository, rubroRepository, usuarioRepository, pagoImagenRepository);
 });
+// Inject S3Service into PagoService
+builder.Services.AddScoped<S3Service>();
+//builder.Services.AddScoped<IPagoService, PagoService>(sp =>
+//{
+//    var pagoRepository = sp.GetRequiredService<IPagoRepository>();
+//    var s3Service = sp.GetRequiredService<S3Service>();
+//    //return new PagoService(pagoRepository, s3Service);
+//    // Inject S3Service into PagoService
+//    builder.Services.AddScoped<S3Service>();
+//    builder.Services.AddScoped<IPagoService, PagoService>(sp =>
+//    {
+//        var pagoRepository = sp.GetRequiredService<IPagoRepository>();
+//        var s3Service = sp.GetRequiredService<S3Service>();
+//        var alumnoRepository = sp.GetRequiredService<IAlumnoRepository>();
+//        var rubroRepository = sp.GetRequiredService<IRubroRepository>();
+//        var usuarioRepository = sp.GetRequiredService<IUsuarioRepository>();
+//        var pagoImagenRepository = sp.GetRequiredService<IPagoImagenRepository>();
+
+//        return new PagoService(pagoRepository, s3Service, alumnoRepository, rubroRepository, usuarioRepository, pagoImagenRepository);
+//    });
+//});
 
 // Add DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>

@@ -4,14 +4,22 @@ using ManitasCreativas.Application.DTOs;
 using ManitasCreativas.Application.Interfaces.Repositories;
 using ManitasCreativas.Application.Interfaces.Services;
 using ManitasCreativas.Domain.Entities;
+using ManitasCreativas.Domain.Enums;
 
 public class RubroService : IRubroService
 {
     private readonly IRubroRepository _rubroRepository;
+    private readonly INivelEducativoRepository _nivelEducativoRepository;
+    private readonly IGradoRepository _gradoRepository;
 
-    public RubroService(IRubroRepository rubroRepository)
+    public RubroService(
+        IRubroRepository rubroRepository,
+        INivelEducativoRepository nivelEducativoRepository,
+        IGradoRepository gradoRepository)
     {
         _rubroRepository = rubroRepository;
+        _nivelEducativoRepository = nivelEducativoRepository;
+        _gradoRepository = gradoRepository;
     }
 
     public async Task<IEnumerable<RubroDto>> GetAllRubrosAsync()
@@ -21,7 +29,8 @@ public class RubroService : IRubroService
         {
             Id = r.Id,
             Descripcion = r.Descripcion,
-            Tipo = r.Tipo,
+            Tipo = (int)r.Tipo,
+            TipoDescripcion = r.Tipo.ToString(),
             PenalizacionPorMoraMonto = r.PenalizacionPorMoraMonto,
             PenalizacionPorMoraPorcentaje = r.PenalizacionPorMoraPorcentaje,
             FechaLimitePagoAmarillo = r.FechaLimitePagoAmarillo,
@@ -31,32 +40,28 @@ public class RubroService : IRubroService
             DiaLimitePagoRojo = r.DiaLimitePagoRojo,
             MesLimitePago = r.MesLimitePago,
             NivelEducativoId = r.NivelEducativoId,
-            NivelEducativoNombre = r.NivelEducativo?.Nombre,
             GradoId = r.GradoId,
-            GradoNombre = r.Grado?.Nombre,
             MontoPreestablecido = r.MontoPreestablecido,
             FechaInicioPromocion = r.FechaInicioPromocion,
             FechaFinPromocion = r.FechaFinPromocion,
             Notas = r.Notas,
-            Activo = r.Activo,
-            OrdenVisualizacionGrid = r.OrdenVisualizacionGrid,
-            // Add mapping for audit fields
-            FechaCreacion = r.FechaCreacion,
-            FechaActualizacion = r.FechaActualizacion,
-            UsuarioCreacionId = r.UsuarioCreacionId,
-            UsuarioActualizacionId = r.UsuarioActualizacionId,
+            Activo = r.Activo ?? true,
+            OrdenVisualizacionGrid = r.OrdenVisualizacionGrid
         });
     }
-
 
     public async Task<RubroDto?> GetRubroByIdAsync(int id)
     {
         var rubro = await _rubroRepository.GetByIdAsync(id);
-        return rubro == null ? null : new RubroDto
+        
+        if (rubro == null) return null;
+        
+        return new RubroDto
         {
             Id = rubro.Id,
             Descripcion = rubro.Descripcion,
-            Tipo = rubro.Tipo,
+            Tipo = (int)rubro.Tipo,
+            TipoDescripcion = rubro.Tipo.ToString(),
             PenalizacionPorMoraMonto = rubro.PenalizacionPorMoraMonto,
             PenalizacionPorMoraPorcentaje = rubro.PenalizacionPorMoraPorcentaje,
             FechaLimitePagoAmarillo = rubro.FechaLimitePagoAmarillo,
@@ -66,32 +71,52 @@ public class RubroService : IRubroService
             DiaLimitePagoRojo = rubro.DiaLimitePagoRojo,
             MesLimitePago = rubro.MesLimitePago,
             NivelEducativoId = rubro.NivelEducativoId,
-            NivelEducativoNombre = rubro.NivelEducativo?.Nombre,
             GradoId = rubro.GradoId,
-            GradoNombre = rubro.Grado?.Nombre,
             MontoPreestablecido = rubro.MontoPreestablecido,
             FechaInicioPromocion = rubro.FechaInicioPromocion,
             FechaFinPromocion = rubro.FechaFinPromocion,
             Notas = rubro.Notas,
-            Activo = rubro.Activo,
-            OrdenVisualizacionGrid = rubro.OrdenVisualizacionGrid,
-            // Add mapping for audit fields
-            FechaCreacion = rubro.FechaCreacion,
-            FechaActualizacion = rubro.FechaActualizacion,
-            UsuarioCreacionId = rubro.UsuarioCreacionId,
-            UsuarioActualizacionId = rubro.UsuarioActualizacionId,
+            Activo = rubro.Activo ?? true,
+            OrdenVisualizacionGrid = rubro.OrdenVisualizacionGrid
         };
     }
 
-
     public async Task AddRubroAsync(RubroDto rubroDto)
     {
+        // Verify that UsuarioCreacionId is provided
+        if (rubroDto.UsuarioCreacionId <= 0)
+        {
+            throw new Exception("UsuarioCreacionId is required and must be a valid user ID.");
+        }
+
+        // Check if nivel educativo exists if it's provided
+        if (rubroDto.NivelEducativoId.HasValue)
+        {
+            var nivelEducativo = await _nivelEducativoRepository.GetByIdAsync(rubroDto.NivelEducativoId.Value);
+            if (nivelEducativo == null)
+            {
+                throw new Exception($"NivelEducativo with ID {rubroDto.NivelEducativoId.Value} not found.");
+            }
+        }
+
+        // Check if grado exists if it's provided
+        if (rubroDto.GradoId.HasValue)
+        {
+            var grado = await _gradoRepository.GetByIdAsync(rubroDto.GradoId.Value);
+            if (grado == null)
+            {
+                throw new Exception($"Grado with ID {rubroDto.GradoId.Value} not found.");
+            }
+        }
+
         var rubro = new Rubro
         {
             Descripcion = rubroDto.Descripcion,
-            Tipo = rubroDto.Tipo,
+            Tipo = (TipoRubro)rubroDto.Tipo,
             PenalizacionPorMoraMonto = rubroDto.PenalizacionPorMoraMonto,
             PenalizacionPorMoraPorcentaje = rubroDto.PenalizacionPorMoraPorcentaje,
+            FechaLimitePagoAmarillo = rubroDto.FechaLimitePagoAmarillo,
+            FechaLimitePagoRojo = rubroDto.FechaLimitePagoRojo,
             EsColegiatura = rubroDto.EsColegiatura,
             DiaLimitePagoAmarillo = rubroDto.DiaLimitePagoAmarillo,
             DiaLimitePagoRojo = rubroDto.DiaLimitePagoRojo,
@@ -104,90 +129,71 @@ public class RubroService : IRubroService
             Notas = rubroDto.Notas,
             Activo = rubroDto.Activo,
             OrdenVisualizacionGrid = rubroDto.OrdenVisualizacionGrid,
+            FechaCreacion = DateTime.UtcNow,
+            UsuarioCreacionId = rubroDto.UsuarioCreacionId // Set the user ID from DTO
         };
-        
-        // Handle DateTime properties correctly by converting to UTC
-        if (rubroDto.FechaLimitePagoAmarillo.HasValue)
-        {
-            var dateTime = rubroDto.FechaLimitePagoAmarillo.Value;
-            rubro.FechaLimitePagoAmarillo = dateTime.Kind != DateTimeKind.Utc 
-                ? dateTime.ToUniversalTime() 
-                : dateTime;
-        }
-        
-        if (rubroDto.FechaLimitePagoRojo.HasValue)
-        {
-            var dateTime = rubroDto.FechaLimitePagoRojo.Value;
-            rubro.FechaLimitePagoRojo = dateTime.Kind != DateTimeKind.Utc 
-                ? dateTime.ToUniversalTime() 
-                : dateTime;
-        }
-        
-        // Set FechaCreacion using UTC time
-        rubro.FechaCreacion = DateTime.UtcNow;
-        rubro.UsuarioCreacionId = rubroDto.UsuarioCreacionId;
 
         await _rubroRepository.AddAsync(rubro);
+        rubroDto.Id = rubro.Id;
     }
 
     public async Task UpdateRubroAsync(RubroDto rubroDto)
     {
-        // First get the existing rubro to preserve creation info
+        // Verify that UsuarioActualizacionId is provided
+        if (rubroDto.UsuarioActualizacionId <= 0)
+        {
+            throw new Exception("UsuarioActualizacionId is required and must be a valid user ID.");
+        }
+
         var existingRubro = await _rubroRepository.GetByIdAsync(rubroDto.Id);
         if (existingRubro == null)
         {
-            throw new KeyNotFoundException($"Rubro with ID {rubroDto.Id} not found.");
+            throw new Exception($"Rubro with ID {rubroDto.Id} not found.");
         }
 
-        var rubro = new Rubro
+        // Check if nivel educativo exists if it's provided
+        if (rubroDto.NivelEducativoId.HasValue)
         {
-            Id = rubroDto.Id,
-            Descripcion = rubroDto.Descripcion,
-            Tipo = rubroDto.Tipo,
-            PenalizacionPorMoraMonto = rubroDto.PenalizacionPorMoraMonto,
-            PenalizacionPorMoraPorcentaje = rubroDto.PenalizacionPorMoraPorcentaje,
-            EsColegiatura = rubroDto.EsColegiatura,
-            DiaLimitePagoAmarillo = rubroDto.DiaLimitePagoAmarillo,
-            DiaLimitePagoRojo = rubroDto.DiaLimitePagoRojo,
-            MesLimitePago = rubroDto.MesLimitePago,
-            NivelEducativoId = rubroDto.NivelEducativoId,
-            GradoId = rubroDto.GradoId,
-            MontoPreestablecido = rubroDto.MontoPreestablecido,
-            FechaInicioPromocion = rubroDto.FechaInicioPromocion,
-            FechaFinPromocion = rubroDto.FechaFinPromocion,
-            Notas = rubroDto.Notas,
-            Activo = rubroDto.Activo,
-            OrdenVisualizacionGrid = rubroDto.OrdenVisualizacionGrid,
-            // Preserve original creation information
-            FechaCreacion = existingRubro.FechaCreacion,
-            UsuarioCreacionId = existingRubro.UsuarioCreacionId,
-            // Update modification information
-        };
-        
-        // Handle DateTime properties correctly by converting to UTC
-        if (rubroDto.FechaLimitePagoAmarillo.HasValue)
-        {
-            var dateTime = rubroDto.FechaLimitePagoAmarillo.Value;
-            rubro.FechaLimitePagoAmarillo = dateTime.Kind != DateTimeKind.Utc 
-                ? dateTime.ToUniversalTime() 
-                : dateTime;
+            var nivelEducativo = await _nivelEducativoRepository.GetByIdAsync(rubroDto.NivelEducativoId.Value);
+            if (nivelEducativo == null)
+            {
+                throw new Exception($"NivelEducativo with ID {rubroDto.NivelEducativoId.Value} not found.");
+            }
         }
-        
-        if (rubroDto.FechaLimitePagoRojo.HasValue)
-        {
-            var dateTime = rubroDto.FechaLimitePagoRojo.Value;
-            rubro.FechaLimitePagoRojo = dateTime.Kind != DateTimeKind.Utc 
-                ? dateTime.ToUniversalTime() 
-                : dateTime;
-        }
-        
-        // Set FechaActualizacion using UTC time
-        rubro.FechaActualizacion = DateTime.UtcNow;
-        rubro.UsuarioActualizacionId = rubroDto.UsuarioActualizacionId;
 
-        await _rubroRepository.UpdateAsync(rubro);
+        // Check if grado exists if it's provided
+        if (rubroDto.GradoId.HasValue)
+        {
+            var grado = await _gradoRepository.GetByIdAsync(rubroDto.GradoId.Value);
+            if (grado == null)
+            {
+                throw new Exception($"Grado with ID {rubroDto.GradoId.Value} not found.");
+            }
+        }
+
+        existingRubro.Descripcion = rubroDto.Descripcion;
+        existingRubro.Tipo = (TipoRubro)rubroDto.Tipo;
+        existingRubro.PenalizacionPorMoraMonto = rubroDto.PenalizacionPorMoraMonto;
+        existingRubro.PenalizacionPorMoraPorcentaje = rubroDto.PenalizacionPorMoraPorcentaje;
+        existingRubro.FechaLimitePagoAmarillo = rubroDto.FechaLimitePagoAmarillo;
+        existingRubro.FechaLimitePagoRojo = rubroDto.FechaLimitePagoRojo;
+        existingRubro.EsColegiatura = rubroDto.EsColegiatura;
+        existingRubro.DiaLimitePagoAmarillo = rubroDto.DiaLimitePagoAmarillo;
+        existingRubro.DiaLimitePagoRojo = rubroDto.DiaLimitePagoRojo;
+        existingRubro.MesLimitePago = rubroDto.MesLimitePago;
+        existingRubro.NivelEducativoId = rubroDto.NivelEducativoId;
+        existingRubro.GradoId = rubroDto.GradoId;
+        existingRubro.MontoPreestablecido = rubroDto.MontoPreestablecido;
+        existingRubro.FechaInicioPromocion = rubroDto.FechaInicioPromocion;
+        existingRubro.FechaFinPromocion = rubroDto.FechaFinPromocion;
+        existingRubro.Notas = rubroDto.Notas;
+        existingRubro.Activo = rubroDto.Activo;
+        existingRubro.OrdenVisualizacionGrid = rubroDto.OrdenVisualizacionGrid;
+        existingRubro.FechaActualizacion = DateTime.UtcNow;
+        existingRubro.UsuarioActualizacionId = rubroDto.UsuarioActualizacionId; // Set the user ID from DTO
+
+        await _rubroRepository.UpdateAsync(existingRubro);
     }
-
 
     public async Task DeleteRubroAsync(int id)
     {
@@ -201,7 +207,8 @@ public class RubroService : IRubroService
         {
             Id = r.Id,
             Descripcion = r.Descripcion,
-            Tipo = r.Tipo,
+            Tipo = (int)r.Tipo,
+            TipoDescripcion = r.Tipo.ToString(),
             PenalizacionPorMoraMonto = r.PenalizacionPorMoraMonto,
             PenalizacionPorMoraPorcentaje = r.PenalizacionPorMoraPorcentaje,
             FechaLimitePagoAmarillo = r.FechaLimitePagoAmarillo,
@@ -211,20 +218,13 @@ public class RubroService : IRubroService
             DiaLimitePagoRojo = r.DiaLimitePagoRojo,
             MesLimitePago = r.MesLimitePago,
             NivelEducativoId = r.NivelEducativoId,
-            NivelEducativoNombre = r.NivelEducativo?.Nombre,
             GradoId = r.GradoId,
-            GradoNombre = r.Grado?.Nombre,
             MontoPreestablecido = r.MontoPreestablecido,
             FechaInicioPromocion = r.FechaInicioPromocion,
             FechaFinPromocion = r.FechaFinPromocion,
             Notas = r.Notas,
-            Activo = r.Activo,
-            OrdenVisualizacionGrid = r.OrdenVisualizacionGrid,
-            // Add mapping for audit fields
-            FechaCreacion = r.FechaCreacion,
-            FechaActualizacion = r.FechaActualizacion,
-            UsuarioCreacionId = r.UsuarioCreacionId,
-            UsuarioActualizacionId = r.UsuarioActualizacionId,
+            Activo = r.Activo ?? true,
+            OrdenVisualizacionGrid = r.OrdenVisualizacionGrid
         });
     }
 
@@ -242,7 +242,7 @@ public class RubroService : IRubroService
             MedioPagoDescripcion = p.MedioPago.ToString(),
             RubroId = p.RubroId,
             RubroDescripcion = p.Rubro?.Descripcion ?? "N/A",
-            TipoRubro = p.Rubro?.Tipo ?? 0,
+            TipoRubro = (TipoRubro)(int)(p.Rubro?.Tipo ?? 0),
             TipoRubroDescripcion = p.Rubro?.Tipo.ToString() ?? "N/A",
             EsColegiatura = p.EsColegiatura,
             MesColegiatura = p.EsColegiatura ? p.MesColegiatura : null,
@@ -264,7 +264,7 @@ public class RubroService : IRubroService
             DiaLimitePagoRojo = p.Rubro?.DiaLimitePagoRojo,
             MesLimitePago = p.Rubro?.MesLimitePago,
             OrdenVisualizacionGrid = p.Rubro?.OrdenVisualizacionGrid,
-            UsuarioNombre = p.Usuario != null ? $"{p.Usuario.Nombres} {p.Usuario.Apellidos}" : "Sistema",
+            UsuarioNombre = p.UsuarioCreacion != null ? $"{p.UsuarioCreacion.Nombres}   {p.UsuarioCreacion.Apellidos}" : "Sistema",
             FechaCreacion = p.FechaCreacion,
             FechaActualizacion = p.FechaActualizacion,
             UsuarioCreacionId = p.UsuarioCreacionId,

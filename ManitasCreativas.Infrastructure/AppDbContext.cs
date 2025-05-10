@@ -35,13 +35,47 @@ namespace ManitasCreativas.Infrastructure
                 .HasForeignKey(g => g.NivelEducativoId)
                 .OnDelete(DeleteBehavior.Cascade);
                 
+            // Configure entity relationships
+            ConfigureEntityRelationships(modelBuilder);
+                
             // Configure audit fields for entities
             ConfigureAuditFields(modelBuilder);
             
             // Configure audit user relationships
-            ConfigureAuditUserRelationships(modelBuilder);
+            //ConfigureAuditUserRelationships(modelBuilder);
         }
-        
+        private void ConfigureEntityRelationships(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Alumno>()
+                .HasOne(a => a.UsuarioCreacion)
+                .WithMany()
+                .HasForeignKey(a => a.UsuarioCreacionId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+
+            modelBuilder.Entity<Alumno>()
+                .HasOne(a => a.UsuarioActualizacion)
+                .WithMany()
+                .HasForeignKey(a => a.UsuarioActualizacionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure Pago -> Usuario relationship (different from audit relationship)
+            // Use UsuarioCreacionId as the foreign key for the Usuario navigation property
+            modelBuilder.Entity<Pago>()
+                .HasOne(p => p.UsuarioCreacion) // Corrected to use the navigation property
+                .WithMany()
+                .HasForeignKey(p => p.UsuarioCreacionId) // Use existing UsuarioCreacionId field
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+
+            modelBuilder.Entity<Pago>()
+                .HasOne(p => p.UsuarioActualizacion) // Corrected to use the navigation property
+                .WithMany()
+                .HasForeignKey(p => p.UsuarioActualizacionId) // Use existing UsuarioActualizacionId field
+                .OnDelete(DeleteBehavior.Restrict);
+
+        }
+
         private void ConfigureAuditFields(ModelBuilder modelBuilder)
         {
             // Configure Rubro audit fields
@@ -73,7 +107,7 @@ namespace ManitasCreativas.Infrastructure
                 .HasOne<Usuario>()
                 .WithMany()
                 .HasForeignKey(r => r.UsuarioCreacionId)
-                .IsRequired(false)
+                .IsRequired(true)  // Changed from false to true
                 .OnDelete(DeleteBehavior.Restrict);
                 
             modelBuilder.Entity<Rubro>()
@@ -88,7 +122,7 @@ namespace ManitasCreativas.Infrastructure
                 .HasOne<Usuario>()
                 .WithMany()
                 .HasForeignKey(a => a.UsuarioCreacionId)
-                .IsRequired(false)
+                .IsRequired(true)  // Changed from false to true
                 .OnDelete(DeleteBehavior.Restrict);
                 
             modelBuilder.Entity<Alumno>()
@@ -103,7 +137,7 @@ namespace ManitasCreativas.Infrastructure
                 .HasOne<Usuario>()
                 .WithMany()
                 .HasForeignKey(p => p.UsuarioCreacionId)
-                .IsRequired(false)
+                .IsRequired(true)  // Changed from false to true
                 .OnDelete(DeleteBehavior.Restrict);
                 
             modelBuilder.Entity<Pago>()
@@ -118,7 +152,7 @@ namespace ManitasCreativas.Infrastructure
                 .HasOne<Usuario>()
                 .WithMany()
                 .HasForeignKey(pi => pi.UsuarioCreacionId)
-                .IsRequired(false)
+                .IsRequired(true)  // Changed from false to true
                 .OnDelete(DeleteBehavior.Restrict);
                 
             modelBuilder.Entity<PagoImagen>()

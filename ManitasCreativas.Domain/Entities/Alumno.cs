@@ -1,6 +1,7 @@
 ﻿using ManitasCreativas.Domain.Enums;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
@@ -29,8 +30,14 @@ namespace ManitasCreativas.Domain.Entities
         public DateTime FechaCreacion { get; set; }
         public DateTime? FechaActualizacion { get; set; }
 
-        public int? UsuarioCreacionId { get; set; }
+        public int UsuarioCreacionId { get; set; }
+        [ForeignKey("UsuarioCreacionId")]
+        public Usuario? UsuarioCreacion { get; set; }
+
         public int? UsuarioActualizacionId { get; set; }
+        [ForeignKey("UsuarioActualizacionId")]
+        public Usuario? UsuarioActualizacion { get; set; }
+
 
         public ICollection<Pago> Pagos { get; set; }
         public ICollection<AlumnoContacto> AlumnoContactos { get; set; }

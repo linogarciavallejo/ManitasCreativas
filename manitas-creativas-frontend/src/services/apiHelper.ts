@@ -1,11 +1,10 @@
 import axios from "axios";
-import { getCurrentUsername } from './authService';
+import { getCurrentUserId, getCurrentUsername } from './authService';
 
-//axios.defaults.withCredentials = true; // Ensure cookies are sent with requests
-
+// Credentials are sent with requests
 type RequestMethod = "GET" | "POST" | "PUT" | "DELETE";
 
-// Dynamically determine the API base URL
+// Determine the API base URL
 // In development, use the hardcoded URL
 // In production (when served from the API), use the current origin
 const isDevelopment = import.meta.env.DEV;
@@ -17,23 +16,7 @@ const getFullUrl = (endpoint: string): string => {
   return `${API_BASE_URL}${endpoint}`;
 };
 
-// Helper function to add audit information to data payloads
-export const addAuditInfo = (data: any, isCreate: boolean): any => {
-  const username = getCurrentUsername();
-  
-  // Clone the original data
-  const dataWithAudit = { ...data };
-  
-  // Add audit information
-  if (isCreate) {
-    dataWithAudit.usuarioCreacion = username;
-  } else {
-    dataWithAudit.usuarioActualizacion = username;
-  }
-  
-  return dataWithAudit;
-};
-
+// Helper function to make API requests with proper error handling
 export async function makeApiRequest<T>(
   endpoint: string,
   method: RequestMethod = "GET",
@@ -48,14 +31,27 @@ export async function makeApiRequest<T>(
   // Add the X-Username header to every request
   headers['X-Username'] = getCurrentUsername();
 
-  // Handle FormData differently than JSON data
+  // Process data for audit fields
   let requestData = data;
   if (data && !(data instanceof FormData) && (method === "POST" || method === "PUT")) {
-    // Only add audit information for regular JSON objects, not FormData
-    requestData = addAuditInfo(data, method === "POST");
+    // Add user ID for audit fields
+    const userId = getCurrentUserId();
+    if (userId > 0) {
+      requestData = { ...data };
+      
+      // Add user ID for creation on new entities
+      if (method === "POST" && !requestData.usuarioCreacionId) {
+        requestData.usuarioCreacionId = userId;
+      }
+      
+      // Add user ID for updates on existing entities
+      if (method === "PUT" && !requestData.usuarioActualizacionId) {
+        requestData.usuarioActualizacionId = userId;
+      }
+    }
   }
   
-  // Special config for FormData
+  // Special config for requests
   const config: any = { 
     withCredentials,
     headers

@@ -1,6 +1,7 @@
 ﻿using ManitasCreativas.Domain.Enums;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -62,8 +63,14 @@ namespace ManitasCreativas.Domain.Entities
         // Audit fields
         public DateTime FechaCreacion { get; set; }
         public DateTime? FechaActualizacion { get; set; }
-        public int? UsuarioCreacionId { get; set; }
+        public int UsuarioCreacionId { get; set; }
+        [ForeignKey("UsuarioCreacionId")]
+        public Usuario? UsuarioCreacion { get; set; }
+
         public int? UsuarioActualizacionId { get; set; }
+        [ForeignKey("UsuarioActualizacionId")]
+        public Usuario? UsuarioActualizacion { get; set; }
+
 
         public ICollection<Pago> Pagos { get; set; }
     }

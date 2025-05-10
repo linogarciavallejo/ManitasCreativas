@@ -4,6 +4,7 @@ import { EditOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined, SearchOutli
 import { alumnoService, Alumno } from '../../services/alumnoService';
 import { sedeService, Sede } from '../../services/sedeService';
 import { gradoService, Grado } from '../../services/gradoService';
+import { getCurrentUserId } from '../../services/authService';
 import ContactosModal from '../ContactosModal';
 
 const { Title } = Typography;
@@ -203,11 +204,21 @@ const Students: React.FC = () => {
       const values = await form.validateFields();
       setLoading(true);
 
+      // Get current user ID for audit fields
+      const currentUserId = getCurrentUserId();
+      
+      if (!currentUserId) {
+        message.error('Error: No hay un usuario autenticado');
+        setLoading(false);
+        return;
+      }
+
       if (editingId === null) {
         // Add new student
         const newStudent = {
           ...values,
-          estado: 1 // Always set to Activo for new students
+          estado: 1, // Always set to Activo for new students
+          usuarioCreacionId: currentUserId, // Set the creation user ID
         };
         
         const createdStudent = await alumnoService.createAlumno(newStudent);
@@ -215,7 +226,11 @@ const Students: React.FC = () => {
         message.success('Estudiante creado con éxito');
       } else {
         // Update existing student
-        await alumnoService.updateAlumno(editingId, { ...values, id: editingId });
+        await alumnoService.updateAlumno(editingId, { 
+          ...values, 
+          id: editingId,
+          usuarioActualizacionId: currentUserId // Set the update user ID
+        });
         
         // Refresh the data to get the updated version
         await fetchAlumnos();

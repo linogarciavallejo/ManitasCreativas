@@ -22,7 +22,7 @@ public class AlumnoDto
     // Audit fields
     public DateTime FechaCreacion { get; set; }
     public DateTime? FechaActualizacion { get; set; }
-    public int? UsuarioCreacionId { get; set; }
+    public int UsuarioCreacionId { get; set; }
     public int? UsuarioActualizacionId { get; set; }
 
 }

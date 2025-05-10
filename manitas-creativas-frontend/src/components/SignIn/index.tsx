@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Form, Input, Button, message } from 'antd';
 import { signIn } from '../../services/authService';
 import { useNavigate } from "react-router-dom";
+import { Usuario } from '../../types/usuario';
 import 'antd/dist/reset.css'; // Import Ant Design styles
 import './SignIn.css';
 import logoImage from '../../assets/logo_v1.jpg'; // Import the logo properly
@@ -13,11 +14,11 @@ const SignIn: React.FC = () => {
   const handleSubmit = async (values: { codigoUsuario: string; password: string }) => {
     setLoading(true);
     try {
-      const user = await signIn(values.codigoUsuario, values.password);
-      message.success(`Bienvenido, ${user.nombre}!`);
+      const user: Usuario = await signIn(values.codigoUsuario, values.password);
+      message.success(`Bienvenido, ${user.nombres}!`);
       console.log('User signed in:', user);
+      console.log('User ID for audit fields:', user.id); // Log the ID that will be used for audit
       navigate('/main'); // Redirect to the main page after successful sign-in
-      // Handle successful sign-in (e.g., redirect or store user info)
     } catch (err) {
       message.error('Credenciales inválidas. Por favor inténtelo de nuevo.');
     } finally {

@@ -19,6 +19,7 @@ public class AlumnoRepository : IAlumnoRepository
             .Include(a => a.Sede)
             .Include(a => a.Grado)
             .Include(a => a.Pagos)
+                .ThenInclude(p => p.Usuario)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 
@@ -28,6 +29,7 @@ public class AlumnoRepository : IAlumnoRepository
             .Include(a => a.Sede)
             .Include(a => a.Grado)
             .Include(a => a.Pagos)
+                .ThenInclude(p => p.Usuario)
             .ToListAsync();
     }
 
@@ -64,6 +66,7 @@ public class AlumnoRepository : IAlumnoRepository
             .Include(a => a.Sede)
             .Include(a => a.Grado)
             .Include(a => a.Pagos)
+                .ThenInclude(p => p.Usuario)
             .Include(a => a.AlumnoContactos)
                 .ThenInclude(ac => ac.Contacto)
             .FirstOrDefaultAsync(a => a.Codigo == codigo);
@@ -74,7 +77,6 @@ public class AlumnoRepository : IAlumnoRepository
         return await _context.Alumnos
             .Include(a => a.Sede)
             .Include(a => a.Grado)
-            .Include(a => a.Pagos)
             .Where(a =>
                 (a.PrimerNombre.Contains(nombre) || a.SegundoNombre.Contains(nombre)) ||
                 (a.PrimerApellido.Contains(apellido) || a.SegundoApellido.Contains(apellido))
@@ -90,6 +92,7 @@ public class AlumnoRepository : IAlumnoRepository
             .Include(a => a.Pagos)
                 .ThenInclude(p => p.ImagenesPago)
             .Include(a => a.Pagos)
+                .ThenInclude(p => p.Usuario)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 }

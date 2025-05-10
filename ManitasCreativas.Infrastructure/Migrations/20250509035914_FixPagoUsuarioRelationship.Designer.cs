@@ -3,6 +3,7 @@ using System;
 using ManitasCreativas.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ManitasCreativas.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250509035914_FixPagoUsuarioRelationship")]
+    partial class FixPagoUsuarioRelationship
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -250,6 +253,9 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.Property<int>("UsuarioCreacionId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AlumnoId");
@@ -259,6 +265,8 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.HasIndex("UsuarioActualizacionId");
 
                     b.HasIndex("UsuarioCreacionId");
+
+                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Pagos");
                 });
@@ -507,12 +515,12 @@ namespace ManitasCreativas.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "UsuarioActualizacion")
+                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", null)
                         .WithMany()
                         .HasForeignKey("UsuarioActualizacionId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "UsuarioCreacion")
+                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", null)
                         .WithMany()
                         .HasForeignKey("UsuarioCreacionId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -521,10 +529,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.Navigation("Grado");
 
                     b.Navigation("Sede");
-
-                    b.Navigation("UsuarioActualizacion");
-
-                    b.Navigation("UsuarioCreacion");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.AlumnoContacto", b =>
@@ -571,24 +575,26 @@ namespace ManitasCreativas.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "UsuarioActualizacion")
+                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", null)
                         .WithMany()
                         .HasForeignKey("UsuarioActualizacionId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "UsuarioCreacion")
+                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", null)
                         .WithMany()
                         .HasForeignKey("UsuarioCreacionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId");
+
                     b.Navigation("Alumno");
 
                     b.Navigation("Rubro");
 
-                    b.Navigation("UsuarioActualizacion");
-
-                    b.Navigation("UsuarioCreacion");
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.PagoImagen", b =>
@@ -599,21 +605,18 @@ namespace ManitasCreativas.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "UsuarioActualizacion")
+                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", null)
                         .WithMany()
-                        .HasForeignKey("UsuarioActualizacionId");
+                        .HasForeignKey("UsuarioActualizacionId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "UsuarioCreacion")
+                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", null)
                         .WithMany()
                         .HasForeignKey("UsuarioCreacionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Pago");
-
-                    b.Navigation("UsuarioActualizacion");
-
-                    b.Navigation("UsuarioCreacion");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Rubro", b =>
@@ -626,23 +629,20 @@ namespace ManitasCreativas.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("NivelEducativoId");
 
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "UsuarioActualizacion")
+                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", null)
                         .WithMany()
-                        .HasForeignKey("UsuarioActualizacionId");
+                        .HasForeignKey("UsuarioActualizacionId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "UsuarioCreacion")
+                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", null)
                         .WithMany()
                         .HasForeignKey("UsuarioCreacionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Grado");
 
                     b.Navigation("NivelEducativo");
-
-                    b.Navigation("UsuarioActualizacion");
-
-                    b.Navigation("UsuarioCreacion");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Usuario", b =>
