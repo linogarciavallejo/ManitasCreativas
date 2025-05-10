@@ -55,6 +55,7 @@ builder.Services.AddScoped<IContactoService, ContactoService>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IAlumnoRepository, AlumnoRepository>();
 builder.Services.AddScoped<IPagoRepository, PagoRepository>();
+builder.Services.AddScoped<IPagoImagenRepository, PagoImagenRepository>();
 builder.Services.AddScoped<IRubroRepository, RubroRepository>();
 builder.Services.AddScoped<INivelEducativoRepository, NivelEducativoRepository>();
 builder.Services.AddScoped<IGradoRepository, GradoRepository>();

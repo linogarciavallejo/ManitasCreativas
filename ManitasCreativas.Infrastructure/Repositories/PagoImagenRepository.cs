@@ -1,9 +1,10 @@
-namespace ManitasCreativas.Infrastructure.Repositories;
-
 using ManitasCreativas.Domain.Entities;
+using ManitasCreativas.Application.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-public class PagoImagenRepository
+namespace ManitasCreativas.Infrastructure.Repositories;
+
+public class PagoImagenRepository: IPagoImagenRepository
 {
     private readonly AppDbContext _context;
 
@@ -42,5 +43,20 @@ public class PagoImagenRepository
             _context.PagoImagenes.Remove(pagoImagen);
             await _context.SaveChangesAsync();
         }
+    }
+
+    Task<IEnumerable<PagoImagen>> IPagoImagenRepository.GetByPagoIdAsync(int pagoId)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task IPagoImagenRepository.AddRangeAsync(IEnumerable<PagoImagen> pagoImagenes)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task IPagoImagenRepository.DeleteRangeAsync(IEnumerable<PagoImagen> pagoImagenes)
+    {
+        throw new NotImplementedException();
     }
 }
