@@ -77,6 +77,15 @@ const Tuitions: React.FC = () => {
 
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1; // 1-based month number
+  
+  // Function to get month name for display
+  const getMonthNameByNumber = (monthNumber: number): string => {
+    const monthNames = [
+      "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ];
+    return monthNames[(monthNumber - 1) % 12]; // Convert 1-based to 0-based index with safety check
+  };
 
   // Update form values when dinamicRubroId changes
   useEffect(() => {
@@ -137,6 +146,27 @@ const Tuitions: React.FC = () => {
     } finally {
       setLoadingRubro(false);
     }
+  };  // Function to reset the form after a successful submission
+  const resetForm = () => {
+    // Reset form but keep these fields
+    form.setFieldsValue({
+      cicloEscolar: currentYear,
+      fechaPago: moment(),
+      mes: currentMonth.toString(),
+      medioPago: "1",
+      notas: "",
+      monto: undefined, // Explicitly set monto to undefined to clear the field
+      imagenesPago: []
+    });
+    
+    // Clear student selection
+    setSelectedStudent(null);
+    setAlumnoId(null);
+    setSelectedCodigo(null);
+    setAutoCompleteValue("");
+    setContactos([]);
+    setDinamicRubroId("1"); // Reset to default
+    form.setFieldsValue({ rubroId: "1" });
   };
 
   // Search by codigo input
@@ -279,6 +309,9 @@ const Tuitions: React.FC = () => {
 
       message.success("¡Pago enviado con éxito!");
       console.log("Pago enviado:", response);
+      
+      // Reset the form after successful submission
+      resetForm();
     } catch (err: unknown) {
       console.error("Error details:", err); // Add detailed error logging
       message.error("Error al enviar el pago. Por favor, inténtelo de nuevo.");
@@ -325,20 +358,11 @@ const Tuitions: React.FC = () => {
               borderRadius: "4px",
             }}
           >
-            <strong>Alumno seleccionado:</strong> {selectedStudent}
-            <Button
+            <strong>Alumno seleccionado:</strong> {selectedStudent}            <Button
               type="link"
               style={{ marginLeft: "10px", padding: "0" }}
               onClick={() => {
-                setSelectedStudent(null);
-                setAlumnoId(null);
-                setSelectedCodigo(null);
-                setAutoCompleteValue("");
-                setContactos([]);
-                setGradoId(null);
-                // Reset to default RubroId
-                setDinamicRubroId("1");
-                form.setFieldsValue({ rubroId: "1" });
+                resetForm();
               }}
             >
               Limpiar
@@ -368,9 +392,7 @@ const Tuitions: React.FC = () => {
             ))}
           </ul>
         </div>
-      )}
-
-      <Form
+      )}      <Form
         form={form}
         name="payments"
         layout="vertical"
@@ -379,8 +401,7 @@ const Tuitions: React.FC = () => {
         className="payments-form"
         initialValues={{
           cicloEscolar: currentYear,
-          mes: currentMonth,
-          monto: 150,
+          mes: currentMonth.toString(), // Convert to string to match Option values
           fechaPago: moment(),
           rubroId: dinamicRubroId, // Initialize with the dynamic RubroId
         }}
@@ -414,9 +435,7 @@ const Tuitions: React.FC = () => {
             type="hidden" 
             disabled={loadingRubro}
           />
-        </Form.Item>
-
-        <Form.Item
+        </Form.Item>        <Form.Item
           label="Mes"
           name="mes"
           rules={[{ required: false }]}
