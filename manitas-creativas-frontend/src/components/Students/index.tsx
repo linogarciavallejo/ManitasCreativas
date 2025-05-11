@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Form, Input, Button, Select, Space, Typography, Popconfirm, message, Card, Row, Col, Tag, Modal } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, InfoCircleOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Table, Form, Input, Button, Select, Space, Typography, Popconfirm, Card, Row, Col, Modal } from 'antd';
+import { EditOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, InfoCircleOutlined, TeamOutlined } from '@ant-design/icons';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { alumnoService, Alumno } from '../../services/alumnoService';
 import { sedeService, Sede } from '../../services/sedeService';
 import { gradoService, Grado } from '../../services/gradoService';
@@ -45,82 +47,6 @@ const Students: React.FC = () => {
   const [loadingSedes, setLoadingSedes] = useState<boolean>(false);
   const [loadingGrados, setLoadingGrados] = useState<boolean>(false);
 
-  // Fetch data on component mount
-  useEffect(() => {
-    const loadData = async () => {
-      await Promise.all([
-        fetchSedes(),
-        fetchGrados(),
-        fetchAlumnos()
-      ]);
-    };
-    
-    loadData();
-  }, []);
-
-  // Apply filters when data or filter criteria change
-  useEffect(() => {
-    applyFilters();
-  }, [data, searchText, searchCodigo, searchSeccion, selectedSedeId, selectedGradoId]);
-
-  // Function to fetch alumnos from API
-  const fetchAlumnos = async () => {
-    try {
-      setFetchingData(true);
-      const alumnos = await alumnoService.getAllAlumnos();
-      
-      // Only show active students (estado = 1) by default
-      const activeAlumnos = alumnos.filter(alumno => alumno.estado === 1);
-      
-      // Sort by full name by default
-      const sortedAlumnos = [...activeAlumnos].sort((a, b) => {
-        const fullNameA = getFullName(a);
-        const fullNameB = getFullName(b);
-        return fullNameA.localeCompare(fullNameB);
-      });
-      
-      setData(sortedAlumnos);
-      setFilteredData(sortedAlumnos);
-    } catch (error) {
-      console.error('Error fetching alumnos:', error);
-      message.error('No se pudieron cargar los estudiantes');
-    } finally {
-      setFetchingData(false);
-    }
-  };
-
-  // Function to fetch sedes from API
-  const fetchSedes = async () => {
-    try {
-      setLoadingSedes(true);
-      const response = await sedeService.getAllSedes();
-      // Ensure sedes is always an array
-      setSedes(Array.isArray(response) ? response : []);
-    } catch (error) {
-      console.error('Error fetching sedes:', error);
-      message.error('No se pudieron cargar las sedes');
-      setSedes([]); // Set to empty array on error
-    } finally {
-      setLoadingSedes(false);
-    }
-  };
-
-  // Function to fetch grados from API
-  const fetchGrados = async () => {
-    try {
-      setLoadingGrados(true);
-      const response = await gradoService.getAllGrados();
-      // Ensure grados is always an array
-      setGrados(Array.isArray(response) ? response : []);
-    } catch (error) {
-      console.error('Error fetching grados:', error);
-      message.error('No se pudieron cargar los grados');
-      setGrados([]); // Set to empty array on error
-    } finally {
-      setLoadingGrados(false);
-    }
-  };
-
   // Helper to get full name from alumno properties
   const getFullName = (alumno: Alumno): string => {
     return [
@@ -132,7 +58,7 @@ const Students: React.FC = () => {
   };
 
   // Function to apply filters to the data
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let filtered = [...data];
     
     // Filter by full name (case-insensitive)
@@ -172,6 +98,139 @@ const Students: React.FC = () => {
     }
     
     setFilteredData(filtered);
+  }, [data, searchText, searchCodigo, searchSeccion, selectedSedeId, selectedGradoId]);
+
+  // Apply filters when data or filter criteria change
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
+
+  // Fetch data on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setFetchingData(true);
+        
+        const [sedesResponse, gradosResponse, alumnosResponse] = await Promise.allSettled([
+          sedeService.getAllSedes(),
+          gradoService.getAllGrados(),
+          alumnoService.getAllAlumnos()
+        ]);
+        
+        // Handle sedes response
+        if (sedesResponse.status === 'fulfilled') {
+          const response = sedesResponse.value;
+          setSedes(Array.isArray(response) ? response : []);
+        } else {
+          console.error('Error loading sedes:', sedesResponse.reason);
+          toast.error('No se pudieron cargar las sedes. Por favor, intente de nuevo más tarde.');
+          setSedes([]);
+        }
+        
+        // Handle grados response
+        if (gradosResponse.status === 'fulfilled') {
+          const response = gradosResponse.value;
+          setGrados(Array.isArray(response) ? response : []);
+        } else {
+          console.error('Error loading grados:', gradosResponse.reason);
+          toast.error('No se pudieron cargar los grados. Por favor, intente de nuevo más tarde.');
+          setGrados([]);
+        }
+        
+        // Handle alumnos response
+        if (alumnosResponse.status === 'fulfilled') {
+          const alumnos = alumnosResponse.value;
+          
+          // Only show active students (estado = 1) by default
+          const activeAlumnos = alumnos.filter(alumno => alumno.estado === 1);
+          
+          // Sort by full name by default
+          const sortedAlumnos = [...activeAlumnos].sort((a, b) => {
+            const fullNameA = getFullName(a);
+            const fullNameB = getFullName(b);
+            return fullNameA.localeCompare(fullNameB);
+          });
+          
+          setData(sortedAlumnos);
+          setFilteredData(sortedAlumnos);
+        } else {
+          console.error('Error loading alumnos:', alumnosResponse.reason);
+          toast.error('No se pudieron cargar los estudiantes. Por favor, intente de nuevo más tarde.');
+          setData([]);
+          setFilteredData([]);
+        }
+      } catch (error) {
+        console.error('Error loading initial data:', error);
+        toast.error('Hubo un problema al cargar los datos iniciales. Por favor, intente nuevamente más tarde.');
+      } finally {
+        setFetchingData(false);
+      }
+    };
+    
+    loadData();
+  }, []);
+  
+  // Function to fetch alumnos from API (used for refresh button)
+  const fetchAlumnos = async (showToast = true) => {
+    try {
+      setFetchingData(true);
+      const alumnos = await alumnoService.getAllAlumnos();
+      
+      // Only show active students (estado = 1) by default
+      const activeAlumnos = alumnos.filter(alumno => alumno.estado === 1);
+      
+      // Sort by full name by default
+      const sortedAlumnos = [...activeAlumnos].sort((a, b) => {
+        const fullNameA = getFullName(a);
+        const fullNameB = getFullName(b);
+        return fullNameA.localeCompare(fullNameB);
+      });
+      
+      setData(sortedAlumnos);
+      setFilteredData(sortedAlumnos);
+      
+      // Only show toast if parameter is true
+      if (showToast) {
+        toast.info('Datos actualizados correctamente');
+      }
+    } catch (error) {
+      console.error('Error fetching alumnos:', error);
+      toast.error('No se pudieron cargar los estudiantes. Por favor, intente de nuevo más tarde.');
+    } finally {
+      setFetchingData(false);
+    }
+  };
+  
+  // Function to fetch sedes from API
+  const fetchSedes = async () => {
+    try {
+      setLoadingSedes(true);
+      const response = await sedeService.getAllSedes();
+      // Ensure sedes is always an array
+      setSedes(Array.isArray(response) ? response : []);
+    } catch (error) {
+      console.error('Error fetching sedes:', error);
+      toast.error('No se pudieron cargar las sedes. Por favor, intente de nuevo más tarde.');
+      setSedes([]); // Set to empty array on error
+    } finally {
+      setLoadingSedes(false);
+    }
+  };
+
+  // Function to fetch grados from API
+  const fetchGrados = async () => {
+    try {
+      setLoadingGrados(true);
+      const response = await gradoService.getAllGrados();
+      // Ensure grados is always an array
+      setGrados(Array.isArray(response) ? response : []);
+    } catch (error) {
+      console.error('Error fetching grados:', error);
+      toast.error('No se pudieron cargar los grados. Por favor, intente de nuevo más tarde.');
+      setGrados([]); // Set to empty array on error
+    } finally {
+      setLoadingGrados(false);
+    }
   };
 
   // Handle search form reset
@@ -198,7 +257,7 @@ const Students: React.FC = () => {
     form.setFieldsValue({ estado: 1 }); // Set default estado to Activo
     setModalVisible(true);
   };
-
+  
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
@@ -208,7 +267,7 @@ const Students: React.FC = () => {
       const currentUserId = getCurrentUserId();
       
       if (!currentUserId) {
-        message.error('Error: No hay un usuario autenticado');
+        toast.error('Error: No hay un usuario autenticado');
         setLoading(false);
         return;
       }
@@ -223,7 +282,7 @@ const Students: React.FC = () => {
         
         const createdStudent = await alumnoService.createAlumno(newStudent);
         setData([...data, createdStudent]);
-        message.success('Estudiante creado con éxito');
+        toast.success('Estudiante creado con éxito');
       } else {
         // Update existing student
         await alumnoService.updateAlumno(editingId, { 
@@ -232,20 +291,20 @@ const Students: React.FC = () => {
           usuarioActualizacionId: currentUserId // Set the update user ID
         });
         
-        // Refresh the data to get the updated version
-        await fetchAlumnos();
-        message.success('Estudiante actualizado con éxito');
+        // Refresh the data to get the updated version, but don't show the toast
+        await fetchAlumnos(false);
+        toast.success('Estudiante actualizado con éxito');
       }
 
       setModalVisible(false);
     } catch (error) {
       console.error('Error al guardar:', error);
-      message.error('Error al guardar el estudiante');
+      toast.error('Error al guardar el estudiante. Por favor, revise los datos e intente nuevamente.');
     } finally {
       setLoading(false);
     }
   };
-
+  
   const handleDelete = async (id: number) => {
     try {
       setLoading(true);
@@ -260,11 +319,11 @@ const Students: React.FC = () => {
         setData(data.filter(item => item.id !== id));
         setFilteredData(filteredData.filter(item => item.id !== id));
         
-        message.success('Estudiante marcado como inactivo correctamente');
+        toast.success('Estudiante marcado como inactivo correctamente');
       }
     } catch (error) {
       console.error('Error al eliminar el estudiante:', error);
-      message.error('Error al eliminar el estudiante');
+      toast.error('Error al desactivar el estudiante. Por favor, intente nuevamente.');
     } finally {
       setLoading(false);
     }
@@ -295,7 +354,7 @@ const Students: React.FC = () => {
         const fullNameB = getFullName(b);
         return fullNameA.localeCompare(fullNameB);
       },
-      defaultSortOrder: 'ascend'
+      defaultSortOrder: 'ascend' as const
     },
     {
       title: 'Grado',
@@ -310,7 +369,6 @@ const Students: React.FC = () => {
       dataIndex: 'seccion',
       width: 100,
       render: (seccion: string | undefined | null) => {
-        console.log('Seccion value:', seccion); // Debug log
         return seccion || '-';
       },
       sorter: (a: Alumno, b: Alumno) => {
@@ -322,7 +380,7 @@ const Students: React.FC = () => {
     {
       title: 'Acciones',
       key: 'actions',
-      width: 140, // Increased width to fit the new contact button
+      width: 140,
       render: (_: any, record: Alumno) => (
         <Space size={0}>
           <Button 
@@ -450,9 +508,21 @@ const Students: React.FC = () => {
       </Card>
     );
   };
-
+  
   return (
     <div className="students-container">
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <div className="students-header">
         <Title level={2}>Gestión de Estudiantes</Title>
         <Space>
@@ -465,7 +535,17 @@ const Students: React.FC = () => {
           </Button>
           <Button 
             icon={<ReloadOutlined />} 
-            onClick={fetchAlumnos}
+            onClick={() => {
+              // Refresh all data
+              Promise.all([
+                fetchSedes(),
+                fetchGrados(),
+                fetchAlumnos(true) // Explicitly show toast for manual refresh
+              ]).catch(error => {
+                console.error('Error refreshing data:', error);
+                toast.error('Error al refrescar los datos. Por favor, intente nuevamente.');
+              });
+            }}
             loading={fetchingData}
           >
             Refrescar
