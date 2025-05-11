@@ -6,6 +6,7 @@ import {
   UploadOutlined,
   UserOutlined,
   VideoCameraOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import { Button, Layout, Menu, theme } from "antd";
 import { Link, Outlet } from "react-router-dom";
@@ -50,6 +51,11 @@ const Main: React.FC = () => {
               key: "5",
               icon: <UploadOutlined />,
               label: <Link to="students">Alumnos</Link>,
+            },
+            {
+              key: "6",
+              icon: <FileTextOutlined />,
+              label: <Link to="payment-report">Reporte de Pagos</Link>,
             },
           ]}
         />

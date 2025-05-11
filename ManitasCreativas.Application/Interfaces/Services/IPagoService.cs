@@ -9,4 +9,6 @@ public interface IPagoService
     Task<PagoReadDto> GetPagoByIdAsync(int id);
 
     Task<PagoReadDto> AddPagoAsync(PagoUploadDto pagoDto);
+    
+    Task<PagoReportResponseDto> GetPagoReportAsync(PagoReportFilterDto filter);
 }

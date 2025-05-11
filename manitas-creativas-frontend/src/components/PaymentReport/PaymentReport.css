@@ -1,0 +1,58 @@
+.payment-report-container {
+  width: 100%;
+}
+
+.payment-report-header {
+  margin-bottom: 16px;
+}
+
+.payment-report-filters {
+  margin-bottom: 24px;
+}
+
+.payment-report-action {
+  display: flex;
+  align-items: flex-end;
+}
+
+.payment-report-content {
+  overflow-x: auto;
+}
+
+.payment-report-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 0;
+  color: #999;
+}
+
+/* Table customizations */
+.payment-report-container .ant-table-small .ant-table-thead > tr > th {
+  background-color: #f0f2f5;
+  text-align: center;
+}
+
+.payment-report-container .ant-table-cell {
+  padding: 8px !important;
+}
+
+/* Student info columns */
+.payment-report-container .ant-table-cell:nth-child(-n+4) {
+  background-color: #fafafa;
+}
+
+/* Payment columns - colored based on payment status */
+.payment-report-container .payment-paid {
+  color: #52c41a;
+  font-weight: bold;
+}
+
+.payment-report-container .payment-pending {
+  color: #faad14;
+}
+
+.payment-report-container .payment-late {
+  color: #f5222d;
+}

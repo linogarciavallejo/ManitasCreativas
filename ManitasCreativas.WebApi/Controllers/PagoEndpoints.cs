@@ -16,5 +16,17 @@ public static class PagoEndpoints
             var nuevoPago = await pagoService.AddPagoAsync(pagoDto);
             return Results.Created($"/pagos/{nuevoPago.Id}", nuevoPago);
         }).DisableAntiforgery();
+        
+        // New endpoint for payment report
+        app.MapGet("/pagos/report", async (int cicloEscolar, int gradoId, IPagoService pagoService) =>
+        {
+            var filter = new PagoReportFilterDto 
+            { 
+                CicloEscolar = cicloEscolar, 
+                GradoId = gradoId 
+            };
+            var report = await pagoService.GetPagoReportAsync(filter);
+            return Results.Ok(report);
+        });
     }
 }

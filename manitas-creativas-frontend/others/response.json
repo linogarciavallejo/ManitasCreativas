@@ -1,0 +1,124 @@
+{
+    "alumnos": [
+        {
+            "numeroOrdinal": 1,
+            "alumnoId": 6,
+            "nombreCompleto": "Garcia Vallejox, Lino Antonio",
+            "notas": "",
+            "nit": "",
+            "pagosPorRubro": {
+                "6": {
+                    "1": {
+                        "id": 9,
+                        "monto": 350,
+                        "estado": "",
+                        "mesColegiatura": 1
+                    },
+                    "2": {
+                        "id": 10,
+                        "monto": 350,
+                        "estado": "",
+                        "mesColegiatura": 2
+                    },
+                    "3": {
+                        "id": 11,
+                        "monto": 350,
+                        "estado": "",
+                        "mesColegiatura": 3
+                    },
+                    "4": {
+                        "id": 12,
+                        "monto": 350,
+                        "estado": "",
+                        "mesColegiatura": 4
+                    },
+                    "5": {
+                        "id": 13,
+                        "monto": 350,
+                        "estado": "",
+                        "mesColegiatura": 5
+                    }
+                },
+                "9": {
+                    "0": {
+                        "id": 8,
+                        "monto": 150,
+                        "estado": "",
+                        "mesColegiatura": null
+                    }
+                },
+                "10": {
+                    "0": {
+                        "id": 18,
+                        "monto": 500,
+                        "estado": "",
+                        "mesColegiatura": null
+                    }
+                }
+            }
+        },
+        {
+            "numeroOrdinal": 2,
+            "alumnoId": 9,
+            "nombreCompleto": "Garcia Zam, Doctora Bellota",
+            "notas": "",
+            "nit": "",
+            "pagosPorRubro": {
+                "9": {
+                    "0": {
+                        "id": 20,
+                        "monto": 150,
+                        "estado": "",
+                        "mesColegiatura": null
+                    }
+                }
+            }
+        },
+        {
+            "numeroOrdinal": 3,
+            "alumnoId": 10,
+            "nombreCompleto": "Zamini Alpirez, Maria del Rosario",
+            "notas": "",
+            "nit": "",
+            "pagosPorRubro": {}
+        }
+    ],
+    "rubros": [
+        {
+            "id": 5,
+            "descripcion": "Colegiatura Preprimaria",
+            "ordenVisualizacionGrid": 1,
+            "esColegiatura": true
+        },
+        {
+            "id": 6,
+            "descripcion": "Colegiatura Primaria",
+            "ordenVisualizacionGrid": 2,
+            "esColegiatura": true
+        },
+        {
+            "id": 9,
+            "descripcion": "Cuota Anual",
+            "ordenVisualizacionGrid": 3,
+            "esColegiatura": false
+        },
+        {
+            "id": 8,
+            "descripcion": "Inscripcion Preprimaria",
+            "ordenVisualizacionGrid": 4,
+            "esColegiatura": false
+        },
+        {
+            "id": 10,
+            "descripcion": "Inscripcion Primaria",
+            "ordenVisualizacionGrid": 5,
+            "esColegiatura": false
+        },
+        {
+            "id": 7,
+            "descripcion": "Uniforme Parvulos",
+            "ordenVisualizacionGrid": 6,
+            "esColegiatura": false
+        }
+    ]
+}

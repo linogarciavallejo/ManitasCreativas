@@ -3,6 +3,10 @@ using ManitasCreativas.Application.Interfaces.Repositories;
 using ManitasCreativas.Application.Interfaces.Services;
 using ManitasCreativas.Domain.Entities;
 using ManitasCreativas.Domain.Enums;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System;
 
 public class PagoService : IPagoService
 {
@@ -12,8 +16,16 @@ public class PagoService : IPagoService
     private readonly IRubroRepository _rubroRepository;
     private readonly IUsuarioRepository _usuarioRepository;
     private readonly IPagoImagenRepository _pagoImagenRepository;
+    private readonly IAlumnoContactoRepository _alumnoContactoRepository;
 
-    public PagoService(IPagoRepository pagoRepository, S3Service s3Service, IAlumnoRepository alumnoRepository, IRubroRepository rubroRepository, IUsuarioRepository usuarioRepository, IPagoImagenRepository pagoImagenRepository)
+    public PagoService(
+        IPagoRepository pagoRepository, 
+        S3Service s3Service, 
+        IAlumnoRepository alumnoRepository, 
+        IRubroRepository rubroRepository, 
+        IUsuarioRepository usuarioRepository, 
+        IPagoImagenRepository pagoImagenRepository,
+        IAlumnoContactoRepository alumnoContactoRepository)
     {
         _pagoRepository = pagoRepository;
         _s3Service = s3Service;
@@ -21,6 +33,7 @@ public class PagoService : IPagoService
         _rubroRepository = rubroRepository;
         _usuarioRepository = usuarioRepository;
         _pagoImagenRepository = pagoImagenRepository;
+        _alumnoContactoRepository = alumnoContactoRepository;
     }
 
     public async Task<IEnumerable<PagoReadDto>> GetPagosByCriteriaAsync(int cicloEscolar, int rubroId, int gradoId, int month)
@@ -234,6 +247,161 @@ public class PagoService : IPagoService
 
         // Return the updated pago as a DTO
         return await GetPagoByIdAsync(existingPago.Id);
+    }    
+    
+    public async Task<PagoReportResponseDto> GetPagoReportAsync(PagoReportFilterDto filter)
+    {
+        // Create response DTO
+        var response = new PagoReportResponseDto();
+        
+        // Get the selected grade to determine the nivel educativo
+        var selectedGrado = await _alumnoRepository.GetGradoByIdAsync(filter.GradoId);
+        if (selectedGrado == null)
+        {
+            throw new ArgumentException($"Grade with ID {filter.GradoId} not found");
+        }
+          // 1. Get active rubros filtered by nivel educativo
+        var allActiveRubros = (await _rubroRepository.GetAllActiveAsync())
+            .Where(r => 
+                // Include rubros that are specific to this grade
+                r.GradoId == filter.GradoId ||
+                // Include rubros that are specific to this nivel educativo
+                r.NivelEducativoId == selectedGrado.NivelEducativoId ||
+                // Include wildcard rubros (NivelEducativoId = 999 means applies to all NivelEducativo records)
+                r.NivelEducativoId == 999 ||
+                // Include rubros that are not specific to any grade or nivel
+                (r.NivelEducativoId == null && r.GradoId == null)
+            )
+            .ToList();
+        
+        // Try to get rubros with OrdenVisualizacionGrid values
+        var rubros = allActiveRubros
+            .Where(r => r.OrdenVisualizacionGrid.HasValue)
+            .OrderBy(r => r.OrdenVisualizacionGrid)
+            .ToList();
+            
+        // If no rubros have OrdenVisualizacionGrid values, use all active rubros with a default order
+        if (!rubros.Any())
+        {
+            rubros = allActiveRubros
+                .OrderBy(r => r.EsColegiatura ? 0 : 1) // Prioritize colegiatura rubros
+                .ThenBy(r => r.Descripcion) // Then order by name
+                .ToList();
+        }
+        
+        // 2. Map Rubros to RubroReportDto for response
+        int rubroOrder = 1;
+        response.Rubros = rubros.Select(r => new RubroReportDto
+        {
+            Id = r.Id,
+            Descripcion = r.Descripcion,
+            OrdenVisualizacionGrid = r.OrdenVisualizacionGrid ?? rubroOrder++, // Assign sequential order for those without a value
+            EsColegiatura = r.EsColegiatura
+        }).OrderBy(r => r.OrdenVisualizacionGrid).ToList(); // Make sure they are ordered by the grid order
+        
+        // 3. Get all Alumnos for the selected GradoId
+        var alumnos = (await _alumnoRepository.GetAllAsync())
+            .Where(a => a.GradoId == filter.GradoId && a.Estado == EstadoAlumno.Activo)
+            .OrderBy(a => a.PrimerApellido)
+            .ThenBy(a => a.SegundoApellido)
+            .ThenBy(a => a.PrimerNombre)
+            .ThenBy(a => a.SegundoNombre)
+            .ToList();
+        
+        // 4. Get all Pagos for these students in the selected CicloEscolar for the filtered Rubros
+        var rubroIds = rubros.Select(r => r.Id).ToList();
+        var alumnoIds = alumnos.Select(a => a.Id).ToList();
+        
+        var pagos = (await _pagoRepository.GetAllAsync())
+            .Where(p => p.CicloEscolar == filter.CicloEscolar && 
+                   alumnoIds.Contains(p.AlumnoId) && 
+                   rubroIds.Contains(p.RubroId))
+            .ToList();
+        
+        // 5. Create PagoReportDto for each alumno with their ordered pagos
+        int ordinal = 1;
+        foreach (var alumno in alumnos)
+        {
+            // Format the full name as requested: "Primer Apellido Segundo Apellido, Primer Nombre Segundo Nombre"
+            string nombreCompleto = string.Format("{0} {1}, {2} {3}",
+                alumno.PrimerApellido,
+                alumno.SegundoApellido ?? string.Empty,
+                alumno.PrimerNombre,
+                alumno.SegundoNombre ?? string.Empty).Trim();
+            
+            // Get all contactos for this alumno to extract NITs
+            var contactos = await _alumnoContactoRepository.GetByAlumnoIdAsync(alumno.Id);
+            string nit = string.Join(", ", contactos
+                .Where(c => !string.IsNullOrEmpty(c.Contacto.Nit))
+                .Select(c => c.Contacto.Nit));
+            
+            // Get all pagos for this alumno
+            var alumnoPagos = pagos.Where(p => p.AlumnoId == alumno.Id).ToList();
+            
+            // Structure the pagos by rubro and month (for colegiatura)
+            var pagosPorRubro = new Dictionary<int, Dictionary<int, PagoReportItemDto>>();
+            
+            foreach (var rubro in rubros)
+            {
+                var rubroPagos = alumnoPagos.Where(p => p.RubroId == rubro.Id).ToList();
+                
+                // For each rubro, create a dictionary for month-based payments (or just use 0 as key for non-colegiatura)
+                var pagosPorMes = new Dictionary<int, PagoReportItemDto>();
+                
+                if (rubro.EsColegiatura)
+                {
+                    // For colegiatura rubros, organize by month
+                    foreach (var pago in rubroPagos)
+                    {
+                        if (!pagosPorMes.ContainsKey(pago.MesColegiatura))
+                        {
+                            pagosPorMes[pago.MesColegiatura] = new PagoReportItemDto
+                            {
+                                Id = pago.Id,
+                                Monto = pago.Monto,
+                                Estado = string.Empty,  // You can set this based on payment status if needed
+                                MesColegiatura = pago.MesColegiatura
+                            };
+                        }
+                    }
+                }
+                else
+                {
+                    // For non-colegiatura rubros, just use the first/most recent payment
+                    var pago = rubroPagos.OrderByDescending(p => p.Fecha).FirstOrDefault();
+                    if (pago != null)
+                    {
+                        pagosPorMes[0] = new PagoReportItemDto
+                        {
+                            Id = pago.Id,
+                            Monto = pago.Monto,
+                            Estado = string.Empty,  // You can set this based on payment status if needed
+                            MesColegiatura = null
+                        };
+                    }
+                }
+                
+                // Add this rubro's payments to the dictionary
+                if (pagosPorMes.Any())
+                {
+                    pagosPorRubro[rubro.Id] = pagosPorMes;
+                }
+            }
+            
+            // Create and add the student report object
+            var alumnoReport = new PagoReportDto
+            {
+                NumeroOrdinal = ordinal++,
+                AlumnoId = alumno.Id,
+                NombreCompleto = nombreCompleto,
+                Notas = alumnoPagos.FirstOrDefault()?.Notas ?? string.Empty,
+                Nit = nit,
+                PagosPorRubro = pagosPorRubro
+            };
+            
+            response.Alumnos.Add(alumnoReport);
+        }
+        
+        return response;
     }
-
 }

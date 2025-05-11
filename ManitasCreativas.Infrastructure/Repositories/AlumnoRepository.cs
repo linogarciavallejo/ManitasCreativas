@@ -80,9 +80,7 @@ public class AlumnoRepository : IAlumnoRepository
                 (a.PrimerApellido.Contains(apellido) || a.SegundoApellido.Contains(apellido))
             )
             .ToListAsync();
-    }
-
-    public async Task<Alumno?> GetAlumnoWithFullPaymentDetailsAsync(int id)
+    }    public async Task<Alumno?> GetAlumnoWithFullPaymentDetailsAsync(int id)
     {
         return await _context.Alumnos
             .Include(a => a.Pagos.OrderBy(p => p.Fecha))
@@ -91,5 +89,12 @@ public class AlumnoRepository : IAlumnoRepository
                 .ThenInclude(p => p.ImagenesPago)
             .Include(a => a.Pagos)
             .FirstOrDefaultAsync(a => a.Id == id);
+    }
+
+    public async Task<Grado?> GetGradoByIdAsync(int id)
+    {
+        return await _context.Grados
+            .Include(g => g.NivelEducativo)
+            .FirstOrDefaultAsync(g => g.Id == id);
     }
 }

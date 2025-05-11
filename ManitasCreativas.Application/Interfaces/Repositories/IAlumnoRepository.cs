@@ -13,4 +13,5 @@ public interface IAlumnoRepository
     Task<Alumno?> GetAlumnoByCodigoAsync(string codigo);
     Task<IEnumerable<Alumno>> GetAlumnosByNamesAsync(string nombre, string apellido);
     Task<Alumno?> GetAlumnoWithFullPaymentDetailsAsync(int id);
+    Task<Grado?> GetGradoByIdAsync(int id);
 }

@@ -1,0 +1,20 @@
+{
+  "rubros": [
+    {"id":18, "descripcion":"Cuota Anual", "ordenVisualizacion":1},
+    {"id":3, "descripcion":"Inscripción", "ordenVisualizacion":2},
+    {"id":8, "descripcion":"Colegiatura", "ordenVisualizacion":3}
+  ],
+  "alumnos": [
+    {
+      "alumnoId": 101,
+      "nombre": "Alexa Valentina Gómez",
+      "pagos": [
+        {"rubroId":18,"monto":150,"estado":"pagado"},
+        {"rubroId":3,"monto":250,"estado":"pendiente"},
+        {"rubroId":8,"monto":225,"estado":"pagado","mesColegiatura":"Enero"},
+        {"rubroId":8,"monto":225,"estado":"pagado","mesColegiatura":"Febrero"},
+        {"rubroId":8,"monto":225,"estado":"atrasado","mesColegiatura":"Marzo"}
+      ]
+    }
+  ]
+}

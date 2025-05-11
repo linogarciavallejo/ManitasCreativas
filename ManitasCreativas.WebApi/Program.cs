@@ -80,9 +80,10 @@ builder.Services.AddScoped<IPagoService, PagoService>(sp =>
     var rubroRepository = sp.GetRequiredService<IRubroRepository>();
     var usuarioRepository = sp.GetRequiredService<IUsuarioRepository>();
     var pagoImagenRepository = sp.GetRequiredService<IPagoImagenRepository>();
+    var alumnoContactoRepository = sp.GetRequiredService<IAlumnoContactoRepository>();
 
     // Return a new instance of PagoService
-    return new PagoService(pagoRepository, s3Service, alumnoRepository, rubroRepository, usuarioRepository, pagoImagenRepository);
+    return new PagoService(pagoRepository, s3Service, alumnoRepository, rubroRepository, usuarioRepository, pagoImagenRepository, alumnoContactoRepository);
 });
 // Inject S3Service into PagoService
 builder.Services.AddScoped<S3Service>();

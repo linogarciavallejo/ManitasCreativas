@@ -12,5 +12,6 @@ namespace ManitasCreativas.Domain.Enums
         Primaria,
         Secundaria,
         Diversificado,
+        Todos = 999
     }
 }
