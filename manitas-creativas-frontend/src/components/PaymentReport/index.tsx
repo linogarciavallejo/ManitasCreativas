@@ -121,14 +121,17 @@ const PaymentReport: React.FC = () => {
         key: 'numeroOrdinal',
         width: 50,
         fixed: 'left' as const,
+        className: 'student-info-column',
       },
       {
-        title: 'Alumno',
+        title: 'Nombre del Alumno',
         dataIndex: 'nombreCompleto',
         key: 'nombreCompleto',
         width: 250,
         fixed: 'left' as const,
-      },      {
+        className: 'student-info-column',
+      },
+      {
         title: 'Notas',
         dataIndex: 'notas',
         key: 'notas',
@@ -142,8 +145,11 @@ const PaymentReport: React.FC = () => {
         key: 'nit',
         width: 120,
         fixed: 'left' as const,
+        className: 'student-info-column',
       },
-    ];    // Dynamic columns based on rubros
+    ];
+
+    // Dynamic columns based on rubros
     const dynamicColumns = [];
     
     for (const rubro of reportData.rubros) {
@@ -157,7 +163,7 @@ const PaymentReport: React.FC = () => {
             title: month,
             key: `rubro-${rubro.id}-month-${index + 1}`,
             width: 100,
-            className: 'colegiatura-month', // Add class for styling
+            className: 'colegiatura-month payment-column', // Add classes for styling
             render: (_: unknown, record: PagoReportStudent) => {
               const payments = record.pagosPorRubro[rubro.id];
               const monthPayment = payments && payments[index + 1];
@@ -175,6 +181,7 @@ const PaymentReport: React.FC = () => {
           title: rubro.descripcion,
           key: `rubro-${rubro.id}`,
           width: 120,
+          className: 'payment-column', // Add class for styling
           render: (_: unknown, record: PagoReportStudent) => {
             const payments = record.pagosPorRubro[rubro.id];
             const payment = payments && payments[0];
@@ -188,7 +195,8 @@ const PaymentReport: React.FC = () => {
       }
     }
 
-    return [...fixedColumns, ...dynamicColumns].filter(column => !column.hidden);
+    // Filter out hidden columns
+    return [...fixedColumns, ...dynamicColumns].filter(column => !('hidden' in column && column.hidden));
   };
 
   // Generate table data source
@@ -210,12 +218,11 @@ const PaymentReport: React.FC = () => {
     try {
       // Create workbook and worksheet
       const wb = XLSX.utils.book_new();
-      
-      // Prepare data for excel
+        // Prepare data for excel
       const excelData = reportData.alumnos.map(student => {
         const row: Record<string, string | number> = {
           '#': student.numeroOrdinal,
-          'Alumno': student.nombreCompleto,
+          'Nombre del Alumno': student.nombreCompleto,
           'Notas': student.notas,
           'NIT': student.nit
         };
@@ -341,15 +348,15 @@ const PaymentReport: React.FC = () => {
             <p>Cargando datos...</p>
           </div>
         ) : reportData ? (
-          <>
-            {reportData.alumnos.length > 0 ? (              <Table
-                columns={generateColumns() as any}
+          <>            {reportData.alumnos.length > 0 ? (              <Table
+                columns={generateColumns()}
                 dataSource={generateDataSource()}
                 rowKey="alumnoId"
                 pagination={false}
                 scroll={{ x: 'max-content' }}
                 bordered
                 size="small"
+                className="payment-report-table"
               />
             ) : (
               <Empty
