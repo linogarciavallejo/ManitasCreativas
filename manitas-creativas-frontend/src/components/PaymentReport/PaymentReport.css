@@ -59,12 +59,17 @@
 
 /* Colegiatura divider line styles */
 .payment-report-container .colegiatura-header {
-  border-bottom: 2px solid #1890ff !important;
+  border-bottom: 1px solid #91caff !important; /* Lighter blue border */
   background-color: #ffffcc !important; /* Light yellow for headers */
 }
 
 .payment-report-container .colegiatura-month {
   background-color: #f9f9f9;
+}
+
+/* Bimester divider styles */
+.payment-report-container .bimester-divider {
+  border-right: 1px solid #91caff !important; /* Lighter blue right border */
 }
 
 /* Add colors to columns */

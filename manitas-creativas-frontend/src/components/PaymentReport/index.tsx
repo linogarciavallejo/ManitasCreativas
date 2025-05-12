@@ -72,7 +72,7 @@ interface XLSXStyledCell {
 // Month names for colegiatura columns
 const MONTH_NAMES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  'Julio', 'Agosto', 'Septiembre', 'Octubre'
 ];
 
 const PaymentReport: React.FC = () => {
@@ -179,28 +179,33 @@ const PaymentReport: React.FC = () => {
     // Dynamic columns based on rubros
     const dynamicColumns = [];
     
-    for (const rubro of reportData.rubros) {
-      if (rubro.esColegiatura) {
+    for (const rubro of reportData.rubros) {      if (rubro.esColegiatura) {
         // For colegiatura, create a column group with months as children
         dynamicColumns.push({
           title: rubro.descripcion,
           key: `rubro-${rubro.id}`,
           className: 'colegiatura-header', // Add class for styling
-          children: MONTH_NAMES.map((month, index) => ({
-            title: month,
-            key: `rubro-${rubro.id}-month-${index + 1}`,
-            width: 100,
-            className: 'colegiatura-month payment-column', // Add classes for styling
-            render: (_: unknown, record: PagoReportStudent) => {
-              const payments = record.pagosPorRubro[rubro.id];
-              const monthPayment = payments && payments[index + 1];
-              
-              if (monthPayment) {
-                return `Q${monthPayment.monto.toFixed(2)}`;
+          children: MONTH_NAMES.map((month, index) => {
+            // Add className for bimester dividers (every 2 months)
+            const isBimesterDivider = (index + 1) % 2 === 0 && index < 9;
+            const className = `colegiatura-month payment-column${isBimesterDivider ? ' bimester-divider' : ''}`;
+            
+            return {
+              title: month,
+              key: `rubro-${rubro.id}-month-${index + 1}`,
+              width: 100,
+              className, // Add classes for styling
+              render: (_: unknown, record: PagoReportStudent) => {
+                const payments = record.pagosPorRubro[rubro.id];
+                const monthPayment = payments && payments[index + 1];
+                
+                if (monthPayment) {
+                  return `Q${monthPayment.monto.toFixed(2)}`;
+                }
+                return '-';
               }
-              return '-';
-            }
-          })),
+            };
+          }),
         });
       } else {
         // For non-colegiatura, create a single column
@@ -300,8 +305,7 @@ const PaymentReport: React.FC = () => {
           right: { style: 'thin', color: { rgb: "000000" } }
         }
       };
-      
-      // Create header row with styles
+        // Create header row with styles
       const headerRow: Array<XLSXStyledCell> = [
         { v: '#', s: headerStyle },
         { v: 'Nombre del Alumno', s: headerStyle },
@@ -312,10 +316,21 @@ const PaymentReport: React.FC = () => {
       reportData.rubros.forEach(rubro => {
         if (rubro.esColegiatura) {
           // For colegiatura, add one column per month
-          MONTH_NAMES.forEach((monthName) => {
+          MONTH_NAMES.forEach((monthName, index) => {            // Check if this is a bimester divider (every 2 months)
+            const isBimesterDivider = (index + 1) % 2 === 0 && index < 9;
+            
+            const cellStyle = { ...headerStyle };
+            if (isBimesterDivider) {
+              // Add right border for bimester dividers
+              cellStyle.border = {
+                ...cellStyle.border,
+                right: { style: 'thin', color: { rgb: "91CAFF" } } // Lighter blue right border
+              };
+            }
+            
             headerRow.push({ 
               v: `${rubro.descripcion} - ${monthName}`, 
-              s: headerStyle 
+              s: cellStyle 
             });
           });
         } else {
@@ -344,17 +359,29 @@ const PaymentReport: React.FC = () => {
         // Add data for each rubro
         reportData.rubros.forEach(rubro => {
           const payments = student.pagosPorRubro[rubro.id];
-          
-          if (rubro.esColegiatura) {
+            if (rubro.esColegiatura) {
             // For colegiatura, add one column per month
             MONTH_NAMES.forEach((_, index) => {
               const monthPayment = payments && payments[index + 1];
+                // Check if this is a bimester divider (every 2 months)
+              const isBimesterDivider = (index + 1) % 2 === 0 && index < 9;
+              
+              // Clone the style to avoid modifying the original
+              const cellStyle = { ...pStyle };
+              if (isBimesterDivider) {
+                // Add right border for bimester dividers
+                cellStyle.border = {
+                  ...cellStyle.border,
+                  right: { style: 'thin', color: { rgb: "91CAFF" } } // Lighter blue right border
+                };
+              }
+              
               row.push({ 
                 v: monthPayment ? `Q${monthPayment.monto.toFixed(2)}` : '-', 
-                s: pStyle
+                s: cellStyle
               });
             });
-          } else {
+          }else {
             // For non-colegiatura, add a single column
             const payment = payments && payments[0];
             row.push({ 
