@@ -3,10 +3,12 @@ import "antd/dist/reset.css"; // Import Ant Design styles
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  UploadOutlined,
-  UserOutlined,
-  VideoCameraOutlined,
+  BankOutlined,
+  DollarOutlined,
   FileTextOutlined,
+  IdcardOutlined,
+  TagOutlined,
+  CreditCardOutlined,
 } from "@ant-design/icons";
 import { Button, Layout, Menu, theme } from "antd";
 import { Link, Outlet } from "react-router-dom";
@@ -25,30 +27,29 @@ const Main: React.FC = () => {
         <Menu
           theme="dark"
           mode="inline"
-          items={[
-            {
+          items={[            {
               key: "1",
-              icon: <UserOutlined />,
+              icon: <CreditCardOutlined />,
               label: <Link to="tuitions">Colegiaturas</Link>,
             },
             {
               key: "2",
-              icon: <VideoCameraOutlined />,
+              icon: <DollarOutlined />,
               label: <Link to="other-payments">Otros Pagos</Link>,
             },
             {
               key: "3",
-              icon: <UploadOutlined />,
+              icon: <BankOutlined />,
               label: <Link to="statement">Estado de Cuenta</Link>,
             },
             {
               key: "4",
-              icon: <UploadOutlined />,
+              icon: <TagOutlined />,
               label: <Link to="rubros">Rubros</Link>,
             },
             {
               key: "5",
-              icon: <UploadOutlined />,
+              icon: <IdcardOutlined />,
               label: <Link to="students">Alumnos</Link>,
             },
             {
