@@ -537,22 +537,23 @@ const PaymentReport: React.FC = () => {
               Generar Reporte
             </Button>
           </Col>
-          
-          <Col xs={24} md={12} lg={6} className="payment-report-action">
-            <Space style={{ marginTop: 32 }}>
+            <Col xs={24} md={12} lg={6} className="payment-report-action">
+            <Space style={{ marginTop: 32 }} wrap>
               <Button 
                 icon={<ReloadOutlined />} 
                 onClick={fetchGrados}
+                size="middle"
               >
-                Refrescar Grados
+                Refrescar
               </Button>
               
               <Button 
                 icon={<DownloadOutlined />} 
                 onClick={exportToExcel}
                 disabled={!reportData || reportData.alumnos.length === 0}
+                size="middle"
               >
-                Exportar a Excel
+                Exportar
               </Button>
             </Space>
           </Col>
