@@ -494,7 +494,7 @@ const PaymentReport: React.FC = () => {
   return (
     <div className="payment-report-container">
       <div className="payment-report-header">
-        <Title level={2}>Reporte de Pagos</Title>
+        <Title level={2}>Control de Pagos</Title>
       </div>
 
       <Card className="payment-report-filters">
