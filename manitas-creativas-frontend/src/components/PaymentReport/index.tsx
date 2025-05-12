@@ -128,13 +128,13 @@ const PaymentReport: React.FC = () => {
         key: 'nombreCompleto',
         width: 250,
         fixed: 'left' as const,
-      },
-      {
+      },      {
         title: 'Notas',
         dataIndex: 'notas',
         key: 'notas',
         width: 200,
         fixed: 'left' as const,
+        hidden: true, // Hide this column
       },
       {
         title: 'NIT',
@@ -143,9 +143,7 @@ const PaymentReport: React.FC = () => {
         width: 120,
         fixed: 'left' as const,
       },
-    ];
-
-    // Dynamic columns based on rubros
+    ];    // Dynamic columns based on rubros
     const dynamicColumns = [];
     
     for (const rubro of reportData.rubros) {
@@ -154,10 +152,12 @@ const PaymentReport: React.FC = () => {
         dynamicColumns.push({
           title: rubro.descripcion,
           key: `rubro-${rubro.id}`,
+          className: 'colegiatura-header', // Add class for styling
           children: MONTH_NAMES.map((month, index) => ({
             title: month,
             key: `rubro-${rubro.id}-month-${index + 1}`,
             width: 100,
+            className: 'colegiatura-month', // Add class for styling
             render: (_: unknown, record: PagoReportStudent) => {
               const payments = record.pagosPorRubro[rubro.id];
               const monthPayment = payments && payments[index + 1];
@@ -188,7 +188,7 @@ const PaymentReport: React.FC = () => {
       }
     }
 
-    return [...fixedColumns, ...dynamicColumns];
+    return [...fixedColumns, ...dynamicColumns].filter(column => !column.hidden);
   };
 
   // Generate table data source

@@ -56,3 +56,12 @@
 .payment-report-container .payment-late {
   color: #f5222d;
 }
+
+/* Colegiatura divider line styles */
+.payment-report-container .colegiatura-header {
+  border-bottom: 2px solid #1890ff !important;
+}
+
+.payment-report-container .colegiatura-month {
+  background-color: #f9f9f9;
+}
