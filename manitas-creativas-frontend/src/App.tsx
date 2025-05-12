@@ -15,10 +15,8 @@ const { Content } = Layout;
 const App: React.FC = () => {
   return (
     <Router>
-      <Layout>
-        {/* <Header style={{ backgroundColor: '#fff', innerHeight: '0px' }}>
-        </Header> */}
-        <Content>
+      <Layout style={{ width: '100%', minHeight: '100vh' }}>
+        <Content style={{ width: '100%' }}>
           <Suspense fallback={<div>Cargando...</div>}>
             <AppRoutes />
           </Suspense>

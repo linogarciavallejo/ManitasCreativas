@@ -18,9 +18,8 @@ const Main: React.FC = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
-
   return (
-    <Layout>
+    <Layout style={{ minHeight: '100vh', width: '100%' }}>
       <Sider trigger={null} collapsible collapsed={collapsed}>
         <div className="demo-logo-vertical" />
         <Menu
@@ -72,12 +71,12 @@ const Main: React.FC = () => {
               height: 64,
             }}
           />
-        </Header>
-        <Content
+        </Header>        <Content
           style={{
             margin: "24px 16px",
             padding: 24,
             minHeight: 280,
+            width: "100%",
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
           }}
