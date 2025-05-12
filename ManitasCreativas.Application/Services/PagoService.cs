@@ -349,8 +349,7 @@ public class PagoService : IPagoService
                 var pagosPorMes = new Dictionary<int, PagoReportItemDto>();
                 
                 if (rubro.EsColegiatura)
-                {
-                    // For colegiatura rubros, organize by month
+                {                    // For colegiatura rubros, organize by month
                     foreach (var pago in rubroPagos)
                     {
                         if (!pagosPorMes.ContainsKey(pago.MesColegiatura))
@@ -360,14 +359,14 @@ public class PagoService : IPagoService
                                 Id = pago.Id,
                                 Monto = pago.Monto,
                                 Estado = string.Empty,  // You can set this based on payment status if needed
-                                MesColegiatura = pago.MesColegiatura
+                                MesColegiatura = pago.MesColegiatura,
+                                Notas = pago.Notas ?? string.Empty
                             };
                         }
                     }
                 }
                 else
-                {
-                    // For non-colegiatura rubros, just use the first/most recent payment
+                {                    // For non-colegiatura rubros, just use the first/most recent payment
                     var pago = rubroPagos.OrderByDescending(p => p.Fecha).FirstOrDefault();
                     if (pago != null)
                     {
@@ -376,7 +375,8 @@ public class PagoService : IPagoService
                             Id = pago.Id,
                             Monto = pago.Monto,
                             Estado = string.Empty,  // You can set this based on payment status if needed
-                            MesColegiatura = null
+                            MesColegiatura = null,
+                            Notas = pago.Notas ?? string.Empty
                         };
                     }
                 }

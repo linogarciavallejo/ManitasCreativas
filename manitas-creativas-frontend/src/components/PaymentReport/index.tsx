@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Select, Card, Typography, Spin, Row, Col, Empty, Button, Space, message, Alert } from 'antd';
+import { Table, Select, Card, Typography, Spin, Row, Col, Empty, Button, Space, message, Alert, Tooltip } from 'antd';
 import { makeApiRequest } from '../../services/apiHelper';
 import { gradoService } from '../../services/gradoService';
-import { ReloadOutlined, DownloadOutlined } from '@ant-design/icons';
+import { ReloadOutlined, DownloadOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import * as XLSX from 'xlsx-js-style'; // Change to xlsx-js-style for better styling support
 import './PaymentReport.css';
 
@@ -14,6 +14,7 @@ interface PagoReportItem {
   monto: number;
   estado: string;
   mesColegiatura?: number;
+  notas?: string; // Optional, might not be sent by the backend
 }
 
 interface PagoReportStudent {
@@ -105,6 +106,35 @@ const PaymentReport: React.FC = () => {
   // Generate year options for the select (current year and 3 years back)
   const yearOptions = Array.from({ length: 4 }, (_, i) => currentYear - i);
 
+  // This function modifies the raw data from the API to ensure 
+  // all payment objects have the expected fields, including notas
+  const normalizeReportData = (data: PaymentReportResponse): PaymentReportResponse => {
+    if (!data || !data.alumnos) return data;
+    
+    // Create a deep copy to avoid mutating the original data
+    const normalizedData = JSON.parse(JSON.stringify(data)) as PaymentReportResponse;
+    
+    // Ensure each payment has the notas field
+    normalizedData.alumnos.forEach(alumno => {
+      Object.keys(alumno.pagosPorRubro).forEach(rubroIdStr => {
+        const rubroId = parseInt(rubroIdStr);
+        if (alumno.pagosPorRubro[rubroId]) {
+          Object.keys(alumno.pagosPorRubro[rubroId]).forEach(paymentIdxStr => {
+            const paymentIdx = parseInt(paymentIdxStr);
+            const payment = alumno.pagosPorRubro[rubroId][paymentIdx];
+            
+            // Ensure the payment has the notas property (even if null or empty)
+            if (payment && !('notas' in payment)) {
+              payment.notas = '';
+            }
+          });
+        }
+      });
+    });
+    
+    return normalizedData;
+  };
+  
   // Fetch report data based on filters
   const fetchReportData = async () => {
     if (!selectedGradoId) {
@@ -113,16 +143,17 @@ const PaymentReport: React.FC = () => {
     }
 
     setLoading(true);
-    setError(null);
-
-    try {
+    setError(null);    try {
       const data = await makeApiRequest<PaymentReportResponse>(
         `/pagos/report?cicloEscolar=${selectedYear}&gradoId=${selectedGradoId}`, 
         'GET'
       );
-      setReportData(data);
       
-      if (data.alumnos.length === 0) {
+      // Normalize the data to ensure all payments have the notas property
+      const normalizedData = normalizeReportData(data);
+      setReportData(normalizedData);
+      
+      if (normalizedData.alumnos.length === 0) {
         message.info('No se encontraron resultados con los filtros seleccionados.');
       }
     } catch (error) {
@@ -134,6 +165,28 @@ const PaymentReport: React.FC = () => {
       setLoading(false);
     }
   };
+  // Helper function to render payment cell with notes tooltip if applicable
+  const renderPaymentCell = (payment: PagoReportItem | undefined) => {
+    if (!payment) return '-';
+    
+    const amount = `Q${payment.monto.toFixed(2)}`;
+    
+    // Ensure the payment object has a notas property, even if it's not sent by the API
+    // If payment has notes, add an info icon with tooltip
+    if (payment.notas && payment.notas.trim()) {
+      return (
+        <Space size="small">
+          {amount}
+          <Tooltip title={payment.notas}>
+            <InfoCircleOutlined style={{ color: '#1890ff' }} />
+          </Tooltip>
+        </Space>
+      );
+    }
+    
+    return amount;
+  };
+  
   // Generate table columns based on rubros
   const generateColumns = () => {
     if (!reportData || !reportData.rubros.length) {
@@ -189,8 +242,7 @@ const PaymentReport: React.FC = () => {
             // Add className for bimester dividers (every 2 months)
             const isBimesterDivider = (index + 1) % 2 === 0 && index < 9;
             const className = `colegiatura-month payment-column${isBimesterDivider ? ' bimester-divider' : ''}`;
-            
-            return {
+              return {
               title: month,
               key: `rubro-${rubro.id}-month-${index + 1}`,
               width: 100,
@@ -198,11 +250,7 @@ const PaymentReport: React.FC = () => {
               render: (_: unknown, record: PagoReportStudent) => {
                 const payments = record.pagosPorRubro[rubro.id];
                 const monthPayment = payments && payments[index + 1];
-                
-                if (monthPayment) {
-                  return `Q${monthPayment.monto.toFixed(2)}`;
-                }
-                return '-';
+                return renderPaymentCell(monthPayment);
               }
             };
           }),
@@ -212,16 +260,11 @@ const PaymentReport: React.FC = () => {
         dynamicColumns.push({
           title: rubro.descripcion,
           key: `rubro-${rubro.id}`,
-          width: 120,
-          className: 'payment-column', // Add class for styling
+          width: 120,          className: 'payment-column', // Add class for styling          
           render: (_: unknown, record: PagoReportStudent) => {
             const payments = record.pagosPorRubro[rubro.id];
             const payment = payments && payments[0];
-            
-            if (payment) {
-              return `Q${payment.monto.toFixed(2)}`;
-            }
-            return '-';
+            return renderPaymentCell(payment);
           }
         });
       }
@@ -375,17 +418,32 @@ const PaymentReport: React.FC = () => {
                   right: { style: 'thin', color: { rgb: "91CAFF" } } // Lighter blue right border
                 };
               }
+                let cellValue = '-';
+              if (monthPayment) {
+                cellValue = `Q${monthPayment.monto.toFixed(2)}`;
+                // Add note indicator if present
+                if (monthPayment.notas && monthPayment.notas.trim()) {
+                  cellValue += ' *';  // Add asterisk to indicate notes
+                }
+              }
               
               row.push({ 
-                v: monthPayment ? `Q${monthPayment.monto.toFixed(2)}` : '-', 
+                v: cellValue, 
                 s: cellStyle
               });
-            });
-          }else {
+            });          }else {
             // For non-colegiatura, add a single column
-            const payment = payments && payments[0];
+            const payment = payments && payments[0];            let cellValue = '-';
+            if (payment) {
+              cellValue = `Q${payment.monto.toFixed(2)}`;
+              // Add note indicator if present - ensure we check for null/undefined notes
+              if (payment.notas && payment.notas.trim()) {
+                cellValue += ' *';  // Add asterisk to indicate notes
+              }
+            }
+            
             row.push({ 
-              v: payment ? `Q${payment.monto.toFixed(2)}` : '-', 
+              v: cellValue, 
               s: pStyle 
             });
           }
@@ -396,8 +454,7 @@ const PaymentReport: React.FC = () => {
       
       // Create worksheet with formatted data
       const ws = XLSX.utils.aoa_to_sheet(excelData);
-      
-      // Set column widths
+        // Set column widths
       const colWidths: Array<{ wch: number }> = [
         { wch: 6 },   // # column
         { wch: 40 },  // Nombre del Alumno
@@ -411,8 +468,17 @@ const PaymentReport: React.FC = () => {
       
       ws['!cols'] = colWidths;
       
-      // Add the worksheet to workbook
+      // Create a second worksheet for notes explanation
+      const legendSheet = XLSX.utils.aoa_to_sheet([
+        [{ v: '* El asterisco indica que el pago tiene notas asociadas.', s: {
+          font: { bold: true },
+          alignment: { horizontal: "left", vertical: "center" }
+        }}]
+      ]);
+      
+      // Add worksheets to the workbook
       XLSX.utils.book_append_sheet(wb, ws, 'ReportePagos');
+      XLSX.utils.book_append_sheet(wb, legendSheet, 'Leyenda');
 
       // Save the file with styling
       const fileName = `ReportePagos_${selectedYear}_Grado${selectedGradoId}_${new Date().toISOString().slice(0, 10)}.xlsx`;
@@ -535,6 +601,14 @@ const PaymentReport: React.FC = () => {
           />
         )}
       </div>
+      
+      {/* Add a legend for notes */}
+      {reportData && reportData.alumnos.length > 0 && (
+        <div style={{ marginTop: 16, display: 'flex', alignItems: 'center' }}>
+          <InfoCircleOutlined style={{ color: '#1890ff', marginRight: 8 }} />
+          <Typography.Text type="secondary">El ícono indica que el pago tiene notas asociadas. Pase el cursor sobre el ícono para verlas.</Typography.Text>
+        </div>
+      )}
     </div>
   );
 };

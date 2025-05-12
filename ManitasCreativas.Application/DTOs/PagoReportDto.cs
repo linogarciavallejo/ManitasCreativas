@@ -18,6 +18,7 @@ public class PagoReportItemDto
     public decimal Monto { get; set; }
     public string Estado { get; set; } = string.Empty;
     public int? MesColegiatura { get; set; }
+    public string Notas { get; set; } = string.Empty;
 }
 
 public class PagoReportFilterDto
