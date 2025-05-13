@@ -347,7 +347,7 @@ public class AlumnoService : IAlumnoService
             MedioPagoDescripcion = p.MedioPago.ToString(),
             RubroId = p.RubroId,
             RubroDescripcion = p.Rubro?.Descripcion ?? string.Empty,
-            TipoRubro = p.Rubro?.Tipo ?? TipoRubro.Otro,
+            TipoRubro = p.Rubro?.Tipo ?? TipoRubro.Otros,
             TipoRubroDescripcion = p.Rubro?.Tipo.ToString() ?? string.Empty,
             EsColegiatura = p.Rubro?.Tipo == TipoRubro.Colegiatura,
             MesColegiatura = p.MesColegiatura,

@@ -17,9 +17,13 @@ const tipoRubroOptions = [
   { value: 0, label: 'Colegiatura' },
   { value: 1, label: 'Inscripción' },
   { value: 2, label: 'Material' },
-  { value: 3, label: 'Uniforme' },
+  { value: 3, label: 'Uniformes' },
   { value: 4, label: 'Laboratorio' },
-  { value: 5, label: 'Otro' },
+  { value: 5, label: 'Cuota Única' },
+  { value: 6, label: 'Útiles' },
+  { value: 7, label: 'Libros' },
+  { value: 8, label: 'Transporte' },
+  { value: 9, label: 'Otros' },
 ];
 
 const Rubros: React.FC = () => {
