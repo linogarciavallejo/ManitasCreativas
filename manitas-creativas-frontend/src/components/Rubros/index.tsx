@@ -314,13 +314,14 @@ const Rubros: React.FC = () => {
       </Card>
     );
   };
-
   const handleEdit = (record: Rubro) => {
     setEditingId(record.id);
     form.setFieldsValue({
       ...record,
       fechaLimitePagoAmarillo: record.fechaLimitePagoAmarillo ? dayjs(record.fechaLimitePagoAmarillo) : undefined,
       fechaLimitePagoRojo: record.fechaLimitePagoRojo ? dayjs(record.fechaLimitePagoRojo) : undefined,
+      fechaInicioPromocion: record.fechaInicioPromocion ? dayjs(record.fechaInicioPromocion) : undefined,
+      fechaFinPromocion: record.fechaFinPromocion ? dayjs(record.fechaFinPromocion) : undefined,
     });
     
     // Fetch grados if a nivel educativo is specified
