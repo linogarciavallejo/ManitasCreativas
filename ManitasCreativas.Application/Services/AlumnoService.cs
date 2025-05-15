@@ -39,6 +39,7 @@ public class AlumnoService : IAlumnoService
             GradoNombre = a.Grado != null ? a.Grado.Nombre : string.Empty,
             Becado = a.Becado,
             BecaParcialPorcentaje = a.BecaParcialPorcentaje,
+            Observaciones = a.Observaciones,
             Estado = (int)a.Estado,
             Pagos = (a.Pagos ?? Enumerable.Empty<Pago>()).Select(p => new PagoReadDto
             {
@@ -67,6 +68,7 @@ public class AlumnoService : IAlumnoService
             GradoNombre = alumno.Grado != null ? alumno.Grado.Nombre : string.Empty,
             Becado = alumno.Becado,
             BecaParcialPorcentaje = alumno.BecaParcialPorcentaje,
+            Observaciones = alumno.Observaciones,
             Estado = (int)alumno.Estado,
             Pagos = (alumno.Pagos ?? Enumerable.Empty<Pago>()).Select(p => new PagoReadDto
             {
@@ -115,6 +117,7 @@ public class AlumnoService : IAlumnoService
             // Set the required navigation properties using the fetched entities
             Sede = sede,
             Grado = grado,
+            Observaciones = alumnoDto.Observaciones,
             FechaCreacion = DateTime.UtcNow,
             UsuarioCreacionId = alumnoDto.UsuarioCreacionId, // Set the user ID from DTO
         };
@@ -163,6 +166,7 @@ public class AlumnoService : IAlumnoService
         existingAlumno.Seccion = alumnoDto.Seccion;
         existingAlumno.Becado = alumnoDto.Becado;
         existingAlumno.BecaParcialPorcentaje = alumnoDto.BecaParcialPorcentaje;
+        existingAlumno.Observaciones = alumnoDto.Observaciones;
         existingAlumno.Estado = (EstadoAlumno)alumnoDto.Estado;
         existingAlumno.SedeId = alumnoDto.SedeId;
         existingAlumno.GradoId = alumnoDto.GradoId;
@@ -196,6 +200,7 @@ public class AlumnoService : IAlumnoService
             GradoNombre = alumno.Grado != null ? alumno.Grado.Nombre : string.Empty,
             Becado = alumno.Becado,
             BecaParcialPorcentaje = alumno.BecaParcialPorcentaje != null ? alumno.BecaParcialPorcentaje : 0,
+            Observaciones = alumno.Observaciones,
             Pagos = (alumno.Pagos ?? Enumerable.Empty<Pago>()).Select(p => new PagoReadDto
             {
                 Id = p.Id,
@@ -252,6 +257,7 @@ public class AlumnoService : IAlumnoService
             GradoNombre = alumno.Grado.Nombre,
             Becado = alumno.Becado,
             BecaParcialPorcentaje = alumno.BecaParcialPorcentaje,
+            Observaciones = alumno.Observaciones,
             Pagos = alumno.Pagos.Select(p => new PagoReadDto
             {
                 Id = p.Id,
@@ -288,6 +294,7 @@ public class AlumnoService : IAlumnoService
             GradoNombre = a.Grado != null ? a.Grado.Nombre : string.Empty,
             Becado = a.Becado,
             BecaParcialPorcentaje = a.BecaParcialPorcentaje,
+            Observaciones = a.Observaciones,
             Pagos = (a.Pagos ?? Enumerable.Empty<Pago>()).Select(p => new PagoReadDto
             {
                 Id = p.Id,

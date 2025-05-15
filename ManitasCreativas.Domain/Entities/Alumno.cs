@@ -24,6 +24,9 @@ namespace ManitasCreativas.Domain.Entities
         public string ? Seccion { get; set; }
         public bool? Becado { get; set; }
         public decimal? BecaParcialPorcentaje { get; set; }
+
+        public string? Observaciones { get; set; }
+
         public EstadoAlumno Estado { get; set; } = EstadoAlumno.Activo;
 
         // Audit fields
