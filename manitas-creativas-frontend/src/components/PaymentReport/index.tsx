@@ -21,7 +21,7 @@ interface PagoReportStudent {
   numeroOrdinal: number;
   alumnoId: number;
   nombreCompleto: string;
-  notas: string;
+  notas: string;  // This field should contain the student's Observaciones
   nit: string;
   pagosPorRubro: Record<number, Record<number, PagoReportItem>>;
 }
@@ -202,8 +202,7 @@ const PaymentReport: React.FC = () => {
         width: 50,
         fixed: 'left' as const,
         className: 'student-info-column',
-      },
-      {
+      },      {
         title: 'Nombre del Alumno',
         dataIndex: 'nombreCompleto',
         key: 'nombreCompleto',
@@ -212,12 +211,22 @@ const PaymentReport: React.FC = () => {
         className: 'student-info-column',
       },
       {
-        title: 'Notas',
+        title: 'Pendientes',
         dataIndex: 'notas',
         key: 'notas',
         width: 200,
         fixed: 'left' as const,
-        hidden: true, // Hide this column
+        className: 'student-info-column',
+        render: (notas: string) => {
+          if (!notas || !notas.trim()) return '-';
+          return (
+            <Tooltip title={notas} placement="topLeft">
+              <span style={{ cursor: 'pointer', color: '#1890ff' }}>
+                {notas.length > 30 ? `${notas.substring(0, 30)}...` : notas}
+              </span>
+            </Tooltip>
+          );
+        },
       },
       {
         title: 'NIT',
@@ -347,11 +356,11 @@ const PaymentReport: React.FC = () => {
           left: { style: 'thin', color: { rgb: "000000" } },
           right: { style: 'thin', color: { rgb: "000000" } }
         }
-      };
-        // Create header row with styles
+      };      // Create header row with styles
       const headerRow: Array<XLSXStyledCell> = [
         { v: '#', s: headerStyle },
         { v: 'Nombre del Alumno', s: headerStyle },
+        { v: 'Observaciones', s: headerStyle },
         { v: 'NIT', s: headerStyle }
       ];
       
@@ -392,10 +401,10 @@ const PaymentReport: React.FC = () => {
         const isEvenRow = rowIndex % 2 === 0;
         const studentStyle = isEvenRow ? studentInfoStyleAlt : studentInfoStyle;
         const pStyle = isEvenRow ? paymentStyleAlt : paymentStyle;
-        
-        const row: Array<XLSXStyledCell> = [
+          const row: Array<XLSXStyledCell> = [
           { v: student.numeroOrdinal, s: studentStyle },
           { v: student.nombreCompleto, s: studentStyle },
+          { v: student.notas || '-', s: studentStyle },
           { v: student.nit, s: studentStyle }
         ];
 
@@ -453,11 +462,11 @@ const PaymentReport: React.FC = () => {
       });
       
       // Create worksheet with formatted data
-      const ws = XLSX.utils.aoa_to_sheet(excelData);
-        // Set column widths
+      const ws = XLSX.utils.aoa_to_sheet(excelData);      // Set column widths
       const colWidths: Array<{ wch: number }> = [
         { wch: 6 },   // # column
         { wch: 40 },  // Nombre del Alumno
+        { wch: 30 },  // Observaciones
         { wch: 15 },  // NIT
       ];
       

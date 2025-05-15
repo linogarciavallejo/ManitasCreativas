@@ -390,11 +390,10 @@ public class PagoService : IPagoService
             
             // Create and add the student report object
             var alumnoReport = new PagoReportDto
-            {
-                NumeroOrdinal = ordinal++,
+            {                NumeroOrdinal = ordinal++,
                 AlumnoId = alumno.Id,
                 NombreCompleto = nombreCompleto,
-                Notas = alumnoPagos.FirstOrDefault()?.Notas ?? string.Empty,
+                Notas = alumno.Observaciones ?? string.Empty,
                 Nit = nit,
                 PagosPorRubro = pagosPorRubro
             };
