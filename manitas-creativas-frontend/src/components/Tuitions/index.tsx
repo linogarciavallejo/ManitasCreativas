@@ -47,8 +47,7 @@ interface AlumnoDetails {
   gradoId: number;
   gradoNombre: string;
   becado: boolean | null;
-  becaParcialPorcentaje: number | null;
-  pagos: Array<{
+  becaParcialPorcentaje: number | null;  pagos: Array<{
     id: number;
     fecha: string;
     monto: number;
@@ -56,11 +55,6 @@ interface AlumnoDetails {
     // Add other payment fields as needed
   }>;
   contactos: Contacto[];
-}
-
-// Fix for error 1: Ensure the file object is properly typed to include 'originFileObj'.
-interface CustomFile extends File {
-  originFileObj?: File;
 }
 
 const { Option } = Select;
@@ -320,17 +314,7 @@ const Tuitions: React.FC = () => {
 
   return (
     <div className="payments-container">
-      <ToastContainer
-        position="top-center"
-        autoClose={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       <h2>Realizar un Pago de Colegiatura</h2>
 
       <div style={{ marginBottom: "20px" }}>

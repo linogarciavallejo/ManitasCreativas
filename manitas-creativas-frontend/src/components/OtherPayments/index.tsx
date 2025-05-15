@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Upload, message, AutoComplete, Select, InputNumber } from "antd";
+import { Form, Input, Button, Upload, AutoComplete, Select, InputNumber } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import dayjs from 'dayjs';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { makeApiRequest } from "../../services/apiHelper";
 import { getCurrentUserId } from "../../services/authService";
 import DatePickerES from "../common/DatePickerES"; // Import our custom DatePicker
@@ -52,14 +54,8 @@ interface AlumnoDetails {
   gradoId: number;
   gradoNombre: string;
   becado: boolean | null;
-  becaParcialPorcentaje: number | null;
-  pagos: any[];
+  becaParcialPorcentaje: number | null;  pagos: Record<string, unknown>[];
   contactos: Contacto[];
-}
-
-// Fix for error 1: Ensure the file object is properly typed to include 'originFileObj'.
-interface CustomFile extends File {
-  originFileObj?: File;
 }
 
 const { Option } = Select;
@@ -77,6 +73,7 @@ const OtherPayments: React.FC = () => {
   const [form] = Form.useForm();
 
   const currentYear = new Date().getFullYear();
+  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   const currentMonth = new Date().getMonth() + 1; // 1-based month number
 
   // Fetch rubros on component mount
@@ -85,8 +82,8 @@ const OtherPayments: React.FC = () => {
       try {
         const response = await makeApiRequest<Rubro[]>("/rubrosactivos", "GET");
         setRubros(response);
-      } catch (error) {
-        message.error("Error al cargar los rubros.");
+      } catch {
+        toast.error("Error al cargar los rubros.");
       }
     };
     
@@ -104,9 +101,9 @@ const OtherPayments: React.FC = () => {
       );
       // Update contactos info from the response
       setContactos(response.contactos || []);
-      message.success("Alumno encontrado por código.");
-    } catch (error) {
-      message.error("No se encontró ningún alumno con ese código.");
+      toast.success("Alumno encontrado por código.");
+    } catch {
+      toast.error("No se encontró ningún alumno con ese código.");
     }
   };
 
@@ -128,8 +125,8 @@ const OtherPayments: React.FC = () => {
         codigo: alumno.codigo,
       }));
       setTypeaheadOptions(options);
-    } catch (error) {
-      message.error("Error al buscar alumnos.");
+    } catch {
+      toast.error("Error al buscar alumnos.");
     }
   };
 
@@ -142,9 +139,9 @@ const OtherPayments: React.FC = () => {
       setSelectedCodigo(response.codigo);
       // Update contactos info from the response
       setContactos(response.contactos || []);
-      message.success("Alumno seleccionado correctamente.");
-    } catch (error) {
-      message.error("Error al obtener los datos del alumno seleccionado.");
+      toast.success("Alumno seleccionado correctamente.");
+    } catch {
+      toast.error("Error al obtener los datos del alumno seleccionado.");
     }
   };
   
@@ -161,15 +158,15 @@ const OtherPayments: React.FC = () => {
     fechaPago: dayjs.Dayjs;
     monto: number;
     medioPago: string;
-    mes: string;
+    mes: string | null;
     rubroId: string;
     notas?: string;
-    imagenesPago?: any[]; // Changed to optional and any[] to handle undefined case
+    imagenesPago?: { originFileObj?: File }[]; // More specific type for uploaded files
   }) => {
     console.log("Form submitted with values:", values); // Debugging log
 
     if (!alumnoId) {
-      message.error("Por favor seleccione un alumno antes de enviar el pago.");
+      toast.error("Por favor seleccione un alumno antes de enviar el pago.");
       return;
     }
 
@@ -188,11 +185,14 @@ const OtherPayments: React.FC = () => {
       // Only add MesColegiatura and AnioColegiatura if needed
       if (values.mes) {
         formData.append("MesColegiatura", values.mes);
-        formData.append("AnioColegiatura", new Date().getFullYear().toString());      }
+        formData.append("AnioColegiatura", new Date().getFullYear().toString());
+      }
       
       if (values.notas) formData.append("Notas", values.notas);
-        // Get the current user ID from localStorage and use it for UsuarioCreacionId
-      const userId = getCurrentUserId();      console.log("Current user ID for form submission:", userId);
+      
+      // Get the current user ID from localStorage and use it for UsuarioCreacionId
+      const userId = getCurrentUserId();
+      console.log("Current user ID for form submission:", userId);
       formData.append("UsuarioCreacionId", userId.toString());
       
       // Log FormData entries for debugging
@@ -211,13 +211,25 @@ const OtherPayments: React.FC = () => {
       }
 
       console.log("Sending payment data to server..."); // Add debug log
-      const response = await makeApiRequest<any>("/pagos", "POST", formData);
+      const response = await makeApiRequest<{ id: number }>("/pagos", "POST", formData);
       console.log("Payment response:", response); // Add debug log
 
-      message.success("¡Pago enviado con éxito!");
+      // Show success toast notification
+      toast.success("¡Pago enviado con éxito!");
+      
+      // Reset form fields
+      form.resetFields();
+      
+      // Reset student selection
+      setSelectedStudent(null);
+      setAlumnoId(null);
+      setSelectedCodigo(null);
+      setAutoCompleteValue("");
+      setContactos([]);
+      
     } catch (err) {
       console.error("Error submitting payment:", err); // Add error logging
-      message.error("Error al enviar el pago. Por favor, inténtelo de nuevo.");
+      toast.error("Error al enviar el pago. Por favor, inténtelo de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -225,6 +237,7 @@ const OtherPayments: React.FC = () => {
 
   return (
     <div className="payments-container">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       <h2>Realizar un Pago</h2>
 
       <div style={{ marginBottom: "20px" }}>
