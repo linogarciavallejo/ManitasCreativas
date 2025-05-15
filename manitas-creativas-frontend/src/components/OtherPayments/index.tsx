@@ -3,6 +3,7 @@ import { Form, Input, Button, Upload, message, AutoComplete, Select, InputNumber
 import { UploadOutlined } from "@ant-design/icons";
 import dayjs from 'dayjs';
 import { makeApiRequest } from "../../services/apiHelper";
+import { getCurrentUserId } from "../../services/authService";
 import DatePickerES from "../common/DatePickerES"; // Import our custom DatePicker
 import "antd/dist/reset.css";
 
@@ -187,11 +188,18 @@ const OtherPayments: React.FC = () => {
       // Only add MesColegiatura and AnioColegiatura if needed
       if (values.mes) {
         formData.append("MesColegiatura", values.mes);
-        formData.append("AnioColegiatura", new Date().getFullYear().toString());
-      }
+        formData.append("AnioColegiatura", new Date().getFullYear().toString());      }
       
       if (values.notas) formData.append("Notas", values.notas);
-      formData.append("UsuarioId", "1"); // Assuming 1 is the logged-in user ID
+        // Get the current user ID from localStorage and use it for UsuarioCreacionId
+      const userId = getCurrentUserId();      console.log("Current user ID for form submission:", userId);
+      formData.append("UsuarioCreacionId", userId.toString());
+      
+      // Log FormData entries for debugging
+      console.log("FormData contents:");
+      for (const pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+      }
       
       // Handle file uploads properly, checking for undefined
       if (values.imagenesPago && values.imagenesPago.length > 0) {
