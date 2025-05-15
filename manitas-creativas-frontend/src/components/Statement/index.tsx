@@ -17,8 +17,7 @@ import { PagoReadDto, AlumnoSimpleDto, AlumnoDto, PagoImagenDto } from '../../ty
 const { Title, Text } = Typography;
 const { Search } = Input;
 
-const Statement: React.FC = () => {
-  const [alumnos, setAlumnos] = useState<AlumnoSimpleDto[]>([]);
+const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<AlumnoSimpleDto[]>([]);
   const [selectedAlumno, setSelectedAlumno] = useState<AlumnoSimpleDto | null>(null);
   const [alumnoDetails, setAlumnoDetails] = useState<AlumnoDto | null>(null);
   const [statements, setStatements] = useState<PagoReadDto[]>([]);
@@ -34,13 +33,7 @@ const Statement: React.FC = () => {
       try {
         const data = await makeApiRequest<AlumnoSimpleDto[]>('/alumnos/full', 'GET');
         setAlumnos(data);
-        
-        // Pre-populate options for autocomplete
-        const autoCompleteOptions = data.map(alumno => ({
-          value: alumno.fullName,
-          label: `${alumno.fullName} (${alumno.codigo})`
-        }));
-        setOptions(autoCompleteOptions);
+        // We don't pre-populate options anymore, to match the OtherPayments behavior
       } catch (error) {
         console.error('Error fetching alumnos:', error);
       }
@@ -153,14 +146,10 @@ const Statement: React.FC = () => {
       setSelectedAlumno(selected);
     }
   };
-
   const onSearch = (searchText: string) => {
+    // If search text is empty, don't show any options
     if (!searchText) {
-      const allOptions = alumnos.map(alumno => ({
-        value: alumno.fullName,
-        label: `${alumno.fullName} (${alumno.codigo})`
-      }));
-      setOptions(allOptions);
+      setOptions([]);
       return;
     }
     
