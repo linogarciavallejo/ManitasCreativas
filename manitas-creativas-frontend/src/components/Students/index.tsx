@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Table, Form, Input, Button, Select, Space, Typography, Popconfirm, Card, Row, Col, Modal } from 'antd';
+import { Table, Form, Input, Button, Select, Space, Typography, Popconfirm, Card, Row, Col, Modal, Tooltip } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, InfoCircleOutlined, TeamOutlined } from '@ant-design/icons';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -378,6 +378,23 @@ const Students: React.FC = () => {
       }
     },
     {
+      title: 'Observaciones',
+      key: 'observaciones',
+      dataIndex: 'observaciones',
+      width: 150,
+      ellipsis: true,
+      render: (observaciones: string | undefined | null) => {
+        if (!observaciones) return '-';
+        return (
+          <Tooltip title={observaciones} placement="topLeft">
+            <span style={{ cursor: 'pointer', color: '#1890ff' }}>
+              {observaciones.length > 20 ? `${observaciones.substring(0, 20)}...` : observaciones}
+            </span>
+          </Tooltip>
+        );
+      }
+    },
+    {
       title: 'Acciones',
       key: 'actions',
       width: 140,
@@ -703,6 +720,21 @@ const Students: React.FC = () => {
                 name="seccion"
               >
                 <Input placeholder="Ingrese la sección" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={24}>
+              <Form.Item
+                label="Observaciones"
+                name="observaciones"
+              >
+                <Input.TextArea 
+                  placeholder="Ingrese observaciones sobre el estudiante (opcional)" 
+                  rows={4}
+                  maxLength={500}
+                />
               </Form.Item>
             </Col>
           </Row>

@@ -54,7 +54,9 @@ interface AlumnoDetails {
   gradoId: number;
   gradoNombre: string;
   becado: boolean | null;
-  becaParcialPorcentaje: number | null;  pagos: Record<string, unknown>[];
+  becaParcialPorcentaje: number | null;
+  observaciones?: string;
+  pagos: Record<string, unknown>[];
   contactos: Contacto[];
 }
 
