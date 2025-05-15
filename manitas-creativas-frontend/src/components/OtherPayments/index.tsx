@@ -139,7 +139,7 @@ const OtherPayments: React.FC = () => {
       setSelectedCodigo(response.codigo);
       // Update contactos info from the response
       setContactos(response.contactos || []);
-      toast.success("Alumno seleccionado correctamente.");
+      // Success toast removed as requested
     } catch {
       toast.error("Error al obtener los datos del alumno seleccionado.");
     }
