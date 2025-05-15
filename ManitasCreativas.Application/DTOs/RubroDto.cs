@@ -24,6 +24,8 @@ public class RubroDto
     public string? Notas { get; set; }
     public bool? Activo { get; set; } = true;
     public int? OrdenVisualizacionGrid { get; set; }
+    public bool? EsPagoDeCarnet { get; set; }
+    public string? EstadoCarnet { get; set; }
     
     // Audit fields
     public DateTime FechaCreacion { get; set; }

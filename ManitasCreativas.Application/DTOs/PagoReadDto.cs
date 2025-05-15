@@ -38,5 +38,7 @@ public class PagoReadDto
     public DateTime? FechaActualizacion { get; set; }
     public int UsuarioCreacionId { get; set; }
     public int? UsuarioActualizacionId { get; set; }
+    public bool? EsPagoDeCarnet { get; set; } = false;
+    public string EstadoCarnet { get; set; } = string.Empty;
 
 }

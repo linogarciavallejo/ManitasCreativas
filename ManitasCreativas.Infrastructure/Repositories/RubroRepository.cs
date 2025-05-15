@@ -1,5 +1,4 @@
 namespace ManitasCreativas.Infrastructure.Repositories;
-
 using ManitasCreativas.Application.Interfaces.Repositories;
 using ManitasCreativas.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -92,6 +91,8 @@ public class RubroRepository : IRubroRepository
                     ""MontoPreestablecido"" = @MontoPreestablecido,
                     ""FechaInicioPromocion"" = @FechaInicioPromocion,
                     ""FechaFinPromocion"" = @FechaFinPromocion,
+                    ""EsPagoDeCarnet"" = @EsPagoDeCarnet,
+                    ""EstadoCarnet"" = @EstadoCarnet,
                     ""Notas"" = @Notas,
                     ""Activo"" = @Activo,
                     ""UsuarioActualizacionId"" = @UsuarioActualizacionId,
@@ -116,6 +117,8 @@ public class RubroRepository : IRubroRepository
                 new Npgsql.NpgsqlParameter("@MontoPreestablecido", (object)rubro.MontoPreestablecido ?? DBNull.Value),
                 new Npgsql.NpgsqlParameter("@FechaInicioPromocion", (object)rubro.FechaInicioPromocion ?? DBNull.Value),
                 new Npgsql.NpgsqlParameter("@FechaFinPromocion", (object)rubro.FechaFinPromocion ?? DBNull.Value),
+                new Npgsql.NpgsqlParameter("@EsPagoDeCarnet", (object)rubro.EsPagoDeCarnet ?? DBNull.Value),
+                new Npgsql.NpgsqlParameter("@EstadoCarnet", (object)rubro.EstadoCarnet ?? DBNull.Value),
                 new Npgsql.NpgsqlParameter("@Notas", (object)rubro.Notas ?? DBNull.Value),
                 new Npgsql.NpgsqlParameter("@Activo", rubro.Activo),
                 new Npgsql.NpgsqlParameter("@UsuarioActualizacionId", (object)rubro.UsuarioActualizacionId ?? DBNull.Value),

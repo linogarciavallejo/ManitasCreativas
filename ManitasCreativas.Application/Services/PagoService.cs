@@ -90,6 +90,8 @@ public class PagoService : IPagoService
             MesLimitePago = rubro?.MesLimitePago,
             FechaLimitePagoAmarillo = rubro?.FechaLimitePagoAmarillo,
             FechaLimitePagoRojo = rubro?.FechaLimitePagoRojo,
+            EsPagoDeCarnet = rubro?.EsPagoDeCarnet,
+            EstadoCarnet = rubro?.EstadoCarnet,
             UsuarioCreacionId = pago.UsuarioCreacionId,
             UsuarioActualizacionId = pago.UsuarioActualizacionId,
             ImagenesPago = pago.ImagenesPago?.Select(pi => new PagoImagenDto
@@ -143,7 +145,7 @@ public class PagoService : IPagoService
             Notas = pagoDto.Notas,
             EsColegiatura = pagoDto.EsColegiatura,
             MesColegiatura = pagoDto.MesColegiatura,
-            AnioColegiatura = pagoDto.AnioColegiatura,
+            AnioColegiatura = pagoDto.AnioColegiatura,            
             UsuarioCreacion = usuario,
 
             // Audit fields
