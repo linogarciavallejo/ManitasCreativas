@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Upload, message, AutoComplete, Select, InputNumber, DatePicker } from "antd";
+import { Form, Input, Button, Upload, message, AutoComplete, Select, InputNumber } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { makeApiRequest } from "../../services/apiHelper";
+import DatePickerES from "../common/DatePickerES"; // Import our custom DatePicker
 import "antd/dist/reset.css";
 
 interface Alumno {
@@ -153,11 +154,10 @@ const OtherPayments: React.FC = () => {
       form.setFieldsValue({ monto: selectedRubro.montoPreestablecido });
     }
   };
-
-  // Fix for error 2: Adjust the API request to correctly handle the options parameter.
+  // Handle form submission
   const handleSubmit = async (values: {
     cicloEscolar: string;
-    fechaPago: moment.Moment;
+    fechaPago: dayjs.Dayjs;
     monto: number;
     medioPago: string;
     mes: string;
@@ -300,12 +300,11 @@ const OtherPayments: React.FC = () => {
         layout="vertical"
         onFinish={handleSubmit}
         autoComplete="off"
-        className="payments-form"
-        initialValues={{
+        className="payments-form"        initialValues={{
           cicloEscolar: currentYear,
           mes: null, // Changed from currentMonth to null to make "Sin mes específico" the default
           monto: 150,
-          fechaPago: moment(),
+          fechaPago: dayjs().startOf('day'), // Set to start of the current day
         }}
       >
         <Form.Item
@@ -314,16 +313,13 @@ const OtherPayments: React.FC = () => {
           rules={[{ required: true, message: "¡Por favor ingrese el ciclo escolar!" }]}
         >
           <Input placeholder="Ingrese el ciclo escolar" />
-        </Form.Item>
-
-        <Form.Item
+        </Form.Item>        <Form.Item
           label="Fecha de Pago"
           name="fechaPago"
           rules={[{ required: true, message: "¡Por favor seleccione la fecha de pago!" }]}
         >
-          <DatePicker 
+          <DatePickerES 
             style={{ width: "100%" }} 
-            format="YYYY-MM-DD" 
             placeholder="Seleccione la fecha de pago"
           />
         </Form.Item>

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Upload, AutoComplete, Select, InputNumber, DatePicker } from "antd";
+import { Form, Input, Button, Upload, AutoComplete, Select, InputNumber } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { makeApiRequest } from "../../services/apiHelper";
 import { getCurrentUserId } from "../../services/authService";
 import { gradoService } from "../../services/gradoService";
 import { rubroService } from "../../services/rubroService";
+import DatePickerES from "../common/DatePickerES"; // Import our custom DatePicker
 import "antd/dist/reset.css";
 
 interface Alumno {
@@ -149,11 +150,10 @@ const Tuitions: React.FC = () => {
       setLoadingRubro(false);
     }
   };  // Function to reset the form after a successful submission
-  const resetForm = () => {
-    // Reset form but keep these fields
+  const resetForm = () => {    // Reset form but keep these fields
     form.setFieldsValue({
       cicloEscolar: currentYear,
-      fechaPago: moment(),
+      fechaPago: dayjs(),
       mes: currentMonth.toString(),
       medioPago: "1",
       notas: "",
@@ -244,13 +244,11 @@ const Tuitions: React.FC = () => {
     } catch (error: unknown) {
       console.error("Error fetching student details:", error);
       toast.error("Error al obtener los datos del alumno seleccionado.");
-    }
-  };
+    }  };
 
-  // Fix for error 2: Adjust the API request to correctly handle the options parameter.
   const handleSubmit = async (values: {
     cicloEscolar: string | number;
-    fechaPago: moment.Moment;
+    fechaPago: dayjs.Dayjs;
     monto: number;
     medioPago: string;
     mes: string | number;
@@ -409,11 +407,10 @@ const Tuitions: React.FC = () => {
         layout="vertical"
         onFinish={handleSubmit}
         autoComplete="off"
-        className="payments-form"
-        initialValues={{
+        className="payments-form"        initialValues={{
           cicloEscolar: currentYear,
           mes: currentMonth.toString(), // Convert to string to match Option values
-          fechaPago: moment(),
+          fechaPago: dayjs(),
           rubroId: dinamicRubroId, // Initialize with the dynamic RubroId
         }}
       >
@@ -423,16 +420,13 @@ const Tuitions: React.FC = () => {
           rules={[{ required: true, message: "¡Por favor ingrese el ciclo escolar!" }]}
         >
           <Input placeholder="Ingrese el ciclo escolar" />
-        </Form.Item>
-
-        <Form.Item
+        </Form.Item>        <Form.Item
           label="Fecha de Pago"
           name="fechaPago"
           rules={[{ required: true, message: "¡Por favor seleccione la fecha de pago!" }]}
         >
-          <DatePicker 
-            style={{ width: "100%" }} 
-            format="YYYY-MM-DD" 
+          <DatePickerES 
+            style={{ width: "100%" }}
             placeholder="Seleccione la fecha de pago"
           />
         </Form.Item>
