@@ -18,6 +18,8 @@ public class PagoUploadDto
     public int MesColegiatura { get; set; }
     public int AnioColegiatura { get; set; }
     public List<string> ImageUrls { get; set; } = new List<string>();
+    public bool? EsPagoDeCarnet { get; set; } = false;
+    public string EstadoCarnet { get; set; } = string.Empty;
     
     // Audit fields
     public int UsuarioCreacionId { get; set; }

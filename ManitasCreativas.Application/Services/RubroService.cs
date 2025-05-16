@@ -45,7 +45,6 @@ public class RubroService : IRubroService
             FechaInicioPromocion = r.FechaInicioPromocion,
             FechaFinPromocion = r.FechaFinPromocion,
             EsPagoDeCarnet = r.EsPagoDeCarnet,
-            EstadoCarnet = r.EstadoCarnet,
             Notas = r.Notas,
             Activo = r.Activo ?? true,
             OrdenVisualizacionGrid = r.OrdenVisualizacionGrid
@@ -78,7 +77,6 @@ public class RubroService : IRubroService
             FechaInicioPromocion = rubro.FechaInicioPromocion,
             FechaFinPromocion = rubro.FechaFinPromocion,
             EsPagoDeCarnet = rubro.EsPagoDeCarnet,
-            EstadoCarnet = rubro.EstadoCarnet,
             Notas = rubro.Notas,
             Activo = rubro.Activo ?? true,
             OrdenVisualizacionGrid = rubro.OrdenVisualizacionGrid
@@ -131,7 +129,6 @@ public class RubroService : IRubroService
             FechaInicioPromocion = rubroDto.FechaInicioPromocion,
             FechaFinPromocion = rubroDto.FechaFinPromocion,
             EsPagoDeCarnet = rubroDto.EsPagoDeCarnet,
-            EstadoCarnet = rubroDto.EstadoCarnet,
             Notas = rubroDto.Notas,
             Activo = rubroDto.Activo,
             OrdenVisualizacionGrid = rubroDto.OrdenVisualizacionGrid,
@@ -193,7 +190,6 @@ public class RubroService : IRubroService
         existingRubro.FechaInicioPromocion = rubroDto.FechaInicioPromocion;
         existingRubro.FechaFinPromocion = rubroDto.FechaFinPromocion;
         existingRubro.EsPagoDeCarnet = rubroDto.EsPagoDeCarnet;
-        existingRubro.EstadoCarnet = rubroDto.EstadoCarnet;
         existingRubro.Notas = rubroDto.Notas;
         existingRubro.Activo = rubroDto.Activo;
         existingRubro.OrdenVisualizacionGrid = rubroDto.OrdenVisualizacionGrid;
@@ -231,7 +227,6 @@ public class RubroService : IRubroService
             FechaInicioPromocion = r.FechaInicioPromocion,
             FechaFinPromocion = r.FechaFinPromocion,
             EsPagoDeCarnet = r.EsPagoDeCarnet,
-            EstadoCarnet = r.EstadoCarnet,
             Notas = r.Notas,
             Activo = r.Activo ?? true,
             OrdenVisualizacionGrid = r.OrdenVisualizacionGrid
@@ -280,7 +275,6 @@ public class RubroService : IRubroService
             UsuarioCreacionId = p.UsuarioCreacionId,
             UsuarioActualizacionId = p.UsuarioActualizacionId,
             EsPagoDeCarnet = p.Rubro?.EsPagoDeCarnet,
-            EstadoCarnet = p.Rubro?.EstadoCarnet ?? string.Empty
         });
     }
 

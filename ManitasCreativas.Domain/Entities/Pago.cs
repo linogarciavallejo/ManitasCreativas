@@ -24,6 +24,8 @@ namespace ManitasCreativas.Domain.Entities
         public bool EsColegiatura { get; set; }
         public int MesColegiatura { get; set; }
         public int AnioColegiatura { get; set; }
+        public bool? EsPagoDeCarnet { get; set; } = false;
+        public string? EstadoCarnet { get; set; } = string.Empty;
 
         // Audit fields
         public DateTime FechaCreacion { get; set; }
