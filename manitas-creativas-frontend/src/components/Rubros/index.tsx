@@ -652,10 +652,20 @@ const Rubros: React.FC = () => {
               style={{ width: '100%' }}
             />
           </Form.Item>
-          
-          <Form.Item 
+            <Form.Item 
             label="Es Colegiatura" 
             name="esColegiatura" 
+            valuePropName="checked"
+          >
+            <Switch 
+              checkedChildren="Sí" 
+              unCheckedChildren="No" 
+            />
+          </Form.Item>
+          
+          <Form.Item 
+            label="Es Pago de Carnet" 
+            name="esPagoDeCarnet" 
             valuePropName="checked"
           >
             <Switch 

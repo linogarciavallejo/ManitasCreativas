@@ -19,11 +19,11 @@ export interface Rubro {
   gradoNombre?: string;
   cicloEscolar?: number;
   montoPreestablecido?: number;
-  fechaInicioPromocion?: string; // Added: new field for promotion start date
-  fechaFinPromocion?: string; // Added: new field for promotion end date
+  fechaInicioPromocion?: string; // Added: new field for promotion start date  fechaFinPromocion?: string; // Added: new field for promotion end date
   notas?: string;
   activo: boolean;
   ordenVisualizacionGrid?: number; // Added: new field for display order in grid
+  esPagoDeCarnet?: boolean; // Added: new field for ID card payment flag
   
   // Audit fields
   fechaCreacion: string;
@@ -60,11 +60,11 @@ export interface PagoItem {
   penalizacionPorMoraMonto?: number;
   penalizacionPorMoraPorcentaje?: number;
   fechaLimitePagoAmarillo?: string;
-  fechaLimitePagoRojo?: string;
-  diaLimitePagoAmarillo?: number;
+  fechaLimitePagoRojo?: string;  diaLimitePagoAmarillo?: number;
   diaLimitePagoRojo?: number;
   mesLimitePago?: number;
   ordenVisualizacionGrid?: number; // Added: new field for display order in grid
+  esPagoDeCarnet?: boolean; // Added: new field for ID card payment flag
   usuarioId?: number;
   usuarioNombre: string;
   fechaCreacion: string;
