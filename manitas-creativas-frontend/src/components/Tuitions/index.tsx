@@ -468,8 +468,7 @@ const Tuitions: React.FC = () => {
             }}
           />
         </Form.Item>        
-        
-        <Form.Item
+          <Form.Item
           label="Medio de Pago"
           name="medioPago"
           rules={[{ required: true, message: "¡Por favor ingrese el medio de pago!" }]}
@@ -477,8 +476,12 @@ const Tuitions: React.FC = () => {
         >
           <Select placeholder="Seleccione el medio de pago">
             <Option value="1">Efectivo</Option>
-            <Option value="4">Transferencia Electrónica</Option>
+            <Option value="2">Tarjeta de Crédito</Option>
+            <Option value="3">Tarjeta de Débito</Option>
+            <Option value="4">Transferencia Bancaria</Option>
+            <Option value="5">Cheque</Option>
             <Option value="6">Boleta de Depósito</Option>
+            <Option value="7">Pago Móvil</Option>
           </Select>
         </Form.Item>
 
