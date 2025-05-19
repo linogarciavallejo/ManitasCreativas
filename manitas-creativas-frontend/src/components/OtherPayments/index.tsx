@@ -40,6 +40,7 @@ interface Rubro {
   tipo: number;
   montoPreestablecido: number | null;
   esColegiatura: boolean; // Added esColegiatura property to match backend RubroDto
+  esPagoDeCarnet?: boolean; // Added esPagoDeCarnet property to check if payment is for a student ID card
 }
 
 interface AlumnoDetails {
@@ -67,11 +68,12 @@ const OtherPayments: React.FC = () => {
   const [alumnoId, setAlumnoId] = useState<string | null>(null);
   const [selectedCodigo, setSelectedCodigo] = useState<string | null>(null);
   const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
-  const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
+  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);  const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
   const [contactos, setContactos] = useState<Contacto[]>([]);
   // Add state for rubros
   const [rubros, setRubros] = useState<Rubro[]>([]);
+  // Add state for selected rubro
+  const [selectedRubro, setSelectedRubro] = useState<Rubro | null>(null);
   const [form] = Form.useForm();
 
   const currentYear = new Date().getFullYear();
@@ -146,12 +148,12 @@ const OtherPayments: React.FC = () => {
       toast.error("Error al obtener los datos del alumno seleccionado.");
     }
   };
-  
-  // Add handler for rubro selection
+    // Add handler for rubro selection
   const handleRubroChange = (rubroId: string) => {
-    const selectedRubro = rubros.find(rubro => rubro.id.toString() === rubroId);
-    if (selectedRubro && selectedRubro.montoPreestablecido) {
-      form.setFieldsValue({ monto: selectedRubro.montoPreestablecido });
+    const selected = rubros.find(rubro => rubro.id.toString() === rubroId);
+    setSelectedRubro(selected || null);
+    if (selected && selected.montoPreestablecido) {
+      form.setFieldsValue({ monto: selected.montoPreestablecido });
     }
   };
   // Handle form submission
@@ -179,10 +181,18 @@ const OtherPayments: React.FC = () => {
       formData.append("Fecha", values.fechaPago.toISOString());
       formData.append("CicloEscolar", values.cicloEscolar);
       formData.append("Monto", values.monto.toString());
-      formData.append("MedioPago", values.medioPago);
-      formData.append("RubroId", values.rubroId);
+      formData.append("MedioPago", values.medioPago);      formData.append("RubroId", values.rubroId);
       formData.append("AlumnoId", alumnoId);
       formData.append("EsColegiatura", "false"); // Changed: this is OtherPayments, not tuition
+      
+      // Check if the selected rubro is for ID card payment and set the appropriate fields
+      if (selectedRubro?.esPagoDeCarnet) {
+        formData.append("EsPagoDeCarnet", "true");
+        formData.append("EstadoCarnet", "PAGADO");
+      } else {
+        formData.append("EsPagoDeCarnet", "false");
+        formData.append("EstadoCarnet", "");
+      }
       
       // Only add MesColegiatura and AnioColegiatura if needed
       if (values.mes) {
