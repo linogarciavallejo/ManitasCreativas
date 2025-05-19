@@ -19,6 +19,8 @@ public class PagoReportItemDto
     public string Estado { get; set; } = string.Empty;
     public int? MesColegiatura { get; set; }
     public string Notas { get; set; } = string.Empty;
+    public bool? EsPagoDeCarnet { get; set; } = false;
+    public string EstadoCarnet { get; set; } = string.Empty;
 }
 
 public class PagoReportFilterDto

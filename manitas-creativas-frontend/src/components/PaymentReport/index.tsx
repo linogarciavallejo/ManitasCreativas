@@ -15,6 +15,8 @@ interface PagoReportItem {
   estado: string;
   mesColegiatura?: number;
   notas?: string; // Optional, might not be sent by the backend
+  esPagoDeCarnet?: boolean; // Added for carnet functionality
+  estadoCarnet?: string; // Added for carnet functionality
 }
 
 interface PagoReportStudent {
@@ -164,7 +166,39 @@ const PaymentReport: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };  // Helper function to get the carnet value from student payments
+  const getCarnetValue = (student: PagoReportStudent): React.ReactNode => {
+    // Search through all payments to find a carnet payment
+    for (const rubroId in student.pagosPorRubro) {
+      const payments = student.pagosPorRubro[rubroId];
+      for (const paymentIndex in payments) {
+        const payment = payments[paymentIndex];
+        if (payment.esPagoDeCarnet) {
+          // If estadoCarnet is null or empty, return empty value
+          if (!payment.estadoCarnet || payment.estadoCarnet.trim() === '') {
+            return '-';
+          }
+          
+          // If estadoCarnet is PAGADO, return the amount as currency
+          if (payment.estadoCarnet === 'PAGADO') {
+            return `Q${payment.monto.toFixed(2)}`;
+          }
+          
+          // If estadoCarnet is ENTREGADO, return the text
+          if (payment.estadoCarnet === 'ENTREGADO') {
+            return 'ENTREGADO';
+          }
+          
+          // For any other value, return the estadoCarnet as-is
+          return payment.estadoCarnet;
+        }
+      }
+    }
+    
+    // If no carnet payment is found, return empty
+    return '-';
   };
+
   // Helper function to render payment cell with notes tooltip if applicable
   const renderPaymentCell = (payment: PagoReportItem | undefined) => {
     if (!payment) return '-';
@@ -227,14 +261,21 @@ const PaymentReport: React.FC = () => {
             </Tooltip>
           );
         },
-      },
-      {
+      },      {
         title: 'NIT',
         dataIndex: 'nit',
         key: 'nit',
         width: 120,
         fixed: 'left' as const,
         className: 'student-info-column',
+      },
+      {
+        title: 'CARNÉ',
+        key: 'carnet',
+        width: 120,
+        fixed: 'left' as const,
+        className: 'student-info-column',
+        render: (_, record: PagoReportStudent) => getCarnetValue(record),
       },
     ];
 
@@ -347,21 +388,22 @@ const PaymentReport: React.FC = () => {
           right: { style: 'thin', color: { rgb: "000000" } }
         }
       };
-      
-      const paymentStyleAlt: XLSXCellStyle = {
+        const paymentStyleAlt: XLSXCellStyle = {
         fill: { fgColor: { rgb: "D6EEFF" } }, // Darker light blue
         border: { 
           top: { style: 'thin', color: { rgb: "000000" } },
           bottom: { style: 'thin', color: { rgb: "000000" } },
           left: { style: 'thin', color: { rgb: "000000" } },
           right: { style: 'thin', color: { rgb: "000000" } }
-        }
-      };      // Create header row with styles
+        }      };
+      
+      // Create header row with styles
       const headerRow: Array<XLSXStyledCell> = [
         { v: '#', s: headerStyle },
         { v: 'Nombre del Alumno', s: headerStyle },
         { v: 'Observaciones', s: headerStyle },
-        { v: 'NIT', s: headerStyle }
+        { v: 'NIT', s: headerStyle },
+        { v: 'CARNÉ', s: headerStyle }
       ];
       
       // Add rubro headers
@@ -400,12 +442,12 @@ const PaymentReport: React.FC = () => {
       reportData.alumnos.forEach((student, rowIndex) => {
         const isEvenRow = rowIndex % 2 === 0;
         const studentStyle = isEvenRow ? studentInfoStyleAlt : studentInfoStyle;
-        const pStyle = isEvenRow ? paymentStyleAlt : paymentStyle;
-          const row: Array<XLSXStyledCell> = [
+        const pStyle = isEvenRow ? paymentStyleAlt : paymentStyle;          const row: Array<XLSXStyledCell> = [
           { v: student.numeroOrdinal, s: studentStyle },
           { v: student.nombreCompleto, s: studentStyle },
           { v: student.notas || '-', s: studentStyle },
-          { v: student.nit, s: studentStyle }
+          { v: student.nit, s: studentStyle },
+          { v: getCarnetValue(student).toString(), s: studentStyle }
         ];
 
         // Add data for each rubro
@@ -468,6 +510,7 @@ const PaymentReport: React.FC = () => {
         { wch: 40 },  // Nombre del Alumno
         { wch: 30 },  // Observaciones
         { wch: 15 },  // NIT
+        { wch: 15 },  // CARNÉ
       ];
       
       // Add width for other columns
@@ -497,8 +540,7 @@ const PaymentReport: React.FC = () => {
     } catch (error) {
       console.error('Error exporting to Excel:', error);
       message.error('Error al exportar a Excel');
-    }
-  };
+    }  };
 
   return (
     <div className="payment-report-container">
