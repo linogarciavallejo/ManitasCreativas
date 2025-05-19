@@ -94,6 +94,12 @@ public class PagoService : IPagoService
             EstadoCarnet = pago.EstadoCarnet,
             UsuarioCreacionId = pago.UsuarioCreacionId,
             UsuarioActualizacionId = pago.UsuarioActualizacionId,
+            FechaCreacion = pago.FechaCreacion,
+            FechaActualizacion = pago.FechaActualizacion,
+            EsAnulado = pago.EsAnulado,
+            MotivoAnulacion = pago.MotivoAnulacion,
+            FechaAnulacion = pago.FechaAnulacion,
+            UsuarioAnulacionId = pago.UsuarioAnulacionId,
             ImagenesPago = pago.ImagenesPago?.Select(pi => new PagoImagenDto
             {
                 Id = pi.Id,
@@ -152,7 +158,12 @@ public class PagoService : IPagoService
 
             // Audit fields
             FechaCreacion = DateTime.UtcNow,
-            UsuarioCreacionId = pagoDto.UsuarioCreacionId
+            UsuarioCreacionId = pagoDto.UsuarioCreacionId,
+
+            EsAnulado = pagoDto.EsAnulado,
+            MotivoAnulacion = pagoDto.MotivoAnulacion,
+            FechaAnulacion = pagoDto.FechaAnulacion,
+            UsuarioAnulacionId = pagoDto.UsuarioAnulacionId
         };
 
         await _pagoRepository.AddAsync(pago);
@@ -217,6 +228,10 @@ public class PagoService : IPagoService
         // Update audit fields
         existingPago.FechaActualizacion = DateTime.UtcNow;
         existingPago.UsuarioActualizacionId = pagoDto.UsuarioActualizacionId;
+        existingPago.EsAnulado = pagoDto.EsAnulado;
+        existingPago.MotivoAnulacion = pagoDto.MotivoAnulacion;
+        existingPago.FechaAnulacion = pagoDto.FechaAnulacion;
+        existingPago.UsuarioAnulacionId = pagoDto.UsuarioAnulacionId;
 
         await _pagoRepository.UpdateAsync(existingPago);
 

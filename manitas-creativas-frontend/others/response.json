@@ -7,13 +7,15 @@
             "notas": "Es cuñado del profe Ervin. ",
             "nit": "1837821, 16379985",
             "pagosPorRubro": {
-                "10": {
+                "12": {
                     "0": {
-                        "id": 18,
-                        "monto": 500,
+                        "id": 24,
+                        "monto": 25,
                         "estado": "",
                         "mesColegiatura": null,
-                        "notas": ""
+                        "notas": "",
+                        "esPagoDeCarnet": true,
+                        "estadoCarnet": "ENTREGADO"
                     }
                 },
                 "9": {
@@ -22,7 +24,20 @@
                         "monto": 150,
                         "estado": "",
                         "mesColegiatura": null,
-                        "notas": "bla bla bla bla"
+                        "notas": "bla bla bla bla",
+                        "esPagoDeCarnet": null,
+                        "estadoCarnet": ""
+                    }
+                },
+                "10": {
+                    "0": {
+                        "id": 18,
+                        "monto": 500,
+                        "estado": "",
+                        "mesColegiatura": null,
+                        "notas": "",
+                        "esPagoDeCarnet": null,
+                        "estadoCarnet": ""
                     }
                 },
                 "6": {
@@ -31,35 +46,45 @@
                         "monto": 350,
                         "estado": "",
                         "mesColegiatura": 1,
-                        "notas": ""
+                        "notas": "",
+                        "esPagoDeCarnet": null,
+                        "estadoCarnet": ""
                     },
                     "2": {
                         "id": 10,
                         "monto": 350,
                         "estado": "",
                         "mesColegiatura": 2,
-                        "notas": ""
+                        "notas": "",
+                        "esPagoDeCarnet": null,
+                        "estadoCarnet": ""
                     },
                     "3": {
                         "id": 11,
                         "monto": 350,
                         "estado": "",
                         "mesColegiatura": 3,
-                        "notas": ""
+                        "notas": "",
+                        "esPagoDeCarnet": null,
+                        "estadoCarnet": ""
                     },
                     "4": {
                         "id": 12,
                         "monto": 350,
                         "estado": "",
                         "mesColegiatura": 4,
-                        "notas": ""
+                        "notas": "",
+                        "esPagoDeCarnet": null,
+                        "estadoCarnet": ""
                     },
                     "5": {
                         "id": 13,
                         "monto": 350,
                         "estado": "",
                         "mesColegiatura": 5,
-                        "notas": ""
+                        "notas": "",
+                        "esPagoDeCarnet": null,
+                        "estadoCarnet": ""
                     }
                 }
             }
@@ -71,13 +96,26 @@
             "notas": "",
             "nit": "",
             "pagosPorRubro": {
+                "12": {
+                    "0": {
+                        "id": 25,
+                        "monto": 25,
+                        "estado": "",
+                        "mesColegiatura": null,
+                        "notas": "",
+                        "esPagoDeCarnet": true,
+                        "estadoCarnet": "PAGADO"
+                    }
+                },
                 "9": {
                     "0": {
                         "id": 20,
                         "monto": 150,
                         "estado": "",
                         "mesColegiatura": null,
-                        "notas": ""
+                        "notas": "",
+                        "esPagoDeCarnet": null,
+                        "estadoCarnet": ""
                     }
                 },
                 "6": {
@@ -86,7 +124,9 @@
                         "monto": 350,
                         "estado": "",
                         "mesColegiatura": 1,
-                        "notas": ""
+                        "notas": "",
+                        "esPagoDeCarnet": null,
+                        "estadoCarnet": ""
                     }
                 }
             }
@@ -102,8 +142,8 @@
     ],
     "rubros": [
         {
-            "id": 10,
-            "descripcion": "Inscripción",
+            "id": 12,
+            "descripcion": "Carnet",
             "ordenVisualizacionGrid": 1,
             "esColegiatura": false
         },
@@ -114,9 +154,15 @@
             "esColegiatura": false
         },
         {
+            "id": 10,
+            "descripcion": "Inscripción",
+            "ordenVisualizacionGrid": 3,
+            "esColegiatura": false
+        },
+        {
             "id": 6,
             "descripcion": "Colegiatura",
-            "ordenVisualizacionGrid": 3,
+            "ordenVisualizacionGrid": 4,
             "esColegiatura": true
         }
     ]
