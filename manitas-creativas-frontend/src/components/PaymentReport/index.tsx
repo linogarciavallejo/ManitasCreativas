@@ -198,14 +198,56 @@ const PaymentReport: React.FC = () => {
     // If no carnet payment is found, return empty
     return '-';
   };
-
   // Helper function to render payment cell with notes tooltip if applicable
   const renderPaymentCell = (payment: PagoReportItem | undefined) => {
     if (!payment) return '-';
     
+    // First check if it's a carnet payment and handle special carnet display logic
+    if (payment.esPagoDeCarnet) {
+      // If estadoCarnet is null or empty, return empty value
+      if (!payment.estadoCarnet || payment.estadoCarnet.trim() === '') {
+        return '-';
+      }
+      
+      // If estadoCarnet is PAGADO, return the amount as currency
+      if (payment.estadoCarnet === 'PAGADO') {
+        const amount = `Q${payment.monto.toFixed(2)}`;
+        return payment.notas && payment.notas.trim() ? (
+          <Space size="small">
+            {amount}
+            <Tooltip title={payment.notas}>
+              <InfoCircleOutlined style={{ color: '#1890ff' }} />
+            </Tooltip>
+          </Space>
+        ) : amount;
+      }
+      
+      // If estadoCarnet is ENTREGADO, return the text
+      if (payment.estadoCarnet === 'ENTREGADO') {
+        return payment.notas && payment.notas.trim() ? (
+          <Space size="small">
+            ENTREGADO
+            <Tooltip title={payment.notas}>
+              <InfoCircleOutlined style={{ color: '#1890ff' }} />
+            </Tooltip>
+          </Space>
+        ) : 'ENTREGADO';
+      }
+      
+      // For any other value, return the estadoCarnet as-is
+      return payment.notas && payment.notas.trim() ? (
+        <Space size="small">
+          {payment.estadoCarnet}
+          <Tooltip title={payment.notas}>
+            <InfoCircleOutlined style={{ color: '#1890ff' }} />
+          </Tooltip>
+        </Space>
+      ) : payment.estadoCarnet;
+    }
+    
+    // Regular payment display (non-carnet)
     const amount = `Q${payment.monto.toFixed(2)}`;
     
-    // Ensure the payment object has a notas property, even if it's not sent by the API
     // If payment has notes, add an info icon with tooltip
     if (payment.notas && payment.notas.trim()) {
       return (
@@ -268,13 +310,13 @@ const PaymentReport: React.FC = () => {
         width: 120,
         fixed: 'left' as const,
         className: 'student-info-column',
-      },
-      {
+      },      {
         title: 'CARNÉ',
         key: 'carnet',
         width: 120,
         fixed: 'left' as const,
         className: 'student-info-column',
+        hidden: true, // Hide this column
         render: (_, record: PagoReportStudent) => getCarnetValue(record),
       },
     ];
@@ -396,14 +438,13 @@ const PaymentReport: React.FC = () => {
           left: { style: 'thin', color: { rgb: "000000" } },
           right: { style: 'thin', color: { rgb: "000000" } }
         }      };
-      
-      // Create header row with styles
+        // Create header row with styles
       const headerRow: Array<XLSXStyledCell> = [
         { v: '#', s: headerStyle },
         { v: 'Nombre del Alumno', s: headerStyle },
         { v: 'Observaciones', s: headerStyle },
-        { v: 'NIT', s: headerStyle },
-        { v: 'CARNÉ', s: headerStyle }
+        { v: 'NIT', s: headerStyle }
+        // Removed CARNÉ column from Excel export
       ];
       
       // Add rubro headers
@@ -446,8 +487,8 @@ const PaymentReport: React.FC = () => {
           { v: student.numeroOrdinal, s: studentStyle },
           { v: student.nombreCompleto, s: studentStyle },
           { v: student.notas || '-', s: studentStyle },
-          { v: student.nit, s: studentStyle },
-          { v: getCarnetValue(student).toString(), s: studentStyle }
+          { v: student.nit, s: studentStyle }
+          // Removed CARNÉ column from Excel export
         ];
 
         // Add data for each rubro
@@ -484,10 +525,27 @@ const PaymentReport: React.FC = () => {
               });
             });          }else {
             // For non-colegiatura, add a single column
-            const payment = payments && payments[0];            let cellValue = '-';
+            const payment = payments && payments[0];            
+            let cellValue = '-';
+            
             if (payment) {
-              cellValue = `Q${payment.monto.toFixed(2)}`;
-              // Add note indicator if present - ensure we check for null/undefined notes
+              // Handle carnet payments specially
+              if (payment.esPagoDeCarnet) {
+                if (!payment.estadoCarnet || payment.estadoCarnet.trim() === '') {
+                  cellValue = '-';
+                } else if (payment.estadoCarnet === 'PAGADO') {
+                  cellValue = `Q${payment.monto.toFixed(2)}`;
+                } else if (payment.estadoCarnet === 'ENTREGADO') {
+                  cellValue = 'ENTREGADO';
+                } else {
+                  cellValue = payment.estadoCarnet;
+                }
+              } else {
+                // Regular payment
+                cellValue = `Q${payment.monto.toFixed(2)}`;
+              }
+              
+              // Add note indicator if present
               if (payment.notas && payment.notas.trim()) {
                 cellValue += ' *';  // Add asterisk to indicate notes
               }
@@ -509,8 +567,8 @@ const PaymentReport: React.FC = () => {
         { wch: 6 },   // # column
         { wch: 40 },  // Nombre del Alumno
         { wch: 30 },  // Observaciones
-        { wch: 15 },  // NIT
-        { wch: 15 },  // CARNÉ
+        { wch: 15 }   // NIT
+        // Removed CARNÉ column from Excel export
       ];
       
       // Add width for other columns
