@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Select, AutoComplete, Card, Row, Col, Typography } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
+import { Form, Input, Button, Select, AutoComplete, Card, Row, Col, Typography, Table, Tag, Space } from "antd";
+import { SearchOutlined, EyeOutlined, EditOutlined, StopOutlined } from "@ant-design/icons";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import dayjs from 'dayjs';
 import { makeApiRequest } from "../../services/apiHelper";
 import { gradoService } from "../../services/gradoService";
+import { pagoService, Pago } from "../../services/pagoService";
 import DatePickerES from "../common/DatePickerES";
+import PaymentDetailsModal from "./PaymentDetailsModal";
+import VoidPaymentModal from "./VoidPaymentModal";
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -44,7 +47,17 @@ interface AlumnoDetails {
     monto: number;
     rubroDescripcion: string;
   }>;
-  contactos: Array<any>;
+  contactos: Array<{
+    alumnoId: number;
+    contactoId: number;
+    contacto: {
+      id: number;
+      nombre: string;
+      telefono: string;
+      email: string;
+    };
+    parentesco: string;
+  }>;
 }
 
 interface Grado {
@@ -68,6 +81,17 @@ const EditPayments: React.FC = () => {
   // Add state variable to track which filter is currently active: "grado", "alumno", or null
   const [activeFilter, setActiveFilter] = useState<"grado" | "alumno" | null>(null);
   const [form] = Form.useForm();
+  
+  // Add state for payment results
+  const [payments, setPayments] = useState<Pago[]>([]);
+  const [searchPerformed, setSearchPerformed] = useState<boolean>(false);
+
+  // Add state for viewing payment details
+  const [selectedPayment, setSelectedPayment] = useState<Pago | null>(null);
+  const [detailsModalVisible, setDetailsModalVisible] = useState<boolean>(false);
+  const [confirmVoidModalVisible, setConfirmVoidModalVisible] = useState<boolean>(false);
+  const [voidReason, setVoidReason] = useState<string>("");
+  const [isVoiding, setIsVoiding] = useState<boolean>(false);
 
   // Fetch grados on component mount
   useEffect(() => {
@@ -168,8 +192,9 @@ const EditPayments: React.FC = () => {
     setCicloEscolar(new Date().getFullYear());
     setActiveFilter(null); // Reset the active filter state
   };
+  
   // Handle filter form submission
-  const handleFilterSubmit = () => {
+  const handleFilterSubmit = async () => {
     // Validate that we have required filtering criteria
     if (!cicloEscolar) {
       toast.error("Debe seleccionar un ciclo escolar");
@@ -190,14 +215,94 @@ const EditPayments: React.FC = () => {
     });
     
     setLoading(true);
-    // Future implementation to filter payments based on criteria
-    
-    // Simulate API call
-    setTimeout(() => {
+    setSearchPerformed(true);
+    try {
+      const pagos = await pagoService.getPaymentsForEdit(
+        cicloEscolar,
+        selectedGradoId || undefined,
+        alumnoId || undefined
+      );
+      
+      // Ensure that pagos is an array
+      const pagosArray = Array.isArray(pagos) ? pagos : [];
+      console.log("Pagos response:", pagos); // Debug the API response
+      
+      setPayments(pagosArray);
+      
+      if (pagosArray.length === 0) {
+        toast.info("No se encontraron pagos con los criterios especificados");
+      } else {
+        toast.success(`Se encontraron ${pagosArray.length} pagos`);
+      }
+    } catch (error) {
+      console.error("Error fetching payments:", error);
+      let errorMessage = "Error al buscar pagos. Intente nuevamente.";
+      if (error instanceof Error) {
+        errorMessage += ` (${error.message})`;
+      }
+      toast.error(errorMessage);
+      setPayments([]);
+    } finally {
       setLoading(false);
-      toast.info("Esta funcionalidad será implementada en futuras iteraciones.");
-    }, 1000);
+    }
   };
+
+  // Handle viewing payment details
+  const handleViewPayment = (payment: Pago) => {
+    setSelectedPayment(payment);
+    setDetailsModalVisible(true);
+  };
+  
+  // Handle closing the details modal
+  const handleCloseDetailsModal = () => {
+    setDetailsModalVisible(false);
+    setSelectedPayment(null);
+  };
+  
+  // Handle initiating the void process
+  const handleInitiateVoid = () => {
+    setConfirmVoidModalVisible(true);
+  };
+  
+  // Handle cancel void
+  const handleCancelVoid = () => {
+    setConfirmVoidModalVisible(false);
+    setVoidReason("");
+  };
+  
+  // Handle confirm void payment
+  const handleConfirmVoidPayment = async () => {
+    if (!selectedPayment) return;
+    
+    // Validate reason
+    if (!voidReason.trim()) {
+      toast.error("Debe ingresar un motivo para anular el pago");
+      return;
+    }
+    
+    setIsVoiding(true);
+    try {
+      // In a future implementation, call actual API to void payment
+      // await pagoService.voidPayment(selectedPayment.id, voidReason);
+      
+      toast.success(`Pago #${selectedPayment.id} anulado correctamente`);
+      
+      // Refresh the payments list
+      await handleFilterSubmit();
+      
+      // Close modals
+      setConfirmVoidModalVisible(false);
+      setDetailsModalVisible(false);
+      setSelectedPayment(null);
+      setVoidReason("");
+    } catch (error) {
+      console.error("Error voiding payment:", error);
+      toast.error("Error al anular el pago. Intente nuevamente.");
+    } finally {
+      setIsVoiding(false);
+    }
+  };
+  
   return (
     <div className="edit-payments-container">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
@@ -227,7 +332,7 @@ const EditPayments: React.FC = () => {
                 />
               </Form.Item>
             </Col>
-              <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={12} md={8}>
               <Form.Item
                 label="Grado"
                 name="gradoId"
@@ -262,7 +367,8 @@ const EditPayments: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            <Col xs={24} sm={12}>              <Form.Item label="Código de Alumno">
+            <Col xs={24} sm={12}>
+              <Form.Item label="Código de Alumno">
                 <Input.Search
                   placeholder="Buscar por Código"
                   enterButton={<SearchOutlined />}
@@ -272,7 +378,8 @@ const EditPayments: React.FC = () => {
               </Form.Item>
             </Col>
             
-            <Col xs={24} sm={12}>              <Form.Item label="Nombre del Alumno">
+            <Col xs={24} sm={12}>
+              <Form.Item label="Nombre del Alumno">
                 <AutoComplete
                   value={autoCompleteValue}
                   options={typeaheadOptions}
@@ -317,7 +424,8 @@ const EditPayments: React.FC = () => {
                 borderRadius: "4px",
               }}
             >
-              <strong>Alumno seleccionado:</strong> {selectedStudent}              <Button
+              <strong>Alumno seleccionado:</strong> {selectedStudent}
+              <Button
                 type="link"
                 style={{ marginLeft: "10px", padding: "0" }}
                 onClick={() => {
@@ -346,16 +454,127 @@ const EditPayments: React.FC = () => {
             </Col>
           </Row>
         </Form>
-      </Card>      {/* Results section will be implemented in future iterations */}
+      </Card>
+      
+      {/* Results section */}
       <div className="search-results">
         <Card>
-          <div style={{ textAlign: 'center', padding: '20px' }}>
-            <Title level={4}>Resultados de Búsqueda</Title>
-            <p>Esta sección mostrará los pagos que coincidan con los criterios de búsqueda.</p>
-            <p>Será implementada en futuras iteraciones.</p>
-          </div>
+          {!searchPerformed ? (
+            <div style={{ textAlign: 'center', padding: '20px' }}>
+              <Title level={4}>Resultados de Búsqueda</Title>
+              <p>Utilice los filtros de arriba para buscar pagos.</p>
+            </div>
+          ) : loading ? (
+            <div style={{ textAlign: 'center', padding: '20px' }}>
+              <Title level={4}>Cargando resultados...</Title>
+            </div>
+          ) : (
+            <>
+              <Title level={4}>Resultados de Búsqueda</Title>
+              {process.env.NODE_ENV === 'development' && (
+                <div style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #d9d9d9', borderRadius: '4px' }}>
+                  <h4 style={{ margin: '0 0 10px 0' }}>Datos para depuración (sólo visible en desarrollo):</h4>
+                  <p>Tipo de datos: {typeof payments}</p>
+                  <p>Es array: {Array.isArray(payments) ? 'Sí' : 'No'}</p>
+                  <p>Longitud: {Array.isArray(payments) ? payments.length : 'N/A'}</p>
+                  <p>Datos: {JSON.stringify(payments).substring(0, 100)}...</p>
+                </div>
+              )}
+              <Table 
+                dataSource={payments} 
+                rowKey="id"
+                bordered
+                locale={{ emptyText: 'No hay pagos para mostrar' }}
+                pagination={{ pageSize: 10 }}
+                scroll={{ x: 'max-content' }}
+                columns={[
+                  {
+                    title: 'ID',
+                    dataIndex: 'id',
+                    key: 'id'
+                  },
+                  {
+                    title: 'Fecha',
+                    dataIndex: 'fecha',
+                    key: 'fecha',
+                    render: (fecha) => fecha ? dayjs(fecha).format('DD/MM/YYYY') : 'N/A'
+                  },
+                  {
+                    title: 'Monto',
+                    dataIndex: 'monto',
+                    key: 'monto',
+                    render: (monto) => typeof monto === 'number' ? `Q. ${monto.toFixed(2)}` : 'N/A'
+                  },
+                  {
+                    title: 'Rubro',
+                    dataIndex: 'rubroDescripcion',
+                    key: 'rubroDescripcion'
+                  },
+                  {
+                    title: 'Estado',
+                    dataIndex: 'esAnulado',
+                    key: 'esAnulado',
+                    render: (esAnulado) => (
+                      <Tag color={esAnulado ? 'red' : 'green'}>
+                        {esAnulado ? 'Anulado' : 'Activo'}
+                      </Tag>
+                    )
+                  },
+                  {
+                    title: 'Acciones',
+                    key: 'action',
+                    render: (_, record: Pago) => (
+                      <Space size="small">
+                        <Button 
+                          size="small" 
+                          icon={<EyeOutlined />} 
+                          onClick={() => handleViewPayment(record)}
+                          title="Ver detalles"
+                        />
+                        {!record.esAnulado && (
+                          <>
+                            <Button 
+                              size="small" 
+                              icon={<EditOutlined />} 
+                              disabled={true} 
+                              title="Editar pago (próximamente)"
+                            />
+                            <Button 
+                              size="small" 
+                              danger
+                              icon={<StopOutlined />} 
+                              disabled={true}
+                              title="Anular pago (próximamente)"
+                            />
+                          </>
+                        )}
+                      </Space>
+                    )
+                  }
+                ]}
+              />
+            </>
+          )}
         </Card>
       </div>
+      
+      {/* Payment Details Modal */}
+      <PaymentDetailsModal
+        payment={selectedPayment}
+        visible={detailsModalVisible}
+        onClose={handleCloseDetailsModal}
+        onVoid={handleInitiateVoid}
+      />
+      
+      {/* Void Payment Modal */}
+      <VoidPaymentModal
+        visible={confirmVoidModalVisible}
+        isLoading={isVoiding}
+        voidReason={voidReason}
+        onVoidReasonChange={setVoidReason}
+        onCancel={handleCancelVoid}
+        onConfirm={handleConfirmVoidPayment}
+      />
     </div>
   );
 };

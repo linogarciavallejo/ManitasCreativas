@@ -11,4 +11,6 @@ public interface IPagoService
     Task<PagoReadDto> AddPagoAsync(PagoUploadDto pagoDto);
     
     Task<PagoReportResponseDto> GetPagoReportAsync(PagoReportFilterDto filter);
+    
+    Task<IEnumerable<PagoReadDto>> GetPagosForEditAsync(int cicloEscolar, int? gradoId = null, int? alumnoId = null);
 }

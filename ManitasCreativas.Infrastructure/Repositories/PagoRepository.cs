@@ -16,11 +16,15 @@ public class PagoRepository : IPagoRepository
     public async Task<Pago?> GetByIdAsync(int id)
     {
         return await _context.Pagos.FindAsync(id);
-    }
-
-    public async Task<IEnumerable<Pago>> GetAllAsync()
+    }    public async Task<IEnumerable<Pago>> GetAllAsync()
     {
-        return await _context.Pagos.ToListAsync();
+        Console.WriteLine("PagoRepository.GetAllAsync: Loading payments with navigation properties");
+        return await _context.Pagos
+            .Include(p => p.Alumno)
+                .ThenInclude(a => a.Grado)
+            .Include(p => p.Rubro)
+            .Include(p => p.ImagenesPago)
+            .ToListAsync();
     }
 
     public async Task AddAsync(Pago pago)

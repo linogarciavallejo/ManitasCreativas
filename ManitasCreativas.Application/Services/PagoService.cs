@@ -425,5 +425,88 @@ public class PagoService : IPagoService
         }
         
         return response;
+    }    public async Task<IEnumerable<PagoReadDto>> GetPagosForEditAsync(int cicloEscolar, int? gradoId = null, int? alumnoId = null)
+    {
+        try 
+        {
+            var pagos = await _pagoRepository.GetAllAsync();
+            var usuarios = await _usuarioRepository.GetAllAsync();
+            
+            // Debug logging
+            Console.WriteLine($"GetPagosForEditAsync - Initial pagos count: {pagos.Count()}");
+            Console.WriteLine($"Filter params - cicloEscolar: {cicloEscolar}, gradoId: {gradoId}, alumnoId: {alumnoId}");
+            
+            // Start with filtering by cicloEscolar which is always required
+            var filteredPagos = pagos.Where(p => p.CicloEscolar == cicloEscolar).ToList();
+            Console.WriteLine($"After cicloEscolar filter - pagos count: {filteredPagos.Count()}");
+            
+            // Apply optional filters based on which one is provided
+            if (gradoId.HasValue && gradoId.Value > 0)
+            {
+                // Check if Alumno is loaded properly for each payment
+                foreach (var pago in filteredPagos)
+                {
+                    if (pago.Alumno == null)
+                    {
+                        Console.WriteLine($"Warning: Pago ID {pago.Id} has null Alumno reference");
+                    }
+                    else if (pago.Alumno.Grado == null)
+                    {
+                        Console.WriteLine($"Warning: Alumno ID {pago.AlumnoId} has null Grado reference");
+                    }
+                }
+                
+                filteredPagos = filteredPagos.Where(p => p.Alumno != null && p.Alumno.GradoId == gradoId.Value).ToList();
+                Console.WriteLine($"After gradoId filter - pagos count: {filteredPagos.Count()}");
+            }
+            else if (alumnoId.HasValue && alumnoId.Value > 0)
+            {
+                filteredPagos = filteredPagos.Where(p => p.AlumnoId == alumnoId.Value).ToList();
+                Console.WriteLine($"After alumnoId filter - pagos count: {filteredPagos.Count()}");
+            }
+            
+            // Convert to DTOs
+            var dtos = filteredPagos.Select(p => 
+            {
+                var usuario = usuarios.FirstOrDefault(u => u.Id == p.UsuarioCreacionId);
+                
+                return new PagoReadDto
+                {
+                    Id = p.Id,
+                    Monto = p.Monto,
+                    Fecha = p.Fecha,
+                    CicloEscolar = p.CicloEscolar,
+                    MedioPago = p.MedioPago,
+                    MedioPagoDescripcion = p.MedioPago.ToString(),
+                    RubroId = p.RubroId,
+                    RubroDescripcion = p.Rubro?.Descripcion ?? "Desconocido",
+                    TipoRubroDescripcion = p.Rubro?.Tipo.ToString() ?? "Desconocido",
+                    TipoRubro = p.Rubro?.Tipo ?? TipoRubro.Otros,
+                    EsColegiatura = p.EsColegiatura,
+                    MesColegiatura = p.MesColegiatura,
+                    AnioColegiatura = p.AnioColegiatura,
+                    Notas = p.Notas ?? string.Empty,
+                    EsAnulado = p.EsAnulado,
+                    MotivoAnulacion = p.MotivoAnulacion,
+                    FechaAnulacion = p.FechaAnulacion,
+                    UsuarioAnulacionId = p.UsuarioAnulacionId,
+                    UsuarioNombre = usuario != null ? $"{usuario.Nombres} {usuario.Apellidos}" : "Desconocido",
+                    ImagenesPago = p.ImagenesPago?.Select(pi => new PagoImagenDto
+                    {
+                        Id = pi.Id,
+                        PagoId = pi.PagoId,
+                        Url = pi.ImagenUrl.ToString()
+                    }).ToList() ?? new List<PagoImagenDto>()
+                };
+            }).ToList();
+              Console.WriteLine($"Returning {dtos.Count} payment DTOs");
+            return dtos;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception in GetPagosForEditAsync: {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
+            throw;
+        }
     }
 }
