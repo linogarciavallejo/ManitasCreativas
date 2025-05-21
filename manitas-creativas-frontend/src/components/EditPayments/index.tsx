@@ -1,0 +1,300 @@
+import React, { useState, useEffect } from "react";
+import { Form, Input, Button, Select, AutoComplete, Card, Row, Col, Typography } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import dayjs from 'dayjs';
+import { makeApiRequest } from "../../services/apiHelper";
+import { gradoService } from "../../services/gradoService";
+import DatePickerES from "../common/DatePickerES";
+
+const { Option } = Select;
+const { Title } = Typography;
+
+// Interfaces
+interface Alumno {
+  id: number;
+  codigo: string;
+  fullName: string;
+}
+
+interface AlumnoOption {
+  value: string;
+  label: string;
+  codigo: string;
+}
+
+interface AlumnoDetails {
+  id: number;
+  codigo: string;
+  primerNombre: string;
+  segundoNombre: string;
+  primerApellido: string;
+  segundoApellido: string;
+  sedeId: number;
+  sedeNombre: string;
+  gradoId: number;
+  gradoNombre: string;
+  becado: boolean | null;
+  becaParcialPorcentaje: number | null;
+  observaciones?: string;
+  pagos: Array<{
+    id: number;
+    fecha: string;
+    monto: number;
+    rubroDescripcion: string;
+  }>;
+  contactos: Array<any>;
+}
+
+interface Grado {
+  id: number;
+  nombre: string;
+  nivelEducativoId: number;
+  nivelEducativoNombre: string;
+}
+
+interface FilterFormValues {
+  cicloEscolar: number;
+  gradoId?: number;
+}
+
+const EditPayments: React.FC = () => {
+  // State variables
+  const [loading, setLoading] = useState<boolean>(false);
+  const [alumnoId, setAlumnoId] = useState<string | null>(null);
+  const [selectedCodigo, setSelectedCodigo] = useState<string | null>(null);
+  const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
+  const [grados, setGrados] = useState<Grado[]>([]);
+  const [selectedGradoId, setSelectedGradoId] = useState<number | null>(null);
+  const [cicloEscolar, setCicloEscolar] = useState<number>(new Date().getFullYear());
+  const [form] = Form.useForm();
+
+  // Fetch grados on component mount
+  useEffect(() => {
+    const fetchGrados = async () => {
+      try {
+        const response = await gradoService.getAllGrados();
+        setGrados(response);
+      } catch (error) {
+        console.error("Error fetching grados:", error);
+        toast.error("Error al cargar los grados");
+      }
+    };
+
+    fetchGrados();
+  }, []);
+
+  // Search by codigo input
+  const handleCodigoSearch = async (codigo: string) => {
+    try {
+      const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${codigo}`, "GET");
+      setAlumnoId(response.id.toString());
+      setSelectedCodigo(response.codigo);
+      setSelectedStudent(
+        `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim()
+      );
+      toast.success("Alumno encontrado por código.");
+    } catch (error) {
+      console.error("Error fetching student by code:", error);
+      toast.error("No se encontró ningún alumno con ese código.");
+    }
+  };
+
+  // Handle typeahead search for alumnos
+  const handleTypeaheadSearch = async (query: string) => {
+    setAutoCompleteValue(query);
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) {
+      setTypeaheadOptions([]);
+      return;
+    }
+    
+    try {
+      const response = await makeApiRequest<Alumno[]>(`/alumnos/full`, "GET");
+      const filtered = response.filter((alumno) =>
+        alumno.fullName.toLowerCase().includes(trimmedQuery.toLowerCase())
+      );
+      const options = filtered.map((alumno) => ({
+        value: alumno.id.toString(),
+        label: alumno.fullName,
+        codigo: alumno.codigo,
+      }));
+      setTypeaheadOptions(options);
+    } catch (error) {
+      console.error("Error searching for students:", error);
+      toast.error("Error al buscar alumnos.");
+    }
+  };
+
+  // Handle student selection from typeahead
+  const handleTypeaheadSelect = async (value: string, option: AlumnoOption) => {
+    setAutoCompleteValue(option.label);
+    setAlumnoId(value);
+    setSelectedStudent(option.label);
+    try {
+      const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${option.codigo}`, "GET");
+      setSelectedCodigo(response.codigo);
+    } catch (error) {
+      console.error("Error fetching student details:", error);
+      toast.error("Error al obtener los datos del alumno seleccionado.");
+    }
+  };
+
+  // Function to reset filters
+  const resetFilters = () => {
+    form.resetFields();
+    setSelectedStudent(null);
+    setAlumnoId(null);
+    setSelectedCodigo(null);
+    setAutoCompleteValue("");
+    setSelectedGradoId(null);
+    setCicloEscolar(new Date().getFullYear());
+  };
+  // Handle filter form submission
+  const handleFilterSubmit = (values: FilterFormValues) => {
+    console.log("Filter values:", values);
+    setLoading(true);
+    // Future implementation to filter payments based on criteria
+    
+    // Simulate API call
+    setTimeout(() => {
+      setLoading(false);
+      toast.info("Esta funcionalidad será implementada en futuras iteraciones.");
+    }, 1000);
+  };
+  return (
+    <div className="edit-payments-container">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      <Title level={2}>Editar o Anular Pagos</Title>
+      
+      <Card title="Filtros de Búsqueda" style={{ marginBottom: 20 }}>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleFilterSubmit}
+          initialValues={{
+            cicloEscolar: cicloEscolar
+          }}
+        >
+          <Row gutter={16}>
+            <Col xs={24} sm={12} md={8}>
+              <Form.Item
+                label="Ciclo Escolar"
+                name="cicloEscolar"
+                rules={[{ required: true, message: "¡Ciclo escolar es requerido!" }]}
+              >
+                <Input 
+                  placeholder="Ingrese el ciclo escolar" 
+                  type="number" 
+                  value={cicloEscolar} 
+                  onChange={(e) => setCicloEscolar(Number(e.target.value))} 
+                />
+              </Form.Item>
+            </Col>
+            
+            <Col xs={24} sm={12} md={8}>
+              <Form.Item
+                label="Grado"
+                name="gradoId"
+              >
+                <Select 
+                  placeholder="Seleccione el grado"
+                  allowClear
+                  value={selectedGradoId}
+                  onChange={(value) => setSelectedGradoId(value)}
+                >
+                  {grados.map(grado => (
+                    <Option key={grado.id} value={grado.id}>{grado.nombre}</Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col xs={24} sm={12}>
+              <Form.Item label="Código de Alumno">
+                <Input.Search
+                  placeholder="Buscar por Código"
+                  enterButton={<SearchOutlined />}
+                  onSearch={handleCodigoSearch}
+                />
+              </Form.Item>
+            </Col>
+            
+            <Col xs={24} sm={12}>
+              <Form.Item label="Nombre del Alumno">
+                <AutoComplete
+                  value={autoCompleteValue}
+                  options={typeaheadOptions}
+                  onSearch={handleTypeaheadSearch}
+                  onSelect={handleTypeaheadSelect}
+                  placeholder="Buscar por Nombre o Apellido"
+                  style={{ width: "100%" }}
+                  allowClear
+                  onClear={() => {
+                    setAutoCompleteValue("");
+                    setTypeaheadOptions([]);
+                  }}
+                  fieldNames={{ label: 'label', value: 'value' }}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          {selectedStudent && (
+            <div
+              style={{
+                marginBottom: "10px",
+                padding: "8px",
+                backgroundColor: "#f0f5ff",
+                borderRadius: "4px",
+              }}
+            >
+              <strong>Alumno seleccionado:</strong> {selectedStudent}
+              <Button
+                type="link"
+                style={{ marginLeft: "10px", padding: "0" }}
+                onClick={() => {
+                  setSelectedStudent(null);
+                  setAlumnoId(null);
+                  setSelectedCodigo(null);
+                  setAutoCompleteValue("");
+                }}
+              >
+                Limpiar
+              </Button>
+            </div>
+          )}
+
+          <Row justify="end" gutter={16}>
+            <Col>
+              <Button onClick={resetFilters}>
+                Limpiar Filtros
+              </Button>
+            </Col>
+            <Col>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                Buscar Pagos
+              </Button>
+            </Col>
+          </Row>
+        </Form>
+      </Card>      {/* Results section will be implemented in future iterations */}
+      <div className="search-results">
+        <Card>
+          <div style={{ textAlign: 'center', padding: '20px' }}>
+            <Title level={4}>Resultados de Búsqueda</Title>
+            <p>Esta sección mostrará los pagos que coincidan con los criterios de búsqueda.</p>
+            <p>Será implementada en futuras iteraciones.</p>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default EditPayments;

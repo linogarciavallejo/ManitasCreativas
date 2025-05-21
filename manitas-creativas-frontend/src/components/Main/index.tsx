@@ -9,6 +9,7 @@ import {
   IdcardOutlined,
   TagOutlined,
   CreditCardOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import { Button, Layout, Menu, theme } from "antd";
 import { Link, Outlet } from "react-router-dom";
@@ -26,8 +27,7 @@ const Main: React.FC = () => {
         <div className="demo-logo-vertical" />
         <Menu
           theme="dark"
-          mode="inline"
-          items={[            {
+          mode="inline"          items={[            {
               key: "1",
               icon: <CreditCardOutlined />,
               label: <Link to="tuitions">Colegiaturas</Link>,
@@ -41,6 +41,11 @@ const Main: React.FC = () => {
               key: "3",
               icon: <BankOutlined />,
               label: <Link to="statement">Estado de Cuenta</Link>,
+            },
+            {
+              key: "7",
+              icon: <DollarOutlined />,
+              label: <Link to="edit-payments">Editar/Anular Pagos</Link>,
             },
             {
               key: "4",
