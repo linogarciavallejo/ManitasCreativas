@@ -54,11 +54,6 @@ interface Grado {
   nivelEducativoNombre: string;
 }
 
-interface FilterFormValues {
-  cicloEscolar: number;
-  gradoId?: number;
-}
-
 const EditPayments: React.FC = () => {
   // State variables
   const [loading, setLoading] = useState<boolean>(false);
@@ -70,6 +65,8 @@ const EditPayments: React.FC = () => {
   const [grados, setGrados] = useState<Grado[]>([]);
   const [selectedGradoId, setSelectedGradoId] = useState<number | null>(null);
   const [cicloEscolar, setCicloEscolar] = useState<number>(new Date().getFullYear());
+  // Add state variable to track which filter is currently active: "grado", "alumno", or null
+  const [activeFilter, setActiveFilter] = useState<"grado" | "alumno" | null>(null);
   const [form] = Form.useForm();
 
   // Fetch grados on component mount
@@ -89,6 +86,11 @@ const EditPayments: React.FC = () => {
 
   // Search by codigo input
   const handleCodigoSearch = async (codigo: string) => {
+    if (!codigo.trim()) {
+      toast.warning("Por favor ingrese un código válido");
+      return;
+    }
+    
     try {
       const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${codigo}`, "GET");
       setAlumnoId(response.id.toString());
@@ -96,6 +98,12 @@ const EditPayments: React.FC = () => {
       setSelectedStudent(
         `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim()
       );
+      
+      // Set active filter to "alumno" and clear grado selection
+      setActiveFilter("alumno");
+      setSelectedGradoId(null);
+      form.setFieldsValue({ gradoId: null });
+      
       toast.success("Alumno encontrado por código.");
     } catch (error) {
       console.error("Error fetching student by code:", error);
@@ -134,6 +142,12 @@ const EditPayments: React.FC = () => {
     setAutoCompleteValue(option.label);
     setAlumnoId(value);
     setSelectedStudent(option.label);
+    
+    // Set active filter to "alumno" and clear grado selection
+    setActiveFilter("alumno");
+    setSelectedGradoId(null);
+    form.setFieldsValue({ gradoId: null });
+    
     try {
       const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${option.codigo}`, "GET");
       setSelectedCodigo(response.codigo);
@@ -152,10 +166,29 @@ const EditPayments: React.FC = () => {
     setAutoCompleteValue("");
     setSelectedGradoId(null);
     setCicloEscolar(new Date().getFullYear());
+    setActiveFilter(null); // Reset the active filter state
   };
   // Handle filter form submission
-  const handleFilterSubmit = (values: FilterFormValues) => {
-    console.log("Filter values:", values);
+  const handleFilterSubmit = () => {
+    // Validate that we have required filtering criteria
+    if (!cicloEscolar) {
+      toast.error("Debe seleccionar un ciclo escolar");
+      return;
+    }
+    
+    // Check if we have either grado or alumno selected
+    if (!selectedGradoId && !alumnoId) {
+      toast.error("Debe seleccionar un Grado o un Alumno específico");
+      return;
+    }
+    
+    console.log("Filter values:", {
+      cicloEscolar,
+      gradoId: selectedGradoId,
+      alumnoId: alumnoId,
+      activeFilter
+    });
+    
     setLoading(true);
     // Future implementation to filter payments based on criteria
     
@@ -194,8 +227,7 @@ const EditPayments: React.FC = () => {
                 />
               </Form.Item>
             </Col>
-            
-            <Col xs={24} sm={12} md={8}>
+              <Col xs={24} sm={12} md={8}>
               <Form.Item
                 label="Grado"
                 name="gradoId"
@@ -204,7 +236,22 @@ const EditPayments: React.FC = () => {
                   placeholder="Seleccione el grado"
                   allowClear
                   value={selectedGradoId}
-                  onChange={(value) => setSelectedGradoId(value)}
+                  onChange={(value) => {
+                    setSelectedGradoId(value);
+                    // If a grado is selected, set active filter to "grado" and clear alumno selections
+                    if (value) {
+                      setActiveFilter("grado");
+                      // Clear alumno-related state
+                      setAlumnoId(null);
+                      setSelectedStudent(null);
+                      setSelectedCodigo(null);
+                      setAutoCompleteValue("");
+                    } else {
+                      // If cleared, reset the active filter
+                      setActiveFilter(null);
+                    }
+                  }}
+                  disabled={activeFilter === "alumno"}
                 >
                   {grados.map(grado => (
                     <Option key={grado.id} value={grado.id}>{grado.nombre}</Option>
@@ -215,18 +262,17 @@ const EditPayments: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
-            <Col xs={24} sm={12}>
-              <Form.Item label="Código de Alumno">
+            <Col xs={24} sm={12}>              <Form.Item label="Código de Alumno">
                 <Input.Search
                   placeholder="Buscar por Código"
                   enterButton={<SearchOutlined />}
                   onSearch={handleCodigoSearch}
+                  disabled={activeFilter === "grado"}
                 />
               </Form.Item>
             </Col>
             
-            <Col xs={24} sm={12}>
-              <Form.Item label="Nombre del Alumno">
+            <Col xs={24} sm={12}>              <Form.Item label="Nombre del Alumno">
                 <AutoComplete
                   value={autoCompleteValue}
                   options={typeaheadOptions}
@@ -235,6 +281,7 @@ const EditPayments: React.FC = () => {
                   placeholder="Buscar por Nombre o Apellido"
                   style={{ width: "100%" }}
                   allowClear
+                  disabled={activeFilter === "grado"}
                   onClear={() => {
                     setAutoCompleteValue("");
                     setTypeaheadOptions([]);
@@ -242,6 +289,22 @@ const EditPayments: React.FC = () => {
                   fieldNames={{ label: 'label', value: 'value' }}
                 />
               </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={24}>
+              <div style={{ marginBottom: 16 }}>
+                <Typography.Text type="secondary">
+                  <strong>Nota:</strong> Filtrar por "Ciclo Escolar y Grado" o "Ciclo Escolar y Alumno" son opciones mutuamente excluyentes.
+                  {activeFilter === "grado" && (
+                    <span style={{ color: "#1890ff" }}> Actualmente filtrando por Grado.</span>
+                  )}
+                  {activeFilter === "alumno" && (
+                    <span style={{ color: "#1890ff" }}> Actualmente filtrando por Alumno.</span>
+                  )}
+                </Typography.Text>
+              </div>
             </Col>
           </Row>
 
@@ -254,8 +317,7 @@ const EditPayments: React.FC = () => {
                 borderRadius: "4px",
               }}
             >
-              <strong>Alumno seleccionado:</strong> {selectedStudent}
-              <Button
+              <strong>Alumno seleccionado:</strong> {selectedStudent}              <Button
                 type="link"
                 style={{ marginLeft: "10px", padding: "0" }}
                 onClick={() => {
@@ -263,6 +325,7 @@ const EditPayments: React.FC = () => {
                   setAlumnoId(null);
                   setSelectedCodigo(null);
                   setAutoCompleteValue("");
+                  setActiveFilter(null); // Reset the active filter state
                 }}
               >
                 Limpiar
