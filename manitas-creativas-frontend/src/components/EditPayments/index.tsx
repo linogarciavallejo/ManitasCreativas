@@ -479,8 +479,7 @@ const EditPayments: React.FC = () => {
                   <p>Longitud: {Array.isArray(payments) ? payments.length : 'N/A'}</p>
                   <p>Datos: {JSON.stringify(payments).substring(0, 100)}...</p>
                 </div>
-              )}
-              <Table 
+              )}              <Table 
                 dataSource={payments} 
                 rowKey="id"
                 bordered
@@ -498,6 +497,18 @@ const EditPayments: React.FC = () => {
                     dataIndex: 'fecha',
                     key: 'fecha',
                     render: (fecha) => fecha ? dayjs(fecha).format('DD/MM/YYYY') : 'N/A'
+                  },
+                  {
+                    title: 'Alumno',
+                    dataIndex: 'alumnoNombre',
+                    key: 'alumnoNombre',
+                    render: (alumnoNombre) => alumnoNombre || 'N/A'
+                  },
+                  {
+                    title: 'Grado',
+                    dataIndex: 'gradoNombre',
+                    key: 'gradoNombre',
+                    render: (gradoNombre) => gradoNombre || 'N/A'
                   },
                   {
                     title: 'Monto',

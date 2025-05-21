@@ -24,6 +24,11 @@ public class PagoReadDto
     public decimal? MontoPreestablecido { get; set; }
     public decimal? PenalizacionPorMoraMonto { get; set; }
     public decimal? PenalizacionPorMoraPorcentaje { get; set; }
+    
+    // Student information
+    public int AlumnoId { get; set; }
+    public string AlumnoNombre { get; set; } = string.Empty;
+    public string GradoNombre { get; set; } = string.Empty;
 
     public DateTime? FechaLimitePagoAmarillo { get; set; }
     public DateTime? FechaLimitePagoRojo { get; set; }

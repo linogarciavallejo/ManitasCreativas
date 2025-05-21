@@ -469,8 +469,7 @@ public class PagoService : IPagoService
             var dtos = filteredPagos.Select(p => 
             {
                 var usuario = usuarios.FirstOrDefault(u => u.Id == p.UsuarioCreacionId);
-                
-                return new PagoReadDto
+                  return new PagoReadDto
                 {
                     Id = p.Id,
                     Monto = p.Monto,
@@ -491,6 +490,12 @@ public class PagoService : IPagoService
                     FechaAnulacion = p.FechaAnulacion,
                     UsuarioAnulacionId = p.UsuarioAnulacionId,
                     UsuarioNombre = usuario != null ? $"{usuario.Nombres} {usuario.Apellidos}" : "Desconocido",
+                    // Add student information
+                    AlumnoId = p.AlumnoId,
+                    AlumnoNombre = p.Alumno != null ? 
+                        $"{p.Alumno.PrimerNombre} {p.Alumno.SegundoNombre} {p.Alumno.PrimerApellido} {p.Alumno.SegundoApellido}".Trim() : 
+                        "Desconocido",
+                    GradoNombre = p.Alumno?.Grado?.Nombre ?? "Desconocido",
                     ImagenesPago = p.ImagenesPago?.Select(pi => new PagoImagenDto
                     {
                         Id = pi.Id,

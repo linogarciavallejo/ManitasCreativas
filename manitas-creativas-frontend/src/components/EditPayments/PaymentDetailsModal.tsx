@@ -53,6 +53,16 @@ const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({
         <Descriptions.Item label="Monto">
           Q. {payment.monto.toFixed(2)}
         </Descriptions.Item>
+        {payment.alumnoNombre && (
+          <Descriptions.Item label="Alumno">
+            {payment.alumnoNombre}
+          </Descriptions.Item>
+        )}
+        {payment.gradoNombre && (
+          <Descriptions.Item label="Grado">
+            {payment.gradoNombre}
+          </Descriptions.Item>
+        )}
         <Descriptions.Item label="Rubro">
           {payment.rubroDescripcion}
         </Descriptions.Item>

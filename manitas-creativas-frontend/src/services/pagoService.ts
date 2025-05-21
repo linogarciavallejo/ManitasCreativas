@@ -20,6 +20,10 @@ export interface Pago {
   usuarioAnulacionId?: number;
   usuarioNombre: string;
   imagenesPago: PagoImagen[];
+  // Student information
+  alumnoId?: number;
+  alumnoNombre?: string;
+  gradoNombre?: string;
 }
 
 export interface PagoImagen {
