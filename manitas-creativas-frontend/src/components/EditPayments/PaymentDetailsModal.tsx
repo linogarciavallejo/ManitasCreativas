@@ -8,15 +8,24 @@ interface PaymentDetailsModalProps {
   visible: boolean;
   onClose: () => void;
   onVoid: () => void;
+  activeFilter?: "grado" | "alumno" | null;
 }
 
 const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({ 
   payment, 
   visible, 
   onClose, 
-  onVoid 
+  onVoid,
+  activeFilter 
 }) => {
   if (!payment) return null;
+  // Debug logging
+  console.log('PaymentDetailsModal - payment:', payment);
+  console.log('PaymentDetailsModal - activeFilter:', activeFilter);
+  console.log('PaymentDetailsModal - gradoNombre:', payment.gradoNombre);
+  console.log('PaymentDetailsModal - seccion:', payment.seccion);
+  console.log('PaymentDetailsModal - seccion type:', typeof payment.seccion);
+  console.log('PaymentDetailsModal - condition check:', activeFilter === "alumno" && (payment.gradoNombre || payment.seccion));
 
   return (
     <Modal
@@ -49,18 +58,19 @@ const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({
         </Descriptions.Item>
         <Descriptions.Item label="Fecha">
           {dayjs(payment.fecha).format('DD/MM/YYYY')}
-        </Descriptions.Item>
-        <Descriptions.Item label="Monto">
+        </Descriptions.Item>        <Descriptions.Item label="Monto">
           Q. {payment.monto.toFixed(2)}
         </Descriptions.Item>
         {payment.alumnoNombre && (
           <Descriptions.Item label="Alumno">
             {payment.alumnoNombre}
-          </Descriptions.Item>
-        )}
-        {payment.gradoNombre && (
-          <Descriptions.Item label="Grado">
-            {payment.gradoNombre}
+            {activeFilter === "alumno" && (payment.gradoNombre || payment.seccion) && (
+              <div style={{ marginTop: '8px', fontSize: '14px', color: '#666' }}>
+                {payment.gradoNombre && `Grado: ${payment.gradoNombre}`}
+                {payment.gradoNombre && payment.seccion && ' • '}
+                {payment.seccion && `Sección: ${payment.seccion}`}
+              </div>
+            )}
           </Descriptions.Item>
         )}
         <Descriptions.Item label="Rubro">

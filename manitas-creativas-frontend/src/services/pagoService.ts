@@ -19,11 +19,11 @@ export interface Pago {
   fechaAnulacion?: string;
   usuarioAnulacionId?: number;
   usuarioNombre: string;
-  imagenesPago: PagoImagen[];
-  // Student information
+  imagenesPago: PagoImagen[];  // Student information
   alumnoId?: number;
   alumnoNombre?: string;
   gradoNombre?: string;
+  seccion?: string;
 }
 
 export interface PagoImagen {

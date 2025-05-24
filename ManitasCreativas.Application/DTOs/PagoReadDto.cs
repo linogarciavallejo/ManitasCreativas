@@ -29,6 +29,7 @@ public class PagoReadDto
     public int AlumnoId { get; set; }
     public string AlumnoNombre { get; set; } = string.Empty;
     public string GradoNombre { get; set; } = string.Empty;
+    public string Seccion { get; set; } = string.Empty;
 
     public DateTime? FechaLimitePagoAmarillo { get; set; }
     public DateTime? FechaLimitePagoRojo { get; set; }

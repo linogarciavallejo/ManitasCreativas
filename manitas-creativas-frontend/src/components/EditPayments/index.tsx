@@ -7,7 +7,6 @@ import dayjs from 'dayjs';
 import { makeApiRequest } from "../../services/apiHelper";
 import { gradoService } from "../../services/gradoService";
 import { pagoService, Pago } from "../../services/pagoService";
-import DatePickerES from "../common/DatePickerES";
 import PaymentDetailsModal from "./PaymentDetailsModal";
 import VoidPaymentModal from "./VoidPaymentModal";
 
@@ -38,6 +37,7 @@ interface AlumnoDetails {
   sedeNombre: string;
   gradoId: number;
   gradoNombre: string;
+  seccion: string;
   becado: boolean | null;
   becaParcialPorcentaje: number | null;
   observaciones?: string;
@@ -71,9 +71,9 @@ const EditPayments: React.FC = () => {
   // State variables
   const [loading, setLoading] = useState<boolean>(false);
   const [alumnoId, setAlumnoId] = useState<string | null>(null);
-  const [selectedCodigo, setSelectedCodigo] = useState<string | null>(null);
   const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [selectedStudentDetails, setSelectedStudentDetails] = useState<AlumnoDetails | null>(null);
   const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
   const [grados, setGrados] = useState<Grado[]>([]);
   const [selectedGradoId, setSelectedGradoId] = useState<number | null>(null);
@@ -107,21 +107,19 @@ const EditPayments: React.FC = () => {
 
     fetchGrados();
   }, []);
-
   // Search by codigo input
   const handleCodigoSearch = async (codigo: string) => {
     if (!codigo.trim()) {
       toast.warning("Por favor ingrese un código válido");
       return;
     }
-    
-    try {
+      try {
       const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${codigo}`, "GET");
       setAlumnoId(response.id.toString());
-      setSelectedCodigo(response.codigo);
       setSelectedStudent(
         `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim()
       );
+      setSelectedStudentDetails(response);
       
       // Set active filter to "alumno" and clear grado selection
       setActiveFilter("alumno");
@@ -160,7 +158,6 @@ const EditPayments: React.FC = () => {
       toast.error("Error al buscar alumnos.");
     }
   };
-
   // Handle student selection from typeahead
   const handleTypeaheadSelect = async (value: string, option: AlumnoOption) => {
     setAutoCompleteValue(option.label);
@@ -174,23 +171,24 @@ const EditPayments: React.FC = () => {
     
     try {
       const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${option.codigo}`, "GET");
-      setSelectedCodigo(response.codigo);
+      setSelectedStudentDetails(response);
     } catch (error) {
       console.error("Error fetching student details:", error);
       toast.error("Error al obtener los datos del alumno seleccionado.");
     }
-  };
-
-  // Function to reset filters
+  };  // Function to reset filters
   const resetFilters = () => {
     form.resetFields();
     setSelectedStudent(null);
+    setSelectedStudentDetails(null);
     setAlumnoId(null);
-    setSelectedCodigo(null);
     setAutoCompleteValue("");
     setSelectedGradoId(null);
     setCicloEscolar(new Date().getFullYear());
     setActiveFilter(null); // Reset the active filter state
+    // Clear the payments table and reset search state
+    setPayments([]);
+    setSearchPerformed(false);
   };
   
   // Handle filter form submission
@@ -345,11 +343,9 @@ const EditPayments: React.FC = () => {
                     setSelectedGradoId(value);
                     // If a grado is selected, set active filter to "grado" and clear alumno selections
                     if (value) {
-                      setActiveFilter("grado");
-                      // Clear alumno-related state
+                      setActiveFilter("grado");                      // Clear alumno-related state
                       setAlumnoId(null);
                       setSelectedStudent(null);
-                      setSelectedCodigo(null);
                       setAutoCompleteValue("");
                     } else {
                       // If cleared, reset the active filter
@@ -413,9 +409,7 @@ const EditPayments: React.FC = () => {
                 </Typography.Text>
               </div>
             </Col>
-          </Row>
-
-          {selectedStudent && (
+          </Row>          {selectedStudent && (
             <div
               style={{
                 marginBottom: "10px",
@@ -425,13 +419,24 @@ const EditPayments: React.FC = () => {
               }}
             >
               <strong>Alumno seleccionado:</strong> {selectedStudent}
+              {/* Debug logging for search panel */}
+              {console.log('Search Panel - selectedStudentDetails:', selectedStudentDetails)}
+              {console.log('Search Panel - gradoNombre:', selectedStudentDetails?.gradoNombre)}
+              {console.log('Search Panel - seccion:', selectedStudentDetails?.seccion)}
+              {selectedStudentDetails && (selectedStudentDetails.gradoNombre || selectedStudentDetails.seccion) && (
+                <div style={{ marginTop: '4px', fontSize: '14px', color: '#666' }}>
+                  {selectedStudentDetails.gradoNombre && `Grado: ${selectedStudentDetails.gradoNombre}`}
+                  {selectedStudentDetails.gradoNombre && selectedStudentDetails.seccion && ' • '}
+                  {selectedStudentDetails.seccion && `Sección: ${selectedStudentDetails.seccion}`}
+                </div>
+              )}
               <Button
                 type="link"
                 style={{ marginLeft: "10px", padding: "0" }}
                 onClick={() => {
                   setSelectedStudent(null);
+                  setSelectedStudentDetails(null);
                   setAlumnoId(null);
-                  setSelectedCodigo(null);
                   setAutoCompleteValue("");
                   setActiveFilter(null); // Reset the active filter state
                 }}
@@ -471,7 +476,7 @@ const EditPayments: React.FC = () => {
           ) : (
             <>
               <Title level={4}>Resultados de Búsqueda</Title>
-              {process.env.NODE_ENV === 'development' && (
+              {process.env.NODE_ENV === 'asdf' && (
                 <div style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #d9d9d9', borderRadius: '4px' }}>
                   <h4 style={{ margin: '0 0 10px 0' }}>Datos para depuración (sólo visible en desarrollo):</h4>
                   <p>Tipo de datos: {typeof payments}</p>
@@ -498,18 +503,13 @@ const EditPayments: React.FC = () => {
                     key: 'fecha',
                     render: (fecha) => fecha ? dayjs(fecha).format('DD/MM/YYYY') : 'N/A'
                   },
-                  {
+                  // Only show Alumno column when activeFilter is not "alumno"
+                  ...(activeFilter !== "alumno" ? [{
                     title: 'Alumno',
                     dataIndex: 'alumnoNombre',
                     key: 'alumnoNombre',
-                    render: (alumnoNombre) => alumnoNombre || 'N/A'
-                  },
-                  {
-                    title: 'Grado',
-                    dataIndex: 'gradoNombre',
-                    key: 'gradoNombre',
-                    render: (gradoNombre) => gradoNombre || 'N/A'
-                  },
+                    render: (alumnoNombre: string) => alumnoNombre || 'N/A'
+                  }] : []),
                   {
                     title: 'Monto',
                     dataIndex: 'monto',
@@ -568,13 +568,13 @@ const EditPayments: React.FC = () => {
           )}
         </Card>
       </div>
-      
-      {/* Payment Details Modal */}
+        {/* Payment Details Modal */}
       <PaymentDetailsModal
         payment={selectedPayment}
         visible={detailsModalVisible}
         onClose={handleCloseDetailsModal}
         onVoid={handleInitiateVoid}
+        activeFilter={activeFilter}
       />
       
       {/* Void Payment Modal */}

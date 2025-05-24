@@ -185,8 +185,7 @@ public class AlumnoService : IAlumnoService
 
     public async Task<AlumnoDto?> GetAlumnoByCodigoAsync(string codigo)
     {
-        var alumno = await _alumnoRepository.GetAlumnoByCodigoAsync(codigo);
-        return alumno == null ? null : new AlumnoDto
+        var alumno = await _alumnoRepository.GetAlumnoByCodigoAsync(codigo);        return alumno == null ? null : new AlumnoDto
         {
             Id = alumno.Id,
             PrimerNombre = alumno.PrimerNombre,
@@ -194,6 +193,7 @@ public class AlumnoService : IAlumnoService
             PrimerApellido = alumno.PrimerApellido,
             SegundoApellido = alumno.SegundoApellido,
             Codigo = alumno.Codigo,
+            Seccion = alumno.Seccion, // Added Seccion property mapping
             SedeId = alumno.SedeId,
             SedeNombre = alumno.Sede != null ? alumno.Sede.Nombre : string.Empty,
             GradoId = alumno.GradoId,

@@ -489,13 +489,13 @@ public class PagoService : IPagoService
                     MotivoAnulacion = p.MotivoAnulacion,
                     FechaAnulacion = p.FechaAnulacion,
                     UsuarioAnulacionId = p.UsuarioAnulacionId,
-                    UsuarioNombre = usuario != null ? $"{usuario.Nombres} {usuario.Apellidos}" : "Desconocido",
-                    // Add student information
+                    UsuarioNombre = usuario != null ? $"{usuario.Nombres} {usuario.Apellidos}" : "Desconocido",                    // Add student information
                     AlumnoId = p.AlumnoId,
                     AlumnoNombre = p.Alumno != null ? 
                         $"{p.Alumno.PrimerNombre} {p.Alumno.SegundoNombre} {p.Alumno.PrimerApellido} {p.Alumno.SegundoApellido}".Trim() : 
                         "Desconocido",
                     GradoNombre = p.Alumno?.Grado?.Nombre ?? "Desconocido",
+                    Seccion = p.Alumno?.Seccion ?? string.Empty,
                     ImagenesPago = p.ImagenesPago?.Select(pi => new PagoImagenDto
                     {
                         Id = pi.Id,
