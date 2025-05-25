@@ -72,4 +72,10 @@ export const pagoService = {
     // When actually implemented, it would look like:
     // return await makeApiRequest(url, "POST", data);
   },
+
+  // Update a payment
+  updatePayment: async (pagoId: number, pagoData: FormData) => {
+    const url = `/pagos/${pagoId}`;
+    return await makeApiRequest<Pago>(url, "PUT", pagoData);
+  },
 };

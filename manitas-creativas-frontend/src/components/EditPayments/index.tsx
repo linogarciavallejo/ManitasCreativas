@@ -9,6 +9,7 @@ import { gradoService } from "../../services/gradoService";
 import { pagoService, Pago } from "../../services/pagoService";
 import PaymentDetailsModal from "./PaymentDetailsModal";
 import VoidPaymentModal from "./VoidPaymentModal";
+import PaymentEditModal from "./PaymentEditModal";
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -85,13 +86,16 @@ const EditPayments: React.FC = () => {
   // Add state for payment results
   const [payments, setPayments] = useState<Pago[]>([]);
   const [searchPerformed, setSearchPerformed] = useState<boolean>(false);
-
   // Add state for viewing payment details
   const [selectedPayment, setSelectedPayment] = useState<Pago | null>(null);
   const [detailsModalVisible, setDetailsModalVisible] = useState<boolean>(false);
   const [confirmVoidModalVisible, setConfirmVoidModalVisible] = useState<boolean>(false);
   const [voidReason, setVoidReason] = useState<string>("");
   const [isVoiding, setIsVoiding] = useState<boolean>(false);
+
+  // Add state for editing payments
+  const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
 
   // Fetch grados on component mount
   useEffect(() => {
@@ -250,11 +254,43 @@ const EditPayments: React.FC = () => {
     setSelectedPayment(payment);
     setDetailsModalVisible(true);
   };
-  
-  // Handle closing the details modal
+    // Handle closing the details modal
   const handleCloseDetailsModal = () => {
     setDetailsModalVisible(false);
     setSelectedPayment(null);
+  };
+
+  // Handle opening edit modal
+  const handleEditPayment = (payment: Pago) => {
+    setSelectedPayment(payment);
+    setEditModalVisible(true);
+  };
+
+  // Handle closing edit modal
+  const handleCloseEditModal = () => {
+    setEditModalVisible(false);
+    setSelectedPayment(null);
+  };
+
+  // Handle saving payment edits
+  const handleSavePayment = async (pagoId: number, formData: FormData) => {
+    setIsUpdating(true);
+    try {
+      await pagoService.updatePayment(pagoId, formData);
+      toast.success('Pago actualizado exitosamente');
+      
+      // Refresh the payments list
+      await handleFilterSubmit();
+      
+      setEditModalVisible(false);
+      setSelectedPayment(null);
+    } catch (error) {
+      console.error('Error updating payment:', error);
+      toast.error('Error al actualizar el pago. Intente nuevamente.');
+      throw error; // Re-throw to let the modal handle it
+    } finally {
+      setIsUpdating(false);
+    }
   };
   
   // Handle initiating the void process
@@ -419,10 +455,6 @@ const EditPayments: React.FC = () => {
               }}
             >
               <strong>Alumno seleccionado:</strong> {selectedStudent}
-              {/* Debug logging for search panel */}
-              {console.log('Search Panel - selectedStudentDetails:', selectedStudentDetails)}
-              {console.log('Search Panel - gradoNombre:', selectedStudentDetails?.gradoNombre)}
-              {console.log('Search Panel - seccion:', selectedStudentDetails?.seccion)}
               {selectedStudentDetails && (selectedStudentDetails.gradoNombre || selectedStudentDetails.seccion) && (
                 <div style={{ marginTop: '4px', fontSize: '14px', color: '#666' }}>
                   {selectedStudentDetails.gradoNombre && `Grado: ${selectedStudentDetails.gradoNombre}`}
@@ -541,14 +573,13 @@ const EditPayments: React.FC = () => {
                           icon={<EyeOutlined />} 
                           onClick={() => handleViewPayment(record)}
                           title="Ver detalles"
-                        />
-                        {!record.esAnulado && (
+                        />                        {!record.esAnulado && (
                           <>
                             <Button 
                               size="small" 
                               icon={<EditOutlined />} 
-                              disabled={true} 
-                              title="Editar pago (próximamente)"
+                              onClick={() => handleEditPayment(record)}
+                              title="Editar pago"
                             />
                             <Button 
                               size="small" 
@@ -567,14 +598,22 @@ const EditPayments: React.FC = () => {
             </>
           )}
         </Card>
-      </div>
-        {/* Payment Details Modal */}
+      </div>        {/* Payment Details Modal */}
       <PaymentDetailsModal
         payment={selectedPayment}
         visible={detailsModalVisible}
         onClose={handleCloseDetailsModal}
         onVoid={handleInitiateVoid}
         activeFilter={activeFilter}
+      />
+
+      {/* Payment Edit Modal */}
+      <PaymentEditModal
+        payment={selectedPayment}
+        visible={editModalVisible}
+        onClose={handleCloseEditModal}
+        onSave={handleSavePayment}
+        loading={isUpdating}
       />
       
       {/* Void Payment Modal */}

@@ -189,9 +189,7 @@ public class PagoService : IPagoService
 
         // Return the created pago as a DTO
         return await GetPagoByIdAsync(pago.Id);
-    }
-
-    public async Task<PagoReadDto> UpdatePagoAsync(PagoUploadDto pagoDto)
+    }    public async Task<PagoReadDto> UpdatePagoAsync(int id, PagoUploadDto pagoDto)
     {
         // Verify that UsuarioActualizacionId is provided
         if (pagoDto.UsuarioActualizacionId <= 0)
@@ -200,10 +198,10 @@ public class PagoService : IPagoService
         }
 
         // Get the existing pago
-        var existingPago = await _pagoRepository.GetByIdAsync(pagoDto.Id);
+        var existingPago = await _pagoRepository.GetByIdAsync(id);
         if (existingPago == null)
         {
-            throw new Exception($"Pago with ID {pagoDto.Id} not found.");
+            throw new Exception($"Pago with ID {id} not found.");
         }
 
         // Get the user who is updating the payment
@@ -233,14 +231,12 @@ public class PagoService : IPagoService
         existingPago.FechaAnulacion = pagoDto.FechaAnulacion;
         existingPago.UsuarioAnulacionId = pagoDto.UsuarioAnulacionId;
 
-        await _pagoRepository.UpdateAsync(existingPago);
-
-        // Handle image updates if needed
+        await _pagoRepository.UpdateAsync(existingPago);        // Handle image updates if needed
         if (pagoDto.ImageUrls != null && pagoDto.ImageUrls.Any())
         {
             // Get existing images
-            var existingImages = await _pagoImagenRepository.GetByPagoIdAsync(pagoDto.Id);
-            
+            var existingImages = await _pagoImagenRepository.GetByPagoIdAsync(id);
+
             // Remove existing images if they are different from the new ones
             if (existingImages.Any())
             {

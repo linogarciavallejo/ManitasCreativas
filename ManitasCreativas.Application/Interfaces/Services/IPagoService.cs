@@ -6,9 +6,9 @@ public interface IPagoService
 {
     Task<IEnumerable<PagoReadDto>> GetPagosByCriteriaAsync(int cicloEscolar, int rubroId, int gradoId, int month);
 
-    Task<PagoReadDto> GetPagoByIdAsync(int id);
-
-    Task<PagoReadDto> AddPagoAsync(PagoUploadDto pagoDto);
+    Task<PagoReadDto> GetPagoByIdAsync(int id);    Task<PagoReadDto> AddPagoAsync(PagoUploadDto pagoDto);
+    
+    Task<PagoReadDto> UpdatePagoAsync(int id, PagoUploadDto pagoDto);
     
     Task<PagoReportResponseDto> GetPagoReportAsync(PagoReportFilterDto filter);
     
