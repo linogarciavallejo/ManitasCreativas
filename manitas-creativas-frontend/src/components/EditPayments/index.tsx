@@ -210,11 +210,20 @@ const EditPayments: React.FC = () => {
       toast.error("Debe seleccionar un ciclo escolar");
       return;
     }
+      // Check if we have either grado or alumno selected
+    console.log("Validation check - selectedGradoId:", selectedGradoId, "type:", typeof selectedGradoId);
+    console.log("Validation check - alumnoId:", alumnoId, "type:", typeof alumnoId);
+    console.log("Validation check - alumnoId.trim():", alumnoId ? alumnoId.trim() : "null/undefined");
+    console.log("Validation check - !selectedGradoId:", !selectedGradoId);
+    console.log("Validation check - !alumnoId:", !alumnoId);
+    console.log("Validation check - alumnoId.trim() === '':", alumnoId ? alumnoId.trim() === '' : "alumnoId is null/undefined");
     
-    // Check if we have either grado or alumno selected
     if (!selectedGradoId && (!alumnoId || alumnoId.trim() === '')) {
+      console.log("VALIDATION FAILED - showing error toast");
       toast.error("Debe seleccionar un Grado o un Alumno específico");
       return;
+    } else {
+      console.log("VALIDATION PASSED - proceeding with search");
     }
     
     console.log("Filter values:", {
@@ -349,12 +358,14 @@ const EditPayments: React.FC = () => {
     <div className="edit-payments-container">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
       <Title level={2}>Editar o Anular Pagos</Title>
-      
-      <Card title="Filtros de Búsqueda" style={{ marginBottom: 20 }}>
+        <Card title="Filtros de Búsqueda" style={{ marginBottom: 20 }}>
         <Form
           form={form}
           layout="vertical"
           onFinish={handleFilterSubmit}
+          onFinishFailed={(errorInfo) => {
+            console.log("Form validation failed:", errorInfo);
+          }}
           initialValues={{
             cicloEscolar: cicloEscolar
           }}
@@ -419,8 +430,7 @@ const EditPayments: React.FC = () => {
             </Col>
             
             <Col xs={24} sm={12}>
-              <Form.Item label="Nombre del Alumno">
-                <AutoComplete
+              <Form.Item label="Nombre del Alumno">                <AutoComplete
                   value={autoCompleteValue}
                   options={typeaheadOptions}
                   onSearch={handleTypeaheadSearch}
@@ -430,8 +440,13 @@ const EditPayments: React.FC = () => {
                   allowClear
                   disabled={activeFilter === "grado"}
                   onClear={() => {
+                    console.log("AutoComplete onClear triggered");
                     setAutoCompleteValue("");
                     setTypeaheadOptions([]);
+                    setAlumnoId(null);
+                    setSelectedStudent(null);
+                    setSelectedStudentDetails(null);
+                    setActiveFilter(null);
                   }}
                   fieldNames={{ label: 'label', value: 'value' }}
                 />
@@ -491,9 +506,8 @@ const EditPayments: React.FC = () => {
               <Button onClick={resetFilters}>
                 Limpiar Filtros
               </Button>
-            </Col>
-            <Col>
-              <Button type="primary" htmlType="submit" loading={loading}>
+            </Col>            <Col>
+              <Button type="primary" onClick={handleFilterSubmit} loading={loading}>
                 Buscar Pagos
               </Button>
             </Col>
