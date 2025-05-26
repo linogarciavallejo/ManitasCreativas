@@ -1,5 +1,5 @@
-import React from 'react';
-import { Modal, Button, Form, Input } from 'antd';
+import React from "react";
+import { Modal, Button, Form, Input } from "antd";
 
 interface VoidPaymentModalProps {
   visible: boolean;
@@ -16,7 +16,7 @@ const VoidPaymentModal: React.FC<VoidPaymentModalProps> = ({
   voidReason,
   onVoidReasonChange,
   onCancel,
-  onConfirm
+  onConfirm,
 }) => {
   return (
     <Modal
@@ -27,10 +27,10 @@ const VoidPaymentModal: React.FC<VoidPaymentModalProps> = ({
         <Button key="cancel" onClick={onCancel}>
           Cancelar
         </Button>,
-        <Button 
-          key="confirm" 
-          danger 
-          type="primary" 
+        <Button
+          key="confirm"
+          danger
+          type="primary"
           loading={isLoading}
           onClick={onConfirm}
         >
@@ -38,14 +38,22 @@ const VoidPaymentModal: React.FC<VoidPaymentModalProps> = ({
         </Button>,
       ]}
     >
-      <p>¿Está seguro que desea anular este pago? Esta acción no se puede deshacer.</p>
+      <p>
+        ¿Está seguro que desea anular este pago? Esta acción no se puede
+        deshacer.
+      </p>
       <Form layout="vertical">
-        <Form.Item 
-          label="Motivo de Anulación" 
-          rules={[{ required: true, message: 'Por favor ingrese el motivo de anulación' }]}
+        <Form.Item
+          label="Motivo de Anulación"
+          rules={[
+            {
+              required: true,
+              message: "Por favor ingrese el motivo de anulación",
+            },
+          ]}
         >
-          <Input.TextArea 
-            rows={4} 
+          <Input.TextArea
+            rows={4}
             placeholder="Ingrese el motivo de anulación"
             value={voidReason}
             onChange={(e) => onVoidReasonChange(e.target.value)}

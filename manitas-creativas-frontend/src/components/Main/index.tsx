@@ -22,12 +22,14 @@ const Main: React.FC = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
   return (
-    <Layout style={{ minHeight: '100vh', width: '100%' }}>
+    <Layout style={{ minHeight: "100vh", width: "100%" }}>
       <Sider trigger={null} collapsible collapsed={collapsed}>
         <div className="demo-logo-vertical" />
         <Menu
           theme="dark"
-          mode="inline"          items={[            {
+          mode="inline"
+          items={[
+            {
               key: "1",
               icon: <CreditCardOutlined />,
               label: <Link to="tuitions">Colegiaturas</Link>,
@@ -77,7 +79,8 @@ const Main: React.FC = () => {
               height: 64,
             }}
           />
-        </Header>        <Content
+        </Header>{" "}
+        <Content
           style={{
             margin: "24px 16px",
             padding: 24,

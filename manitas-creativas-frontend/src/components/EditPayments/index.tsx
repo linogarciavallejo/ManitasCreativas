@@ -1,9 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Select, AutoComplete, Card, Row, Col, Typography, Table, Tag, Space } from "antd";
-import { SearchOutlined, EyeOutlined, EditOutlined, StopOutlined } from "@ant-design/icons";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import dayjs from 'dayjs';
+import {
+  Form,
+  Input,
+  Button,
+  Select,
+  AutoComplete,
+  Card,
+  Row,
+  Col,
+  Typography,
+  Table,
+  Tag,
+  Space,
+} from "antd";
+import {
+  SearchOutlined,
+  EyeOutlined,
+  EditOutlined,
+  StopOutlined,
+} from "@ant-design/icons";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import dayjs from "dayjs";
 import { makeApiRequest } from "../../services/apiHelper";
 import { gradoService } from "../../services/gradoService";
 import { pagoService, Pago } from "../../services/pagoService";
@@ -74,22 +92,29 @@ const EditPayments: React.FC = () => {
   const [alumnoId, setAlumnoId] = useState<string | null>(null);
   const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
-  const [selectedStudentDetails, setSelectedStudentDetails] = useState<AlumnoDetails | null>(null);
+  const [selectedStudentDetails, setSelectedStudentDetails] =
+    useState<AlumnoDetails | null>(null);
   const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
   const [grados, setGrados] = useState<Grado[]>([]);
   const [selectedGradoId, setSelectedGradoId] = useState<number | null>(null);
-  const [cicloEscolar, setCicloEscolar] = useState<number>(new Date().getFullYear());
+  const [cicloEscolar, setCicloEscolar] = useState<number>(
+    new Date().getFullYear()
+  );
   // Add state variable to track which filter is currently active: "grado", "alumno", or null
-  const [activeFilter, setActiveFilter] = useState<"grado" | "alumno" | null>(null);
+  const [activeFilter, setActiveFilter] = useState<"grado" | "alumno" | null>(
+    null
+  );
   const [form] = Form.useForm();
-  
+
   // Add state for payment results
   const [payments, setPayments] = useState<Pago[]>([]);
   const [searchPerformed, setSearchPerformed] = useState<boolean>(false);
   // Add state for viewing payment details
   const [selectedPayment, setSelectedPayment] = useState<Pago | null>(null);
-  const [detailsModalVisible, setDetailsModalVisible] = useState<boolean>(false);
-  const [confirmVoidModalVisible, setConfirmVoidModalVisible] = useState<boolean>(false);
+  const [detailsModalVisible, setDetailsModalVisible] =
+    useState<boolean>(false);
+  const [confirmVoidModalVisible, setConfirmVoidModalVisible] =
+    useState<boolean>(false);
   const [voidReason, setVoidReason] = useState<string>("");
   const [isVoiding, setIsVoiding] = useState<boolean>(false);
 
@@ -117,19 +142,22 @@ const EditPayments: React.FC = () => {
       toast.warning("Por favor ingrese un código válido");
       return;
     }
-      try {
-      const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${codigo}`, "GET");
+    try {
+      const response = await makeApiRequest<AlumnoDetails>(
+        `/alumnos/codigo/${codigo}`,
+        "GET"
+      );
       setAlumnoId(response.id.toString());
       setSelectedStudent(
         `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim()
       );
       setSelectedStudentDetails(response);
-      
+
       // Set active filter to "alumno" and clear grado selection
       setActiveFilter("alumno");
       setSelectedGradoId(null);
       form.setFieldsValue({ gradoId: null });
-      
+
       toast.success("Alumno encontrado por código.");
     } catch (error) {
       console.error("Error fetching student by code:", error);
@@ -145,7 +173,7 @@ const EditPayments: React.FC = () => {
       setTypeaheadOptions([]);
       return;
     }
-    
+
     try {
       const response = await makeApiRequest<Alumno[]>(`/alumnos/full`, "GET");
       const filtered = response.filter((alumno) =>
@@ -167,20 +195,23 @@ const EditPayments: React.FC = () => {
     setAutoCompleteValue(option.label);
     setAlumnoId(value);
     setSelectedStudent(option.label);
-    
+
     // Set active filter to "alumno" and clear grado selection
     setActiveFilter("alumno");
     setSelectedGradoId(null);
     form.setFieldsValue({ gradoId: null });
-    
+
     try {
-      const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${option.codigo}`, "GET");
+      const response = await makeApiRequest<AlumnoDetails>(
+        `/alumnos/codigo/${option.codigo}`,
+        "GET"
+      );
       setSelectedStudentDetails(response);
     } catch (error) {
       console.error("Error fetching student details:", error);
       toast.error("Error al obtener los datos del alumno seleccionado.");
     }
-  };  // Function to reset filters
+  }; // Function to reset filters
   const resetFilters = () => {
     form.resetFields();
     setSelectedStudent(null);
@@ -194,7 +225,7 @@ const EditPayments: React.FC = () => {
     setPayments([]);
     setSearchPerformed(false);
   };
-    // Handle filter form submission
+  // Handle filter form submission
   const handleFilterSubmit = async () => {
     // Add debugging
     console.log("Debug - handleFilterSubmit values:", {
@@ -202,37 +233,53 @@ const EditPayments: React.FC = () => {
       selectedGradoId,
       alumnoId,
       activeFilter,
-      selectedStudent
+      selectedStudent,
     });
-    
+
     // Validate that we have required filtering criteria
     if (!cicloEscolar) {
       toast.error("Debe seleccionar un ciclo escolar");
       return;
     }
-      // Check if we have either grado or alumno selected
-    console.log("Validation check - selectedGradoId:", selectedGradoId, "type:", typeof selectedGradoId);
-    console.log("Validation check - alumnoId:", alumnoId, "type:", typeof alumnoId);
-    console.log("Validation check - alumnoId.trim():", alumnoId ? alumnoId.trim() : "null/undefined");
+    // Check if we have either grado or alumno selected
+    console.log(
+      "Validation check - selectedGradoId:",
+      selectedGradoId,
+      "type:",
+      typeof selectedGradoId
+    );
+    console.log(
+      "Validation check - alumnoId:",
+      alumnoId,
+      "type:",
+      typeof alumnoId
+    );
+    console.log(
+      "Validation check - alumnoId.trim():",
+      alumnoId ? alumnoId.trim() : "null/undefined"
+    );
     console.log("Validation check - !selectedGradoId:", !selectedGradoId);
     console.log("Validation check - !alumnoId:", !alumnoId);
-    console.log("Validation check - alumnoId.trim() === '':", alumnoId ? alumnoId.trim() === '' : "alumnoId is null/undefined");
-    
-    if (!selectedGradoId && (!alumnoId || alumnoId.trim() === '')) {
+    console.log(
+      "Validation check - alumnoId.trim() === '':",
+      alumnoId ? alumnoId.trim() === "" : "alumnoId is null/undefined"
+    );
+
+    if (!selectedGradoId && (!alumnoId || alumnoId.trim() === "")) {
       console.log("VALIDATION FAILED - showing error toast");
       toast.error("Debe seleccionar un Grado o un Alumno específico");
       return;
     } else {
       console.log("VALIDATION PASSED - proceeding with search");
     }
-    
+
     console.log("Filter values:", {
       cicloEscolar,
       gradoId: selectedGradoId,
       alumnoId: alumnoId,
-      activeFilter
+      activeFilter,
     });
-    
+
     setLoading(true);
     setSearchPerformed(true);
     try {
@@ -241,13 +288,13 @@ const EditPayments: React.FC = () => {
         selectedGradoId || undefined,
         alumnoId || undefined
       );
-      
+
       // Ensure that pagos is an array
       const pagosArray = Array.isArray(pagos) ? pagos : [];
       console.log("Pagos response:", pagos); // Debug the API response
-      
+
       setPayments(pagosArray);
-      
+
       if (pagosArray.length === 0) {
         toast.info("No se encontraron pagos con los criterios especificados");
       } else {
@@ -271,7 +318,7 @@ const EditPayments: React.FC = () => {
     setSelectedPayment(payment);
     setDetailsModalVisible(true);
   };
-    // Handle closing the details modal
+  // Handle closing the details modal
   const handleCloseDetailsModal = () => {
     setDetailsModalVisible(false);
     setSelectedPayment(null);
@@ -294,53 +341,53 @@ const EditPayments: React.FC = () => {
     setIsUpdating(true);
     try {
       await pagoService.updatePayment(pagoId, formData);
-      toast.success('Pago actualizado exitosamente');
-      
+      toast.success("Pago actualizado exitosamente");
+
       // Refresh the payments list
       await handleFilterSubmit();
-      
+
       setEditModalVisible(false);
       setSelectedPayment(null);
     } catch (error) {
-      console.error('Error updating payment:', error);
-      toast.error('Error al actualizar el pago. Intente nuevamente.');
+      console.error("Error updating payment:", error);
+      toast.error("Error al actualizar el pago. Intente nuevamente.");
       throw error; // Re-throw to let the modal handle it
     } finally {
       setIsUpdating(false);
     }
   };
-  
+
   // Handle initiating the void process
   const handleInitiateVoid = () => {
     setConfirmVoidModalVisible(true);
   };
-  
+
   // Handle cancel void
   const handleCancelVoid = () => {
     setConfirmVoidModalVisible(false);
     setVoidReason("");
   };
-  
+
   // Handle confirm void payment
   const handleConfirmVoidPayment = async () => {
     if (!selectedPayment) return;
-    
+
     // Validate reason
     if (!voidReason.trim()) {
       toast.error("Debe ingresar un motivo para anular el pago");
       return;
     }
-    
+
     setIsVoiding(true);
     try {
       // In a future implementation, call actual API to void payment
       // await pagoService.voidPayment(selectedPayment.id, voidReason);
-      
+
       toast.success(`Pago #${selectedPayment.id} anulado correctamente`);
-      
+
       // Refresh the payments list
       await handleFilterSubmit();
-      
+
       // Close modals
       setConfirmVoidModalVisible(false);
       setDetailsModalVisible(false);
@@ -353,12 +400,16 @@ const EditPayments: React.FC = () => {
       setIsVoiding(false);
     }
   };
-  
+
   return (
     <div className="edit-payments-container">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
       <Title level={2}>Editar o Anular Pagos</Title>
-        <Card title="Filtros de Búsqueda" style={{ marginBottom: 20 }}>
+      <Card title="Filtros de Búsqueda" style={{ marginBottom: 20 }}>
         <Form
           form={form}
           layout="vertical"
@@ -367,7 +418,7 @@ const EditPayments: React.FC = () => {
             console.log("Form validation failed:", errorInfo);
           }}
           initialValues={{
-            cicloEscolar: cicloEscolar
+            cicloEscolar: cicloEscolar,
           }}
         >
           <Row gutter={16}>
@@ -375,22 +426,21 @@ const EditPayments: React.FC = () => {
               <Form.Item
                 label="Ciclo Escolar"
                 name="cicloEscolar"
-                rules={[{ required: true, message: "¡Ciclo escolar es requerido!" }]}
+                rules={[
+                  { required: true, message: "¡Ciclo escolar es requerido!" },
+                ]}
               >
-                <Input 
-                  placeholder="Ingrese el ciclo escolar" 
-                  type="number" 
-                  value={cicloEscolar} 
-                  onChange={(e) => setCicloEscolar(Number(e.target.value))} 
+                <Input
+                  placeholder="Ingrese el ciclo escolar"
+                  type="number"
+                  value={cicloEscolar}
+                  onChange={(e) => setCicloEscolar(Number(e.target.value))}
                 />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12} md={8}>
-              <Form.Item
-                label="Grado"
-                name="gradoId"
-              >
-                <Select 
+              <Form.Item label="Grado" name="gradoId">
+                <Select
                   placeholder="Seleccione el grado"
                   allowClear
                   value={selectedGradoId}
@@ -398,7 +448,7 @@ const EditPayments: React.FC = () => {
                     setSelectedGradoId(value);
                     // If a grado is selected, set active filter to "grado" and clear alumno selections
                     if (value) {
-                      setActiveFilter("grado");                      // Clear alumno-related state
+                      setActiveFilter("grado"); // Clear alumno-related state
                       setAlumnoId(null);
                       setSelectedStudent(null);
                       setAutoCompleteValue("");
@@ -409,14 +459,15 @@ const EditPayments: React.FC = () => {
                   }}
                   disabled={activeFilter === "alumno"}
                 >
-                  {grados.map(grado => (
-                    <Option key={grado.id} value={grado.id}>{grado.nombre}</Option>
+                  {grados.map((grado) => (
+                    <Option key={grado.id} value={grado.id}>
+                      {grado.nombre}
+                    </Option>
                   ))}
                 </Select>
               </Form.Item>
             </Col>
           </Row>
-
           <Row gutter={16}>
             <Col xs={24} sm={12}>
               <Form.Item label="Código de Alumno">
@@ -428,9 +479,11 @@ const EditPayments: React.FC = () => {
                 />
               </Form.Item>
             </Col>
-            
+
             <Col xs={24} sm={12}>
-              <Form.Item label="Nombre del Alumno">                <AutoComplete
+              <Form.Item label="Nombre del Alumno">
+                {" "}
+                <AutoComplete
                   value={autoCompleteValue}
                   options={typeaheadOptions}
                   onSearch={handleTypeaheadSearch}
@@ -448,27 +501,34 @@ const EditPayments: React.FC = () => {
                     setSelectedStudentDetails(null);
                     setActiveFilter(null);
                   }}
-                  fieldNames={{ label: 'label', value: 'value' }}
+                  fieldNames={{ label: "label", value: "value" }}
                 />
               </Form.Item>
             </Col>
           </Row>
-
           <Row gutter={16}>
             <Col span={24}>
               <div style={{ marginBottom: 16 }}>
                 <Typography.Text type="secondary">
-                  <strong>Nota:</strong> Filtrar por "Ciclo Escolar y Grado" o "Ciclo Escolar y Alumno" son opciones mutuamente excluyentes.
+                  <strong>Nota:</strong> Filtrar por "Ciclo Escolar y Grado" o
+                  "Ciclo Escolar y Alumno" son opciones mutuamente excluyentes.
                   {activeFilter === "grado" && (
-                    <span style={{ color: "#1890ff" }}> Actualmente filtrando por Grado.</span>
+                    <span style={{ color: "#1890ff" }}>
+                      {" "}
+                      Actualmente filtrando por Grado.
+                    </span>
                   )}
                   {activeFilter === "alumno" && (
-                    <span style={{ color: "#1890ff" }}> Actualmente filtrando por Alumno.</span>
+                    <span style={{ color: "#1890ff" }}>
+                      {" "}
+                      Actualmente filtrando por Alumno.
+                    </span>
                   )}
                 </Typography.Text>
               </div>
             </Col>
-          </Row>          {selectedStudent && (
+          </Row>{" "}
+          {selectedStudent && (
             <div
               style={{
                 marginBottom: "10px",
@@ -478,13 +538,25 @@ const EditPayments: React.FC = () => {
               }}
             >
               <strong>Alumno seleccionado:</strong> {selectedStudent}
-              {selectedStudentDetails && (selectedStudentDetails.gradoNombre || selectedStudentDetails.seccion) && (
-                <div style={{ marginTop: '4px', fontSize: '14px', color: '#666' }}>
-                  {selectedStudentDetails.gradoNombre && `Grado: ${selectedStudentDetails.gradoNombre}`}
-                  {selectedStudentDetails.gradoNombre && selectedStudentDetails.seccion && ' • '}
-                  {selectedStudentDetails.seccion && `Sección: ${selectedStudentDetails.seccion}`}
-                </div>
-              )}
+              {selectedStudentDetails &&
+                (selectedStudentDetails.gradoNombre ||
+                  selectedStudentDetails.seccion) && (
+                  <div
+                    style={{
+                      marginTop: "4px",
+                      fontSize: "14px",
+                      color: "#666",
+                    }}
+                  >
+                    {selectedStudentDetails.gradoNombre &&
+                      `Grado: ${selectedStudentDetails.gradoNombre}`}
+                    {selectedStudentDetails.gradoNombre &&
+                      selectedStudentDetails.seccion &&
+                      " • "}
+                    {selectedStudentDetails.seccion &&
+                      `Sección: ${selectedStudentDetails.seccion}`}
+                  </div>
+                )}
               <Button
                 type="link"
                 style={{ marginLeft: "10px", padding: "0" }}
@@ -500,127 +572,153 @@ const EditPayments: React.FC = () => {
               </Button>
             </div>
           )}
-
           <Row justify="end" gutter={16}>
             <Col>
-              <Button onClick={resetFilters}>
-                Limpiar Filtros
-              </Button>
-            </Col>            <Col>
-              <Button type="primary" onClick={handleFilterSubmit} loading={loading}>
+              <Button onClick={resetFilters}>Limpiar Filtros</Button>
+            </Col>{" "}
+            <Col>
+              <Button
+                type="primary"
+                onClick={handleFilterSubmit}
+                loading={loading}
+              >
                 Buscar Pagos
               </Button>
             </Col>
           </Row>
         </Form>
       </Card>
-      
       {/* Results section */}
       <div className="search-results">
         <Card>
           {!searchPerformed ? (
-            <div style={{ textAlign: 'center', padding: '20px' }}>
+            <div style={{ textAlign: "center", padding: "20px" }}>
               <Title level={4}>Resultados de Búsqueda</Title>
               <p>Utilice los filtros de arriba para buscar pagos.</p>
             </div>
           ) : loading ? (
-            <div style={{ textAlign: 'center', padding: '20px' }}>
+            <div style={{ textAlign: "center", padding: "20px" }}>
               <Title level={4}>Cargando resultados...</Title>
             </div>
           ) : (
             <>
               <Title level={4}>Resultados de Búsqueda</Title>
-              {process.env.NODE_ENV === 'asdf' && (
-                <div style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f0f0f0', border: '1px solid #d9d9d9', borderRadius: '4px' }}>
-                  <h4 style={{ margin: '0 0 10px 0' }}>Datos para depuración (sólo visible en desarrollo):</h4>
+              {process.env.NODE_ENV === "asdf" && (
+                <div
+                  style={{
+                    marginBottom: "20px",
+                    padding: "10px",
+                    backgroundColor: "#f0f0f0",
+                    border: "1px solid #d9d9d9",
+                    borderRadius: "4px",
+                  }}
+                >
+                  <h4 style={{ margin: "0 0 10px 0" }}>
+                    Datos para depuración (sólo visible en desarrollo):
+                  </h4>
                   <p>Tipo de datos: {typeof payments}</p>
-                  <p>Es array: {Array.isArray(payments) ? 'Sí' : 'No'}</p>
-                  <p>Longitud: {Array.isArray(payments) ? payments.length : 'N/A'}</p>
+                  <p>Es array: {Array.isArray(payments) ? "Sí" : "No"}</p>
+                  <p>
+                    Longitud:{" "}
+                    {Array.isArray(payments) ? payments.length : "N/A"}
+                  </p>
                   <p>Datos: {JSON.stringify(payments).substring(0, 100)}...</p>
                 </div>
-              )}              <Table 
-                dataSource={payments} 
+              )}{" "}
+              <Table
+                dataSource={payments}
                 rowKey="id"
                 bordered
-                locale={{ emptyText: 'No hay pagos para mostrar' }}
+                locale={{ emptyText: "No hay pagos para mostrar" }}
                 pagination={{ pageSize: 10 }}
-                scroll={{ x: 'max-content' }}
+                scroll={{ x: "max-content" }}
                 columns={[
                   {
-                    title: 'ID',
-                    dataIndex: 'id',
-                    key: 'id'
+                    title: "ID",
+                    dataIndex: "id",
+                    key: "id",
                   },
                   {
-                    title: 'Fecha',
-                    dataIndex: 'fecha',
-                    key: 'fecha',
-                    render: (fecha) => fecha ? dayjs(fecha).format('DD/MM/YYYY') : 'N/A'
+                    title: "Fecha",
+                    dataIndex: "fecha",
+                    key: "fecha",
+                    render: (fecha) =>
+                      fecha ? dayjs(fecha).format("DD/MM/YYYY") : "N/A",
                   },
                   // Only show Alumno column when activeFilter is not "alumno"
-                  ...(activeFilter !== "alumno" ? [{
-                    title: 'Alumno',
-                    dataIndex: 'alumnoNombre',
-                    key: 'alumnoNombre',
-                    render: (alumnoNombre: string) => alumnoNombre || 'N/A'
-                  }] : []),
+                  ...(activeFilter !== "alumno"
+                    ? [
+                        {
+                          title: "Alumno",
+                          dataIndex: "alumnoNombre",
+                          key: "alumnoNombre",
+                          render: (alumnoNombre: string) =>
+                            alumnoNombre || "N/A",
+                        },
+                      ]
+                    : []),
                   {
-                    title: 'Monto',
-                    dataIndex: 'monto',
-                    key: 'monto',
-                    render: (monto) => typeof monto === 'number' ? `Q. ${monto.toFixed(2)}` : 'N/A'
+                    title: "Monto",
+                    dataIndex: "monto",
+                    key: "monto",
+                    render: (monto) =>
+                      typeof monto === "number"
+                        ? `Q. ${monto.toFixed(2)}`
+                        : "N/A",
                   },
                   {
-                    title: 'Rubro',
-                    dataIndex: 'rubroDescripcion',
-                    key: 'rubroDescripcion'
+                    title: "Rubro",
+                    dataIndex: "rubroDescripcion",
+                    key: "rubroDescripcion",
                   },
                   {
-                    title: 'Estado',
-                    dataIndex: 'esAnulado',
-                    key: 'esAnulado',
+                    title: "Estado",
+                    dataIndex: "esAnulado",
+                    key: "esAnulado",
                     render: (esAnulado) => (
-                      <Tag color={esAnulado ? 'red' : 'green'}>
-                        {esAnulado ? 'Anulado' : 'Activo'}
+                      <Tag color={esAnulado ? "red" : "green"}>
+                        {esAnulado ? "Anulado" : "Activo"}
                       </Tag>
-                    )
+                    ),
                   },
                   {
-                    title: 'Acciones',
-                    key: 'action',
+                    title: "Acciones",
+                    key: "action",
                     render: (_, record: Pago) => (
                       <Space size="small">
-                        <Button 
-                          size="small" 
-                          icon={<EyeOutlined />} 
+                        <Button
+                          size="small"
+                          icon={<EyeOutlined />}
                           onClick={() => handleViewPayment(record)}
                           title="Ver detalles"
-                        />                        {!record.esAnulado && (
+                        />{" "}
+                        {!record.esAnulado && (
                           <>
-                            <Button 
-                              size="small" 
-                              icon={<EditOutlined />} 
+                            <Button
+                              size="small"
+                              icon={<EditOutlined />}
                               onClick={() => handleEditPayment(record)}
                               title="Editar pago"
                             />
-                            <Button 
-                              size="small" 
+                            <Button
+                              size="small"
                               danger
-                              icon={<StopOutlined />} 
+                              icon={<StopOutlined />}
                               disabled={true}
                               title="Anular pago (próximamente)"
                             />
                           </>
                         )}
                       </Space>
-                    )
-                  }
+                    ),
+                  },
                 ]}
               />
             </>
           )}
         </Card>
-      </div>        {/* Payment Details Modal */}
+      </div>{" "}
+      {/* Payment Details Modal */}
       <PaymentDetailsModal
         payment={selectedPayment}
         visible={detailsModalVisible}
@@ -628,7 +726,6 @@ const EditPayments: React.FC = () => {
         onVoid={handleInitiateVoid}
         activeFilter={activeFilter}
       />
-
       {/* Payment Edit Modal */}
       <PaymentEditModal
         payment={selectedPayment}
@@ -637,7 +734,6 @@ const EditPayments: React.FC = () => {
         onSave={handleSavePayment}
         loading={isUpdating}
       />
-      
       {/* Void Payment Modal */}
       <VoidPaymentModal
         visible={confirmVoidModalVisible}

@@ -1,11 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, Select, Upload, Button, message, Row, Col } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
-import { UploadFile } from 'antd/es/upload/interface';
-import dayjs from 'dayjs';
-import { Pago } from '../../services/pagoService';
-import DatePickerES from '../common/DatePickerES';
-import { getCurrentUserId } from '../../services/authService';
+import React, { useState, useEffect } from "react";
+import {
+  Modal,
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Upload,
+  Button,
+  message,
+  Row,
+  Col,
+} from "antd";
+import { UploadOutlined } from "@ant-design/icons";
+import { UploadFile } from "antd/es/upload/interface";
+import dayjs from "dayjs";
+import { Pago } from "../../services/pagoService";
+import DatePickerES from "../common/DatePickerES";
+import { getCurrentUserId } from "../../services/authService";
 
 // Extend UploadFile to include our custom properties
 interface ExtendedUploadFile extends UploadFile {
@@ -28,7 +39,7 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
   visible,
   onClose,
   onSave,
-  loading
+  loading,
 }) => {
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<ExtendedUploadFile[]>([]);
@@ -39,22 +50,24 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
         fecha: dayjs(payment.fecha),
         monto: payment.monto,
         medioPago: payment.medioPagoDescripcion,
-        notas: payment.notas || '',
+        notas: payment.notas || "",
         cicloEscolar: payment.cicloEscolar,
         mesColegiatura: payment.mesColegiatura,
         anioColegiatura: payment.anioColegiatura,
-        estadoCarnet: payment.estadoCarnet || ''
+        estadoCarnet: payment.estadoCarnet || "",
       });
 
       // Set existing images
       if (payment.imagenesPago && payment.imagenesPago.length > 0) {
-        const existingFiles: ExtendedUploadFile[] = payment.imagenesPago.map((img, index) => ({
-          uid: `existing-${img.id}`,
-          name: `Imagen ${index + 1}`,
-          status: 'done' as const,
-          url: img.url,
-          existing: true // Mark as existing image
-        }));
+        const existingFiles: ExtendedUploadFile[] = payment.imagenesPago.map(
+          (img, index) => ({
+            uid: `existing-${img.id}`,
+            name: `Imagen ${index + 1}`,
+            status: "done" as const,
+            url: img.url,
+            existing: true, // Mark as existing image
+          })
+        );
         setFileList(existingFiles);
       } else {
         setFileList([]);
@@ -75,9 +88,9 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
 
     try {
       const values = await form.validateFields();
-      
+
       const formData = new FormData();
-      
+
       // Basic payment data
       formData.append("Id", payment.id.toString());
       formData.append("AlumnoId", payment.alumnoId?.toString() || "");
@@ -88,32 +101,45 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
 
       // Map payment method description back to enum value
       const medioPagoMap: Record<string, number> = {
-        "Efectivo": 1,
-        "TarjetaCredito": 2,
-        "TarjetaDebito": 3,
-        "TransferenciaBancaria": 4,
-        "Cheque": 5,
-        "BoletaDeposito": 6,
-        "PagoMovil": 7
+        Efectivo: 1,
+        TarjetaCredito: 2,
+        TarjetaDebito: 3,
+        TransferenciaBancaria: 4,
+        Cheque: 5,
+        BoletaDeposito: 6,
+        PagoMovil: 7,
       };
-      
+
       const medioPagoValue = medioPagoMap[values.medioPago] || 1;
       formData.append("MedioPago", medioPagoValue.toString());
-        formData.append("Notas", values.notas || "");
+      formData.append("Notas", values.notas || "");
       formData.append("EsColegiatura", payment.esColegiatura.toString());
-      
+
       // Handle carnet payment fields
       if (payment.esPagoDeCarnet) {
         formData.append("EsPagoDeCarnet", "true");
-        formData.append("EstadoCarnet", values.estadoCarnet || payment.estadoCarnet || "");
+        formData.append(
+          "EstadoCarnet",
+          values.estadoCarnet || payment.estadoCarnet || ""
+        );
       } else {
         formData.append("EsPagoDeCarnet", "false");
         formData.append("EstadoCarnet", "");
       }
-      
+
       if (payment.esColegiatura) {
-        formData.append("MesColegiatura", (values.mesColegiatura || payment.mesColegiatura || 0).toString());
-        formData.append("AnioColegiatura", (values.anioColegiatura || payment.anioColegiatura || new Date().getFullYear()).toString());
+        formData.append(
+          "MesColegiatura",
+          (values.mesColegiatura || payment.mesColegiatura || 0).toString()
+        );
+        formData.append(
+          "AnioColegiatura",
+          (
+            values.anioColegiatura ||
+            payment.anioColegiatura ||
+            new Date().getFullYear()
+          ).toString()
+        );
       } else {
         formData.append("MesColegiatura", "0");
         formData.append("AnioColegiatura", new Date().getFullYear().toString());
@@ -122,14 +148,17 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
       // Handle images
       const newImages: string[] = [];
       const imageFiles: File[] = [];
-      
+
       fileList.forEach((file) => {
         if (file.existing && file.url) {
           // Existing image - keep the URL
           newImages.push(file.url);
         } else if (file.originFileObj) {
           // New uploaded file
-          formData.append(`ImagenesPago[${imageFiles.length}]`, file.originFileObj);
+          formData.append(
+            `ImagenesPago[${imageFiles.length}]`,
+            file.originFileObj
+          );
           imageFiles.push(file.originFileObj);
         }
       });
@@ -137,22 +166,25 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
       // Add existing image URLs to the formData
       newImages.forEach((url, index) => {
         formData.append(`ImageUrls[${index}]`, url);
-      });      // User information for audit
+      }); // User information for audit
       const userId = getCurrentUserId();
       formData.append("UsuarioActualizacionId", userId.toString());
 
       // For updates, preserve the original creation user ID
-      formData.append("UsuarioCreacionId", payment.usuarioCreacionId.toString());
+      formData.append(
+        "UsuarioCreacionId",
+        payment.usuarioCreacionId.toString()
+      );
       formData.append("EsAnulado", "false");
       formData.append("MotivoAnulacion", "");
 
       await onSave(payment.id, formData);
-      
-      message.success('Pago actualizado exitosamente');
+
+      message.success("Pago actualizado exitosamente");
       onClose();
     } catch (error) {
-      console.error('Error updating payment:', error);
-      message.error('Error al actualizar el pago');
+      console.error("Error updating payment:", error);
+      message.error("Error al actualizar el pago");
     }
   };
 
@@ -161,21 +193,25 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
   };
 
   // Handle file upload changes
-  const handleFileChange = ({ fileList: newFileList }: { fileList: ExtendedUploadFile[] }) => {
+  const handleFileChange = ({
+    fileList: newFileList,
+  }: {
+    fileList: ExtendedUploadFile[];
+  }) => {
     setFileList(newFileList);
   };
 
   // Custom upload component to prevent auto-upload
   const uploadProps = {
-    name: 'imagenesPago',
-    listType: 'picture' as const,
+    name: "imagenesPago",
+    listType: "picture" as const,
     fileList,
     onChange: handleFileChange,
     beforeUpload: () => false, // Prevent auto upload
     onRemove: (file: ExtendedUploadFile) => {
-      const newFileList = fileList.filter(item => item.uid !== file.uid);
+      const newFileList = fileList.filter((item) => item.uid !== file.uid);
       setFileList(newFileList);
-    }
+    },
   };
 
   if (!payment) return null;
@@ -190,25 +226,31 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
         <Button key="cancel" onClick={handleCancel}>
           Cancelar
         </Button>,
-        <Button key="save" type="primary" loading={loading} onClick={handleSubmit}>
+        <Button
+          key="save"
+          type="primary"
+          loading={loading}
+          onClick={handleSubmit}
+        >
           Guardar Cambios
-        </Button>
+        </Button>,
       ]}
     >
-      <Form
-        form={form}
-        layout="vertical"
-        scrollToFirstError
-      >
+      <Form form={form} layout="vertical" scrollToFirstError>
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
               label="Fecha de Pago"
               name="fecha"
-              rules={[{ required: true, message: 'Por favor seleccione la fecha de pago' }]}
+              rules={[
+                {
+                  required: true,
+                  message: "Por favor seleccione la fecha de pago",
+                },
+              ]}
             >
               <DatePickerES
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 placeholder="Seleccione la fecha de pago"
               />
             </Form.Item>
@@ -217,9 +259,13 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
             <Form.Item
               label="Monto"
               name="monto"
-              rules={[{ required: true, message: 'Por favor ingrese el monto' }]}
-            >              <InputNumber
-                style={{ width: '100%' }}
+              rules={[
+                { required: true, message: "Por favor ingrese el monto" },
+              ]}
+            >
+              {" "}
+              <InputNumber
+                style={{ width: "100%" }}
                 placeholder="Ingrese el monto"
                 formatter={(value) =>
                   `Q ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
@@ -236,10 +282,15 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
             <Form.Item
               label="Ciclo Escolar"
               name="cicloEscolar"
-              rules={[{ required: true, message: 'Por favor ingrese el ciclo escolar' }]}
+              rules={[
+                {
+                  required: true,
+                  message: "Por favor ingrese el ciclo escolar",
+                },
+              ]}
             >
               <InputNumber
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
                 placeholder="Ingrese el ciclo escolar"
                 min={2020}
                 max={2030}
@@ -250,13 +301,20 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
             <Form.Item
               label="Medio de Pago"
               name="medioPago"
-              rules={[{ required: true, message: 'Por favor seleccione el medio de pago' }]}
+              rules={[
+                {
+                  required: true,
+                  message: "Por favor seleccione el medio de pago",
+                },
+              ]}
             >
               <Select placeholder="Seleccione el medio de pago">
                 <Option value="Efectivo">Efectivo</Option>
                 <Option value="TarjetaCredito">Tarjeta de Crédito</Option>
                 <Option value="TarjetaDebito">Tarjeta de Débito</Option>
-                <Option value="TransferenciaBancaria">Transferencia Bancaria</Option>
+                <Option value="TransferenciaBancaria">
+                  Transferencia Bancaria
+                </Option>
                 <Option value="Cheque">Cheque</Option>
                 <Option value="BoletaDeposito">Boleta de Depósito</Option>
                 <Option value="PagoMovil">Pago Móvil</Option>
@@ -268,10 +326,7 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
         {payment.esColegiatura && (
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item
-                label="Mes de Colegiatura"
-                name="mesColegiatura"
-              >
+              <Form.Item label="Mes de Colegiatura" name="mesColegiatura">
                 <Select placeholder="Seleccione el mes">
                   <Option value={1}>Enero</Option>
                   <Option value={2}>Febrero</Option>
@@ -289,19 +344,17 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item
-                label="Año de Colegiatura"
-                name="anioColegiatura"
-              >
+              <Form.Item label="Año de Colegiatura" name="anioColegiatura">
                 <InputNumber
-                  style={{ width: '100%' }}
+                  style={{ width: "100%" }}
                   placeholder="Año de colegiatura"
                   min={2020}
                   max={2030}
                 />
               </Form.Item>
             </Col>
-          </Row>        )}
+          </Row>
+        )}
 
         {payment.esPagoDeCarnet && (
           <Row gutter={16}>
@@ -309,7 +362,12 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
               <Form.Item
                 label="Estado del Carnet"
                 name="estadoCarnet"
-                rules={[{ required: true, message: 'Por favor seleccione el estado del carnet' }]}
+                rules={[
+                  {
+                    required: true,
+                    message: "Por favor seleccione el estado del carnet",
+                  },
+                ]}
               >
                 <Select placeholder="Seleccione el estado del carnet">
                   <Option value="PAGADO">PAGADO</Option>
@@ -320,10 +378,7 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
           </Row>
         )}
 
-        <Form.Item
-          label="Notas"
-          name="notas"
-        >
+        <Form.Item label="Notas" name="notas">
           <TextArea
             placeholder="Agregar notas sobre el pago"
             rows={3}
@@ -331,14 +386,9 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
           />
         </Form.Item>
 
-        <Form.Item
-          label="Imágenes de Pago"
-          name="imagenesPago"
-        >
+        <Form.Item label="Imágenes de Pago" name="imagenesPago">
           <Upload {...uploadProps}>
-            <Button icon={<UploadOutlined />}>
-              Subir Imágenes de Pago
-            </Button>
+            <Button icon={<UploadOutlined />}>Subir Imágenes de Pago</Button>
           </Upload>
         </Form.Item>
       </Form>

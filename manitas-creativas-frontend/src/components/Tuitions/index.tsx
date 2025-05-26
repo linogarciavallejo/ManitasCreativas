@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Upload, AutoComplete, Select, InputNumber } from "antd";
+import {
+  Form,
+  Input,
+  Button,
+  Upload,
+  AutoComplete,
+  Select,
+  InputNumber,
+} from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-import dayjs from 'dayjs';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import dayjs from "dayjs";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { makeApiRequest } from "../../services/apiHelper";
 import { getCurrentUserId } from "../../services/authService";
 import { gradoService } from "../../services/gradoService";
@@ -76,12 +84,22 @@ const Tuitions: React.FC = () => {
 
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1; // 1-based month number
-  
+
   // Function to get month name for display
   const getMonthNameByNumber = (monthNumber: number): string => {
     const monthNames = [
-      "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+      "Enero",
+      "Febrero",
+      "Marzo",
+      "Abril",
+      "Mayo",
+      "Junio",
+      "Julio",
+      "Agosto",
+      "Septiembre",
+      "Octubre",
+      "Noviembre",
+      "Diciembre",
     ];
     return monthNames[(monthNumber - 1) % 12]; // Convert 1-based to 0-based index with safety check
   };
@@ -100,40 +118,49 @@ const Tuitions: React.FC = () => {
 
     try {
       setLoadingRubro(true);
-      
+
       // Step 1: Get the Grado details to find the NivelEducativoId
       const gradoDetails = await gradoService.getGradoById(studentGradoId);
       const nivelEducativoId = gradoDetails.nivelEducativoId;
-      
+
       if (!nivelEducativoId) {
         console.error("No NivelEducativoId found for Grado:", studentGradoId);
         return;
       }
-      
+
       // Step 2: Get all active Rubros
       const activeRubros = await rubroService.getActiveRubros();
-      
+
       // Step 3: Filter Rubros for the matching NivelEducativoId and EsColegiatura=true
-      const tuitionRubros = activeRubros.filter(rubro => 
-        rubro.nivelEducativoId === nivelEducativoId && rubro.esColegiatura === true
+      const tuitionRubros = activeRubros.filter(
+        (rubro) =>
+          rubro.nivelEducativoId === nivelEducativoId &&
+          rubro.esColegiatura === true
       );
-      
+
       if (tuitionRubros.length === 0) {
-        console.warn("No matching tuition Rubro found for NivelEducativoId:", nivelEducativoId);
-        toast.warning("No se encontró un rubro de colegiatura para este estudiante. Se usará el valor predeterminado.");
+        console.warn(
+          "No matching tuition Rubro found for NivelEducativoId:",
+          nivelEducativoId
+        );
+        toast.warning(
+          "No se encontró un rubro de colegiatura para este estudiante. Se usará el valor predeterminado."
+        );
         return;
       }
-      
+
       // If multiple matches, preferably take the one with montoPreestablecido
-      const selectedRubro = tuitionRubros.find(r => r.montoPreestablecido !== undefined) || tuitionRubros[0];
-      
+      const selectedRubro =
+        tuitionRubros.find((r) => r.montoPreestablecido !== undefined) ||
+        tuitionRubros[0];
+
       // Step 4: Update the RubroId state and form value
       setDinamicRubroId(selectedRubro.id.toString());
       console.log("Selected RubroId for tuition payment:", selectedRubro.id);
-      
+
       // Update the form's rubroId field with the dynamic value
       form.setFieldsValue({ rubroId: selectedRubro.id.toString() });
-      
+
       // Optionally pre-fill the monto if available
       if (selectedRubro.montoPreestablecido) {
         // Update the form's monto field if a predefined amount exists
@@ -141,12 +168,15 @@ const Tuitions: React.FC = () => {
       }
     } catch (error) {
       console.error("Error fetching appropriate RubroId:", error);
-      toast.error("Error al obtener el rubro de colegiatura. Se usará el valor predeterminado.");
+      toast.error(
+        "Error al obtener el rubro de colegiatura. Se usará el valor predeterminado."
+      );
     } finally {
       setLoadingRubro(false);
     }
-  };  // Function to reset the form after a successful submission
-  const resetForm = () => {    // Reset form but keep these fields
+  }; // Function to reset the form after a successful submission
+  const resetForm = () => {
+    // Reset form but keep these fields
     form.setFieldsValue({
       cicloEscolar: currentYear,
       fechaPago: dayjs(),
@@ -154,9 +184,9 @@ const Tuitions: React.FC = () => {
       medioPago: "1",
       notas: "",
       monto: undefined, // Explicitly set monto to undefined to clear the field
-      imagenesPago: []
+      imagenesPago: [],
     });
-    
+
     // Clear student selection
     setSelectedStudent(null);
     setAlumnoId(null);
@@ -170,7 +200,10 @@ const Tuitions: React.FC = () => {
   // Search by codigo input
   const handleCodigoSearch = async (codigo: string) => {
     try {
-      const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${codigo}`, "GET");
+      const response = await makeApiRequest<AlumnoDetails>(
+        `/alumnos/codigo/${codigo}`,
+        "GET"
+      );
       setAlumnoId(response.id.toString());
       setSelectedCodigo(response.codigo);
       setSelectedStudent(
@@ -178,15 +211,15 @@ const Tuitions: React.FC = () => {
       );
       // Update contactos info from the response
       setContactos(response.contactos || []);
-      
+
       // Set gradoId and fetch appropriate RubroId
       const studentGradoId = response.gradoId;
       setGradoId(studentGradoId);
-      
+
       // Call the function to fetch the correct RubroId for this student's grade
       if (studentGradoId) {
         await fetchRubroIdForGrado(studentGradoId);
-      }      
+      }
       // No need for toast notification when student is found by code
     } catch (error: unknown) {
       console.error("Error fetching student by code:", error);
@@ -223,24 +256,29 @@ const Tuitions: React.FC = () => {
     setAlumnoId(value);
     setSelectedStudent(option.label);
     try {
-      const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${option.codigo}`, "GET");      setSelectedCodigo(response.codigo);
+      const response = await makeApiRequest<AlumnoDetails>(
+        `/alumnos/codigo/${option.codigo}`,
+        "GET"
+      );
+      setSelectedCodigo(response.codigo);
       // Update contactos info from the response
       setContactos(response.contactos || []);
-      
+
       // Set gradoId and fetch appropriate RubroId
       const studentGradoId = response.gradoId;
       setGradoId(studentGradoId);
-      
+
       // Call the function to fetch the correct RubroId for this student's grade
       if (studentGradoId) {
         await fetchRubroIdForGrado(studentGradoId);
       }
-      
+
       // Success notification removed as it's not necessary
     } catch (error: unknown) {
       console.error("Error fetching student details:", error);
       toast.error("Error al obtener los datos del alumno seleccionado.");
-    }  };
+    }
+  };
 
   const handleSubmit = async (values: {
     cicloEscolar: string | number;
@@ -273,15 +311,15 @@ const Tuitions: React.FC = () => {
       formData.append("EsColegiatura", "true");
       formData.append("AnioColegiatura", new Date().getFullYear().toString());
       if (values.notas) formData.append("Notas", values.notas);
-      
+
       // Get the current user ID from localStorage and use it for UsuarioCreacionId
       const userId = getCurrentUserId();
       console.log("Current user ID for form submission:", userId); // Debug log for user ID
-      
+
       // Append the user ID for the UsuarioCreacionId field
       formData.append("UsuarioCreacionId", userId.toString());
       // The old code was using "UsuarioId" with a hardcoded "1", which doesn't match the API's requirements
-      
+
       // Check if imagenesPago exists and is an array before iterating
       if (values.imagenesPago && Array.isArray(values.imagenesPago)) {
         values.imagenesPago.forEach((file, index) => {
@@ -290,20 +328,24 @@ const Tuitions: React.FC = () => {
           }
         });
       }
-      
+
       console.log("Sending API request to /pagos with FormData"); // Debug log
-      
+
       // Log FormData entries for debugging
       console.log("FormData contents:");
       for (const pair of formData.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
+        console.log(pair[0] + ": " + pair[1]);
       }
-      
-      const response = await makeApiRequest<{ id: number }>("/pagos", "POST", formData);
+
+      const response = await makeApiRequest<{ id: number }>(
+        "/pagos",
+        "POST",
+        formData
+      );
 
       toast.success("¡Pago enviado con éxito!");
       console.log("Pago enviado:", response);
-      
+
       // Reset the form after successful submission
       resetForm();
     } catch (err: unknown) {
@@ -316,9 +358,12 @@ const Tuitions: React.FC = () => {
 
   return (
     <div className="payments-container">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
       <h2>Realizar un Pago de Colegiatura</h2>
-
       <div style={{ marginBottom: "20px" }}>
         <Input.Search
           placeholder="Buscar por Código"
@@ -336,7 +381,7 @@ const Tuitions: React.FC = () => {
             placeholder="Buscar por Nombre o Apellido"
             style={{ width: "100%" }}
             allowClear
-            fieldNames={{ label: 'label', value: 'value' }}
+            fieldNames={{ label: "label", value: "value" }}
             onClear={() => {
               setAutoCompleteValue("");
               setTypeaheadOptions([]);
@@ -353,7 +398,8 @@ const Tuitions: React.FC = () => {
               borderRadius: "4px",
             }}
           >
-            <strong>Alumno seleccionado:</strong> {selectedStudent}            <Button
+            <strong>Alumno seleccionado:</strong> {selectedStudent}{" "}
+            <Button
               type="link"
               style={{ marginLeft: "10px", padding: "0" }}
               onClick={() => {
@@ -374,7 +420,6 @@ const Tuitions: React.FC = () => {
           />
         )}
       </div>
-
       {/* Display contacts info above the Ciclo Escolar input */}
       {contactos.length > 0 && (
         <div style={{ marginBottom: "20px" }}>
@@ -382,18 +427,22 @@ const Tuitions: React.FC = () => {
           <ul style={{ paddingLeft: "20px" }}>
             {contactos.map((contacto) => (
               <li key={contacto.contactoId}>
-                <strong>{contacto.parentesco}:</strong> {contacto.contacto.nombre} — {contacto.contacto.telefono} — {contacto.contacto.email}
+                <strong>{contacto.parentesco}:</strong>{" "}
+                {contacto.contacto.nombre} — {contacto.contacto.telefono} —{" "}
+                {contacto.contacto.email}
               </li>
             ))}
           </ul>
         </div>
-      )}      <Form
+      )}{" "}
+      <Form
         form={form}
         name="payments"
         layout="vertical"
         onFinish={handleSubmit}
         autoComplete="off"
-        className="payments-form"        initialValues={{
+        className="payments-form"
+        initialValues={{
           cicloEscolar: currentYear,
           mes: currentMonth.toString(), // Convert to string to match Option values
           fechaPago: dayjs(),
@@ -403,34 +452,35 @@ const Tuitions: React.FC = () => {
         <Form.Item
           label="Ciclo Escolar"
           name="cicloEscolar"
-          rules={[{ required: true, message: "¡Por favor ingrese el ciclo escolar!" }]}
+          rules={[
+            { required: true, message: "¡Por favor ingrese el ciclo escolar!" },
+          ]}
         >
           <Input placeholder="Ingrese el ciclo escolar" />
-        </Form.Item>        <Form.Item
+        </Form.Item>{" "}
+        <Form.Item
           label="Fecha de Pago"
           name="fechaPago"
-          rules={[{ required: true, message: "¡Por favor seleccione la fecha de pago!" }]}
+          rules={[
+            {
+              required: true,
+              message: "¡Por favor seleccione la fecha de pago!",
+            },
+          ]}
         >
-          <DatePickerES 
+          <DatePickerES
             style={{ width: "100%" }}
             placeholder="Seleccione la fecha de pago"
           />
         </Form.Item>
-
-        <Form.Item 
-          name="rubroId" 
-          initialValue={dinamicRubroId} 
+        <Form.Item
+          name="rubroId"
+          initialValue={dinamicRubroId}
           style={{ display: "none" }}
         >
-          <Input 
-            type="hidden" 
-            disabled={loadingRubro}
-          />
-        </Form.Item>        <Form.Item
-          label="Mes"
-          name="mes"
-          rules={[{ required: false }]}
-        >
+          <Input type="hidden" disabled={loadingRubro} />
+        </Form.Item>{" "}
+        <Form.Item label="Mes" name="mes" rules={[{ required: false }]}>
           <Select>
             <Option value="1">Enero</Option>
             <Option value="2">Febrero</Option>
@@ -446,7 +496,6 @@ const Tuitions: React.FC = () => {
             <Option value="12">Diciembre</Option>
           </Select>
         </Form.Item>
-
         <Form.Item
           label="Monto"
           name="monto"
@@ -458,20 +507,20 @@ const Tuitions: React.FC = () => {
             formatter={(value) =>
               `Q ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             }
-            parser={(value) =>
-              value ? value.replace(/Q\s?|(,*)/g, "") : ""
-            }
+            parser={(value) => (value ? value.replace(/Q\s?|(,*)/g, "") : "")}
             onKeyPress={(event) => {
               if (!/[0-9.]/.test(event.key)) {
                 event.preventDefault();
               }
             }}
           />
-        </Form.Item>        
-          <Form.Item
+        </Form.Item>
+        <Form.Item
           label="Medio de Pago"
           name="medioPago"
-          rules={[{ required: true, message: "¡Por favor ingrese el medio de pago!" }]}
+          rules={[
+            { required: true, message: "¡Por favor ingrese el medio de pago!" },
+          ]}
           initialValue="1"
         >
           <Select placeholder="Seleccione el medio de pago">
@@ -484,11 +533,9 @@ const Tuitions: React.FC = () => {
             <Option value="7">Pago Móvil</Option>
           </Select>
         </Form.Item>
-
         <Form.Item label="Notas" name="notas">
           <Input.TextArea placeholder="Agregar notas sobre el pago" rows={4} />
-        </Form.Item>        
-        
+        </Form.Item>
         <Form.Item
           label="Imágenes de Pago"
           name="imagenesPago"
@@ -499,21 +546,25 @@ const Tuitions: React.FC = () => {
           }}
           initialValue={[]}
         >
-          <Upload name="imagenesPago" listType="picture" beforeUpload={() => false}>
+          <Upload
+            name="imagenesPago"
+            listType="picture"
+            beforeUpload={() => false}
+          >
             <Button icon={<UploadOutlined />}>Subir Imágenes de Pago</Button>
           </Upload>
         </Form.Item>
-
         <Form.Item>
-          <Button 
-            type="primary" 
-            htmlType="submit" 
-            block 
-            loading={loading || loadingRubro} 
+          <Button
+            type="primary"
+            htmlType="submit"
+            block
+            loading={loading || loadingRubro}
             disabled={!alumnoId}
           >
             {loadingRubro ? "Obteniendo rubro..." : "Enviar Pago"}
-          </Button>        </Form.Item>
+          </Button>{" "}
+        </Form.Item>
       </Form>
     </div>
   );

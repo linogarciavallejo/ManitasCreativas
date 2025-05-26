@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Upload, AutoComplete, Select, InputNumber } from "antd";
+import {
+  Form,
+  Input,
+  Button,
+  Upload,
+  AutoComplete,
+  Select,
+  InputNumber,
+} from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-import dayjs from 'dayjs';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import dayjs from "dayjs";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { makeApiRequest } from "../../services/apiHelper";
 import { getCurrentUserId } from "../../services/authService";
 import DatePickerES from "../common/DatePickerES"; // Import our custom DatePicker
@@ -68,7 +76,8 @@ const OtherPayments: React.FC = () => {
   const [alumnoId, setAlumnoId] = useState<string | null>(null);
   const [selectedCodigo, setSelectedCodigo] = useState<string | null>(null);
   const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);  const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
+  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
   const [contactos, setContactos] = useState<Contacto[]>([]);
   // Add state for rubros
   const [rubros, setRubros] = useState<Rubro[]>([]);
@@ -90,14 +99,17 @@ const OtherPayments: React.FC = () => {
         toast.error("Error al cargar los rubros.");
       }
     };
-    
+
     fetchRubros();
   }, []);
 
   // Search by codigo input
   const handleCodigoSearch = async (codigo: string) => {
     try {
-      const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${codigo}`, "GET");
+      const response = await makeApiRequest<AlumnoDetails>(
+        `/alumnos/codigo/${codigo}`,
+        "GET"
+      );
       setAlumnoId(response.id.toString());
       setSelectedCodigo(response.codigo);
       setSelectedStudent(
@@ -139,7 +151,10 @@ const OtherPayments: React.FC = () => {
     setAlumnoId(value);
     setSelectedStudent(option.label);
     try {
-      const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${option.codigo}`, "GET");
+      const response = await makeApiRequest<AlumnoDetails>(
+        `/alumnos/codigo/${option.codigo}`,
+        "GET"
+      );
       setSelectedCodigo(response.codigo);
       // Update contactos info from the response
       setContactos(response.contactos || []);
@@ -148,9 +163,9 @@ const OtherPayments: React.FC = () => {
       toast.error("Error al obtener los datos del alumno seleccionado.");
     }
   };
-    // Add handler for rubro selection
+  // Add handler for rubro selection
   const handleRubroChange = (rubroId: string) => {
-    const selected = rubros.find(rubro => rubro.id.toString() === rubroId);
+    const selected = rubros.find((rubro) => rubro.id.toString() === rubroId);
     setSelectedRubro(selected || null);
     if (selected && selected.montoPreestablecido) {
       form.setFieldsValue({ monto: selected.montoPreestablecido });
@@ -181,10 +196,11 @@ const OtherPayments: React.FC = () => {
       formData.append("Fecha", values.fechaPago.toISOString());
       formData.append("CicloEscolar", values.cicloEscolar);
       formData.append("Monto", values.monto.toString());
-      formData.append("MedioPago", values.medioPago);      formData.append("RubroId", values.rubroId);
+      formData.append("MedioPago", values.medioPago);
+      formData.append("RubroId", values.rubroId);
       formData.append("AlumnoId", alumnoId);
       formData.append("EsColegiatura", "false"); // Changed: this is OtherPayments, not tuition
-      
+
       // Check if the selected rubro is for ID card payment and set the appropriate fields
       if (selectedRubro?.esPagoDeCarnet) {
         formData.append("EsPagoDeCarnet", "true");
@@ -193,26 +209,26 @@ const OtherPayments: React.FC = () => {
         formData.append("EsPagoDeCarnet", "false");
         formData.append("EstadoCarnet", "");
       }
-      
+
       // Only add MesColegiatura and AnioColegiatura if needed
       if (values.mes) {
         formData.append("MesColegiatura", values.mes);
         formData.append("AnioColegiatura", new Date().getFullYear().toString());
       }
-      
+
       if (values.notas) formData.append("Notas", values.notas);
-      
+
       // Get the current user ID from localStorage and use it for UsuarioCreacionId
       const userId = getCurrentUserId();
       console.log("Current user ID for form submission:", userId);
       formData.append("UsuarioCreacionId", userId.toString());
-      
+
       // Log FormData entries for debugging
       console.log("FormData contents:");
       for (const pair of formData.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
+        console.log(pair[0] + ": " + pair[1]);
       }
-      
+
       // Handle file uploads properly, checking for undefined
       if (values.imagenesPago && values.imagenesPago.length > 0) {
         values.imagenesPago.forEach((file, index) => {
@@ -223,22 +239,25 @@ const OtherPayments: React.FC = () => {
       }
 
       console.log("Sending payment data to server..."); // Add debug log
-      const response = await makeApiRequest<{ id: number }>("/pagos", "POST", formData);
+      const response = await makeApiRequest<{ id: number }>(
+        "/pagos",
+        "POST",
+        formData
+      );
       console.log("Payment response:", response); // Add debug log
 
       // Show success toast notification
       toast.success("¡Pago enviado con éxito!");
-      
+
       // Reset form fields
       form.resetFields();
-      
+
       // Reset student selection
       setSelectedStudent(null);
       setAlumnoId(null);
       setSelectedCodigo(null);
       setAutoCompleteValue("");
       setContactos([]);
-      
     } catch (err) {
       console.error("Error submitting payment:", err); // Add error logging
       toast.error("Error al enviar el pago. Por favor, inténtelo de nuevo.");
@@ -249,7 +268,11 @@ const OtherPayments: React.FC = () => {
 
   return (
     <div className="payments-container">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
       <h2>Realizar un Pago</h2>
 
       <div style={{ marginBottom: "20px" }}>
@@ -273,7 +296,7 @@ const OtherPayments: React.FC = () => {
               setAutoCompleteValue("");
               setTypeaheadOptions([]);
             }}
-            fieldNames={{ label: 'label', value: 'value' }}
+            fieldNames={{ label: "label", value: "value" }}
           />
         </div>
 
@@ -320,7 +343,9 @@ const OtherPayments: React.FC = () => {
           <ul style={{ paddingLeft: "20px" }}>
             {contactos.map((contacto) => (
               <li key={contacto.contactoId}>
-                <strong>{contacto.parentesco}:</strong> {contacto.contacto.nombre} — {contacto.contacto.telefono} — {contacto.contacto.email}
+                <strong>{contacto.parentesco}:</strong>{" "}
+                {contacto.contacto.nombre} — {contacto.contacto.telefono} —{" "}
+                {contacto.contacto.email}
               </li>
             ))}
           </ul>
@@ -333,56 +358,58 @@ const OtherPayments: React.FC = () => {
         layout="vertical"
         onFinish={handleSubmit}
         autoComplete="off"
-        className="payments-form"        initialValues={{
+        className="payments-form"
+        initialValues={{
           cicloEscolar: currentYear,
           mes: null, // Changed from currentMonth to null to make "Sin mes específico" the default
           monto: 150,
-          fechaPago: dayjs().startOf('day'), // Set to start of the current day
+          fechaPago: dayjs().startOf("day"), // Set to start of the current day
         }}
       >
         <Form.Item
           label="Ciclo Escolar"
           name="cicloEscolar"
-          rules={[{ required: true, message: "¡Por favor ingrese el ciclo escolar!" }]}
+          rules={[
+            { required: true, message: "¡Por favor ingrese el ciclo escolar!" },
+          ]}
         >
           <Input placeholder="Ingrese el ciclo escolar" />
-        </Form.Item>        <Form.Item
+        </Form.Item>{" "}
+        <Form.Item
           label="Fecha de Pago"
           name="fechaPago"
-          rules={[{ required: true, message: "¡Por favor seleccione la fecha de pago!" }]}
+          rules={[
+            {
+              required: true,
+              message: "¡Por favor seleccione la fecha de pago!",
+            },
+          ]}
         >
-          <DatePickerES 
-            style={{ width: "100%" }} 
+          <DatePickerES
+            style={{ width: "100%" }}
             placeholder="Seleccione la fecha de pago"
           />
         </Form.Item>
-        
         <Form.Item
           label="Rubro"
           name="rubroId"
           rules={[{ required: true, message: "Por favor seleccione un rubro" }]}
         >
-          <Select 
-            placeholder="Seleccione el rubro" 
+          <Select
+            placeholder="Seleccione el rubro"
             onChange={handleRubroChange}
             loading={rubros.length === 0}
           >
             {rubros
-              .filter(rubro => !rubro.esColegiatura) // Filter out rubros with esColegiatura = true
-              .map(rubro => (
+              .filter((rubro) => !rubro.esColegiatura) // Filter out rubros with esColegiatura = true
+              .map((rubro) => (
                 <Option key={rubro.id} value={rubro.id.toString()}>
                   {rubro.descripcion}
                 </Option>
-              ))
-            }
+              ))}
           </Select>
         </Form.Item>
-
-        <Form.Item
-          label="Mes"
-          name="mes"
-          rules={[{ required: false }]}
-        >
+        <Form.Item label="Mes" name="mes" rules={[{ required: false }]}>
           <Select allowClear placeholder="Seleccione el mes (opcional)">
             <Option value={null}>Sin mes específico</Option>
             <Option value={1}>Enero</Option>
@@ -399,7 +426,6 @@ const OtherPayments: React.FC = () => {
             <Option value={12}>Diciembre</Option>
           </Select>
         </Form.Item>
-        
         <Form.Item
           label="Monto"
           name="monto"
@@ -411,19 +437,20 @@ const OtherPayments: React.FC = () => {
             formatter={(value) =>
               `Q ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             }
-            parser={(value) =>
-              value ? value.replace(/Q\s?|(,*)/g, "") : ""
-            }
+            parser={(value) => (value ? value.replace(/Q\s?|(,*)/g, "") : "")}
             onKeyPress={(event) => {
               if (!/[0-9.]/.test(event.key)) {
                 event.preventDefault();
               }
             }}
           />
-        </Form.Item>        <Form.Item
+        </Form.Item>{" "}
+        <Form.Item
           label="Medio de Pago"
           name="medioPago"
-          rules={[{ required: true, message: "¡Por favor ingrese el medio de pago!" }]}
+          rules={[
+            { required: true, message: "¡Por favor ingrese el medio de pago!" },
+          ]}
         >
           <Select placeholder="Seleccione el medio de pago">
             <Option value={1}>Efectivo</Option>
@@ -435,24 +462,31 @@ const OtherPayments: React.FC = () => {
             <Option value={7}>Pago Móvil</Option>
           </Select>
         </Form.Item>
-
         <Form.Item label="Notas" name="notas">
           <Input.TextArea placeholder="Agregar notas sobre el pago" rows={4} />
         </Form.Item>
-
         <Form.Item
           label="Imágenes de Pago"
           name="imagenesPago"
           valuePropName="fileList"
           getValueFromEvent={(e) => (Array.isArray(e) ? e : e?.fileList)}
         >
-          <Upload name="imagenesPago" listType="picture" beforeUpload={() => false}>
+          <Upload
+            name="imagenesPago"
+            listType="picture"
+            beforeUpload={() => false}
+          >
             <Button icon={<UploadOutlined />}>Subir Imágenes de Pago</Button>
           </Upload>
         </Form.Item>
-
         <Form.Item>
-          <Button type="primary" htmlType="submit" block loading={loading} disabled={!alumnoId}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            block
+            loading={loading}
+            disabled={!alumnoId}
+          >
             Enviar Pago
           </Button>
         </Form.Item>
