@@ -194,9 +194,17 @@ const EditPayments: React.FC = () => {
     setPayments([]);
     setSearchPerformed(false);
   };
-  
-  // Handle filter form submission
+    // Handle filter form submission
   const handleFilterSubmit = async () => {
+    // Add debugging
+    console.log("Debug - handleFilterSubmit values:", {
+      cicloEscolar,
+      selectedGradoId,
+      alumnoId,
+      activeFilter,
+      selectedStudent
+    });
+    
     // Validate that we have required filtering criteria
     if (!cicloEscolar) {
       toast.error("Debe seleccionar un ciclo escolar");
@@ -204,7 +212,7 @@ const EditPayments: React.FC = () => {
     }
     
     // Check if we have either grado or alumno selected
-    if (!selectedGradoId && !alumnoId) {
+    if (!selectedGradoId && (!alumnoId || alumnoId.trim() === '')) {
       toast.error("Debe seleccionar un Grado o un Alumno específico");
       return;
     }
