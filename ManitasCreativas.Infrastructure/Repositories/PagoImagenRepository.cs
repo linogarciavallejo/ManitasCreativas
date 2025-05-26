@@ -43,20 +43,22 @@ public class PagoImagenRepository: IPagoImagenRepository
             _context.PagoImagenes.Remove(pagoImagen);
             await _context.SaveChangesAsync();
         }
+    }    public async Task<IEnumerable<PagoImagen>> GetByPagoIdAsync(int pagoId)
+    {
+        return await _context.PagoImagenes
+            .Where(pi => pi.PagoId == pagoId)
+            .ToListAsync();
     }
 
-    Task<IEnumerable<PagoImagen>> IPagoImagenRepository.GetByPagoIdAsync(int pagoId)
+    public async Task AddRangeAsync(IEnumerable<PagoImagen> pagoImagenes)
     {
-        throw new NotImplementedException();
+        await _context.PagoImagenes.AddRangeAsync(pagoImagenes);
+        await _context.SaveChangesAsync();
     }
 
-    Task IPagoImagenRepository.AddRangeAsync(IEnumerable<PagoImagen> pagoImagenes)
+    public async Task DeleteRangeAsync(IEnumerable<PagoImagen> pagoImagenes)
     {
-        throw new NotImplementedException();
-    }
-
-    Task IPagoImagenRepository.DeleteRangeAsync(IEnumerable<PagoImagen> pagoImagenes)
-    {
-        throw new NotImplementedException();
+        _context.PagoImagenes.RemoveRange(pagoImagenes);
+        await _context.SaveChangesAsync();
     }
 }

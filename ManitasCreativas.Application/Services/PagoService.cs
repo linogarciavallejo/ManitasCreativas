@@ -163,14 +163,32 @@ public class PagoService : IPagoService
             MotivoAnulacion = pagoDto.MotivoAnulacion,
             FechaAnulacion = pagoDto.FechaAnulacion,
             UsuarioAnulacionId = pagoDto.UsuarioAnulacionId
-        };
+        };        await _pagoRepository.AddAsync(pago);
 
-        await _pagoRepository.AddAsync(pago);
+        // Handle images - both uploaded files and existing URLs
+        var pagoImagenes = new List<PagoImagen>();        // Handle uploaded files
+        if (pagoDto.ImagenesPago != null && pagoDto.ImagenesPago.Any())
+        {
+            foreach (var file in pagoDto.ImagenesPago)
+            {
+                // Upload to S3 and get the URL
+                var fileName = $"payment-{pago.Id}-{Guid.NewGuid()}-{file.FileName}";
+                var imageUrl = await _s3Service.UploadFileAsync(file.OpenReadStream(), fileName, file.ContentType);
+                
+                var pagoImagen = new PagoImagen
+                {
+                    PagoId = pago.Id,
+                    ImagenUrl = new Uri(imageUrl),
+                    FechaCreacion = DateTime.UtcNow,
+                    UsuarioCreacionId = pagoDto.UsuarioCreacionId
+                };
+                pagoImagenes.Add(pagoImagen);
+            }
+        }
 
-        // Create image records if any
+        // Handle existing image URLs (for updates/edits)
         if (pagoDto.ImageUrls != null && pagoDto.ImageUrls.Any())
         {
-            var pagoImagenes = new List<PagoImagen>();
             foreach (var imageUrl in pagoDto.ImageUrls)
             {
                 var pagoImagen = new PagoImagen
@@ -178,11 +196,15 @@ public class PagoService : IPagoService
                     PagoId = pago.Id,
                     ImagenUrl = new Uri(imageUrl),
                     FechaCreacion = DateTime.UtcNow,
-                    UsuarioCreacionId = pagoDto.UsuarioCreacionId // Use same user ID for the images
+                    UsuarioCreacionId = pagoDto.UsuarioCreacionId
                 };
                 pagoImagenes.Add(pagoImagen);
             }
+        }
 
+        // Save all images if any
+        if (pagoImagenes.Any())
+        {
             await _pagoImagenRepository.AddRangeAsync(pagoImagenes);
         }
 
@@ -191,7 +213,7 @@ public class PagoService : IPagoService
     }    public async Task<PagoReadDto> UpdatePagoAsync(int id, PagoUploadDto pagoDto)
     {
         // Verify that UsuarioActualizacionId is provided
-        if (pagoDto.UsuarioActualizacionId <= 0)
+        if (pagoDto.UsuarioActualizacionId == null || pagoDto.UsuarioActualizacionId <= 0)
         {
             throw new Exception("UsuarioActualizacionId is required and must be a valid user ID.");
         }
@@ -229,22 +251,35 @@ public class PagoService : IPagoService
         existingPago.EsAnulado = pagoDto.EsAnulado;
         existingPago.MotivoAnulacion = pagoDto.MotivoAnulacion;
         existingPago.FechaAnulacion = pagoDto.FechaAnulacion;
-        existingPago.UsuarioAnulacionId = pagoDto.UsuarioAnulacionId;
+        existingPago.UsuarioAnulacionId = pagoDto.UsuarioAnulacionId;        await _pagoRepository.UpdateAsync(existingPago);
 
-        await _pagoRepository.UpdateAsync(existingPago);        // Handle image updates if needed
+        // Handle image updates - both uploaded files and existing URLs
+        var existingImages = await _pagoImagenRepository.GetByPagoIdAsync(id);
+        var pagoImagenes = new List<PagoImagen>();
+
+        // Handle uploaded files
+        if (pagoDto.ImagenesPago != null && pagoDto.ImagenesPago.Any())
+        {
+            foreach (var file in pagoDto.ImagenesPago)
+            {
+                // Upload to S3 and get the URL
+                var fileName = $"payment-{existingPago.Id}-{Guid.NewGuid()}-{file.FileName}";
+                var imageUrl = await _s3Service.UploadFileAsync(file.OpenReadStream(), fileName, file.ContentType);
+                
+                var pagoImagen = new PagoImagen
+                {
+                    PagoId = existingPago.Id,
+                    ImagenUrl = new Uri(imageUrl),
+                    FechaCreacion = DateTime.UtcNow,
+                    UsuarioCreacionId = pagoDto.UsuarioActualizacionId.Value
+                };
+                pagoImagenes.Add(pagoImagen);
+            }
+        }
+
+        // Handle existing image URLs (for updates/edits)
         if (pagoDto.ImageUrls != null && pagoDto.ImageUrls.Any())
         {
-            // Get existing images
-            var existingImages = await _pagoImagenRepository.GetByPagoIdAsync(id);
-
-            // Remove existing images if they are different from the new ones
-            if (existingImages.Any())
-            {
-                await _pagoImagenRepository.DeleteRangeAsync(existingImages);
-            }
-
-            // Add new images
-            var pagoImagenes = new List<PagoImagen>();
             foreach (var imageUrl in pagoDto.ImageUrls)
             {
                 var pagoImagen = new PagoImagen
@@ -252,11 +287,21 @@ public class PagoService : IPagoService
                     PagoId = existingPago.Id,
                     ImagenUrl = new Uri(imageUrl),
                     FechaCreacion = DateTime.UtcNow,
-                    UsuarioCreacionId = pagoDto.UsuarioActualizacionId.Value // Use the updating user's ID
+                    UsuarioCreacionId = pagoDto.UsuarioActualizacionId.Value
                 };
                 pagoImagenes.Add(pagoImagen);
             }
+        }
 
+        // Remove existing images if we have new ones to add
+        if (pagoImagenes.Any() && existingImages.Any())
+        {
+            await _pagoImagenRepository.DeleteRangeAsync(existingImages);
+        }
+
+        // Add new images if any
+        if (pagoImagenes.Any())
+        {
             await _pagoImagenRepository.AddRangeAsync(pagoImagenes);
         }
 

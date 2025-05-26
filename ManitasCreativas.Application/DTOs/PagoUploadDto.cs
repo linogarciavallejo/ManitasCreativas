@@ -18,6 +18,7 @@ public class PagoUploadDto
     public int MesColegiatura { get; set; }
     public int AnioColegiatura { get; set; }
     public List<string> ImageUrls { get; set; } = new List<string>();
+    public IFormFileCollection? ImagenesPago { get; set; } // For file uploads from frontend
     public bool? EsPagoDeCarnet { get; set; } = false;
     public string EstadoCarnet { get; set; } = string.Empty;
     
