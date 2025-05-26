@@ -114,10 +114,8 @@ const OtherPayments: React.FC = () => {
       setSelectedCodigo(response.codigo);
       setSelectedStudent(
         `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim()
-      );
-      // Update contactos info from the response
+      );      // Update contactos info from the response
       setContactos(response.contactos || []);
-      toast.success("Alumno encontrado por código.");
     } catch {
       toast.error("No se encontró ningún alumno con ese código.");
     }
