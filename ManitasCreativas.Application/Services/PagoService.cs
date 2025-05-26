@@ -481,6 +481,8 @@ public class PagoService : IPagoService
                     MesColegiatura = p.MesColegiatura,
                     AnioColegiatura = p.AnioColegiatura,
                     Notas = p.Notas ?? string.Empty,
+                    EsPagoDeCarnet = p.EsPagoDeCarnet,
+                    EstadoCarnet = p.EstadoCarnet ?? string.Empty,
                     EsAnulado = p.EsAnulado,
                     MotivoAnulacion = p.MotivoAnulacion,
                     FechaAnulacion = p.FechaAnulacion,

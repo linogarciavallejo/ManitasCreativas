@@ -32,7 +32,6 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
 }) => {
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<ExtendedUploadFile[]>([]);
-
   // Reset form when payment changes or modal opens
   useEffect(() => {
     if (payment && visible) {
@@ -43,7 +42,8 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
         notas: payment.notas || '',
         cicloEscolar: payment.cicloEscolar,
         mesColegiatura: payment.mesColegiatura,
-        anioColegiatura: payment.anioColegiatura
+        anioColegiatura: payment.anioColegiatura,
+        estadoCarnet: payment.estadoCarnet || ''
       });
 
       // Set existing images
@@ -99,9 +99,17 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
       
       const medioPagoValue = medioPagoMap[values.medioPago] || 1;
       formData.append("MedioPago", medioPagoValue.toString());
-      
-      formData.append("Notas", values.notas || "");
+        formData.append("Notas", values.notas || "");
       formData.append("EsColegiatura", payment.esColegiatura.toString());
+      
+      // Handle carnet payment fields
+      if (payment.esPagoDeCarnet) {
+        formData.append("EsPagoDeCarnet", "true");
+        formData.append("EstadoCarnet", values.estadoCarnet || payment.estadoCarnet || "");
+      } else {
+        formData.append("EsPagoDeCarnet", "false");
+        formData.append("EstadoCarnet", "");
+      }
       
       if (payment.esColegiatura) {
         formData.append("MesColegiatura", (values.mesColegiatura || payment.mesColegiatura || 0).toString());
@@ -293,6 +301,22 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
                   min={2020}
                   max={2030}
                 />
+              </Form.Item>
+            </Col>
+          </Row>        )}
+
+        {payment.esPagoDeCarnet && (
+          <Row gutter={16}>
+            <Col span={24}>
+              <Form.Item
+                label="Estado del Carnet"
+                name="estadoCarnet"
+                rules={[{ required: true, message: 'Por favor seleccione el estado del carnet' }]}
+              >
+                <Select placeholder="Seleccione el estado del carnet">
+                  <Option value="PAGADO">PAGADO</Option>
+                  <Option value="ENTREGADO">ENTREGADO</Option>
+                </Select>
               </Form.Item>
             </Col>
           </Row>

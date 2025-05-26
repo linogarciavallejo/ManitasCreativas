@@ -93,6 +93,12 @@ const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({
         {payment.esColegiatura && payment.anioColegiatura && (
           <Descriptions.Item label="Año Colegiatura">
             {payment.anioColegiatura}
+          </Descriptions.Item>        )}
+        {payment.esPagoDeCarnet && payment.estadoCarnet && (
+          <Descriptions.Item label="Estado del Carnet">
+            <Tag color={payment.estadoCarnet === 'ENTREGADO' ? 'green' : 'orange'}>
+              {payment.estadoCarnet}
+            </Tag>
           </Descriptions.Item>
         )}
         <Descriptions.Item label="Registrado por" span={2}>
