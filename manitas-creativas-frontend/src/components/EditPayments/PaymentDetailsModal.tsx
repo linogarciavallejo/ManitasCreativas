@@ -38,13 +38,11 @@ const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({
       footer={[
         <Button key="close" onClick={onClose}>
           Cerrar
-        </Button>,
-        !payment.esAnulado && (
+        </Button>,        !payment.esAnulado && (
           <Button
             key="void"
             danger
             onClick={onVoid}
-            disabled={true} // Disable for now until void functionality is implemented
           >
             Anular Pago
           </Button>

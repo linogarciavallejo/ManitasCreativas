@@ -69,8 +69,7 @@ export const pagoService = {
     // Ensure we return an array
     return Array.isArray(response) ? response : [];
   },
-
-  // Void a payment (to be implemented in a future iteration)
+  // Void a payment
   voidPayment: async (pagoId: number, motivo: string, usuarioId: number) => {
     const url = `/pagos/${pagoId}/void`;
     const data = {
@@ -78,15 +77,7 @@ export const pagoService = {
       usuarioAnulacionId: usuarioId,
     };
 
-    // This is a placeholder for the future implementation
-    // For now, just log that this would be called
-    console.log("Future API call:", url, data);
-
-    // Return a mock success response
-    return { success: true, message: "Pago anulado correctamente" };
-
-    // When actually implemented, it would look like:
-    // return await makeApiRequest(url, "POST", data);
+    return await makeApiRequest(url, "POST", data);
   },
 
   // Update a payment

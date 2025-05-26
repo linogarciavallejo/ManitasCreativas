@@ -77,11 +77,10 @@ public class PagoService : IPagoService
         {
             Id = pago.Id,
             Monto = pago.Monto,
-            Fecha = pago.Fecha,
-            CicloEscolar = pago.CicloEscolar,
+            Fecha = pago.Fecha,            CicloEscolar = pago.CicloEscolar,
             MedioPago = pago.MedioPago,
             RubroId = pago.RubroId,
-            RubroDescripcion = rubro?.Descripcion,
+            RubroDescripcion = rubro?.Descripcion ?? string.Empty,
             EsColegiatura = pago.EsColegiatura,
             MesColegiatura = pago.MesColegiatura,
             AnioColegiatura = pago.AnioColegiatura,
@@ -502,8 +501,7 @@ public class PagoService : IPagoService
                         Url = pi.ImagenUrl.ToString()
                     }).ToList() ?? new List<PagoImagenDto>()
                 };
-            }).ToList();
-              Console.WriteLine($"Returning {dtos.Count} payment DTOs");
+            }).ToList();        Console.WriteLine($"Returning {dtos.Count} payment DTOs");
             return dtos;
         }
         catch (Exception ex)
@@ -512,5 +510,65 @@ public class PagoService : IPagoService
             Console.WriteLine(ex.StackTrace);
             throw;
         }
+    }
+
+    public async Task<PagoReadDto> VoidPagoAsync(int id, string motivoAnulacion, int usuarioAnulacionId)
+    {
+        var pago = await _pagoRepository.GetByIdAsync(id);
+        if (pago == null)
+        {
+            throw new ArgumentException($"Payment with ID {id} not found");
+        }
+
+        if (pago.EsAnulado)
+        {
+            throw new InvalidOperationException("Payment is already voided");
+        }
+
+        // Update the payment to mark it as voided
+        pago.EsAnulado = true;
+        pago.MotivoAnulacion = motivoAnulacion;
+        pago.FechaAnulacion = DateTime.UtcNow;
+        pago.UsuarioAnulacionId = usuarioAnulacionId;
+
+        await _pagoRepository.UpdateAsync(pago);
+
+        // Return the updated payment as DTO
+        var alumno = await _alumnoRepository.GetByIdAsync(pago.AlumnoId);
+        var rubro = await _rubroRepository.GetByIdAsync(pago.RubroId);
+        var usuario = await _usuarioRepository.GetByIdAsync(pago.UsuarioCreacionId);
+        var usuarioAnulacion = await _usuarioRepository.GetByIdAsync(usuarioAnulacionId);        return new PagoReadDto
+        {
+            Id = pago.Id,
+            Monto = pago.Monto,
+            Fecha = pago.Fecha,
+            CicloEscolar = pago.CicloEscolar,
+            MedioPagoDescripcion = pago.MedioPago.ToString(),
+            RubroId = pago.RubroId,
+            RubroDescripcion = rubro?.Descripcion ?? "Unknown",
+            TipoRubroDescripcion = rubro?.Tipo.ToString() ?? "Unknown",
+            EsColegiatura = rubro?.EsColegiatura ?? false,
+            MesColegiatura = pago.MesColegiatura,
+            AnioColegiatura = pago.AnioColegiatura,
+            Notas = pago.Notas ?? string.Empty,
+            EsAnulado = pago.EsAnulado,
+            MotivoAnulacion = pago.MotivoAnulacion,
+            FechaAnulacion = pago.FechaAnulacion,
+            UsuarioAnulacionId = pago.UsuarioAnulacionId,
+            UsuarioNombre = usuario != null ? $"{usuario.Nombres} {usuario.Apellidos}".Trim() : "Unknown",
+            UsuarioCreacionId = pago.UsuarioCreacionId,
+            UsuarioActualizacionId = pago.UsuarioActualizacionId,            AlumnoId = pago.AlumnoId,
+            AlumnoNombre = alumno != null ? $"{alumno.PrimerNombre} {alumno.SegundoNombre} {alumno.PrimerApellido} {alumno.SegundoApellido}".Trim() : "Unknown",
+            GradoNombre = alumno?.Grado?.Nombre ?? string.Empty,
+            Seccion = alumno?.Seccion ?? string.Empty,
+            EsPagoDeCarnet = rubro?.EsPagoDeCarnet ?? false,
+            EstadoCarnet = pago.EstadoCarnet ?? string.Empty,
+            ImagenesPago = pago.ImagenesPago?.Select(pi => new PagoImagenDto
+            {
+                Id = pi.Id,
+                PagoId = pi.PagoId,
+                Url = pi.ImagenUrl.ToString()
+            }).ToList() ?? new List<PagoImagenDto>()
+        };
     }
 }

@@ -25,6 +25,7 @@ import dayjs from "dayjs";
 import { makeApiRequest } from "../../services/apiHelper";
 import { gradoService } from "../../services/gradoService";
 import { pagoService, Pago } from "../../services/pagoService";
+import { getCurrentUserId } from "../../services/authService";
 import PaymentDetailsModal from "./PaymentDetailsModal";
 import VoidPaymentModal from "./VoidPaymentModal";
 import PaymentEditModal from "./PaymentEditModal";
@@ -367,7 +368,6 @@ const EditPayments: React.FC = () => {
     setConfirmVoidModalVisible(false);
     setVoidReason("");
   };
-
   // Handle confirm void payment
   const handleConfirmVoidPayment = async () => {
     if (!selectedPayment) return;
@@ -378,10 +378,17 @@ const EditPayments: React.FC = () => {
       return;
     }
 
+    // Get current user ID
+    const currentUserId = getCurrentUserId();
+    if (!currentUserId) {
+      toast.error("Error: No hay un usuario autenticado");
+      return;
+    }
+
     setIsVoiding(true);
     try {
-      // In a future implementation, call actual API to void payment
-      // await pagoService.voidPayment(selectedPayment.id, voidReason);
+      // Call the actual API to void payment
+      await pagoService.voidPayment(selectedPayment.id, voidReason.trim(), currentUserId);
 
       toast.success(`Pago #${selectedPayment.id} anulado correctamente`);
 
@@ -700,13 +707,12 @@ const EditPayments: React.FC = () => {
                               icon={<EditOutlined />}
                               onClick={() => handleEditPayment(record)}
                               title="Editar pago"
-                            />
-                            <Button
+                            />                            <Button
                               size="small"
                               danger
                               icon={<StopOutlined />}
-                              disabled={true}
-                              title="Anular pago (próximamente)"
+                              onClick={() => handleViewPayment(record)}
+                              title="Anular pago"
                             />
                           </>
                         )}

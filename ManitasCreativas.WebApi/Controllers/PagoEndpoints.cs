@@ -88,19 +88,28 @@ public static class PagoEndpoints
                 }
             }
         )
-        .DisableAntiforgery();
-
-        // Endpoint for voiding a payment (to be implemented in future iterations)
+        .DisableAntiforgery();        // Endpoint for voiding a payment
         app.MapPost(
             "/pagos/{id}/void",
-            (int id, VoidPagoDto voidDto, IPagoService pagoService) =>
+            async (int id, VoidPagoDto voidDto, IPagoService pagoService) =>
             {
-                // Placeholder for future implementation
-                // var result = await pagoService.VoidPagoAsync(id, voidDto.MotivoAnulacion, voidDto.UsuarioAnulacionId);
-                // return Results.Ok(result);
-
-                // For now, return a not implemented response
-                return Results.StatusCode(StatusCodes.Status501NotImplemented);
+                try
+                {
+                    var result = await pagoService.VoidPagoAsync(id, voidDto.MotivoAnulacion, voidDto.UsuarioAnulacionId);
+                    return Results.Ok(result);
+                }
+                catch (ArgumentException ex)
+                {
+                    return Results.BadRequest(ex.Message);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return Results.BadRequest(ex.Message);
+                }
+                catch (Exception)
+                {
+                    return Results.StatusCode(500);
+                }
             }
         );
     }

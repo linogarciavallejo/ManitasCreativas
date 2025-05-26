@@ -9,8 +9,9 @@ public interface IPagoService
     Task<PagoReadDto> GetPagoByIdAsync(int id);    Task<PagoReadDto> AddPagoAsync(PagoUploadDto pagoDto);
     
     Task<PagoReadDto> UpdatePagoAsync(int id, PagoUploadDto pagoDto);
-    
-    Task<PagoReportResponseDto> GetPagoReportAsync(PagoReportFilterDto filter);
+      Task<PagoReportResponseDto> GetPagoReportAsync(PagoReportFilterDto filter);
     
     Task<IEnumerable<PagoReadDto>> GetPagosForEditAsync(int cicloEscolar, int? gradoId = null, int? alumnoId = null);
+    
+    Task<PagoReadDto> VoidPagoAsync(int id, string motivoAnulacion, int usuarioAnulacionId);
 }
