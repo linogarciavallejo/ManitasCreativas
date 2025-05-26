@@ -16,9 +16,11 @@ export interface Pago {
   notas: string;
   esAnulado: boolean;
   motivoAnulacion?: string;
-  fechaAnulacion?: string;
-  usuarioAnulacionId?: number;
+  fechaAnulacion?: string;  usuarioAnulacionId?: number;
   usuarioNombre: string;
+  // Audit fields
+  usuarioCreacionId: number;
+  usuarioActualizacionId?: number;
   imagenesPago: PagoImagen[];
   // Carnet payment fields
   esPagoDeCarnet?: boolean;

@@ -222,7 +222,8 @@ public class PagoService : IPagoService
         existingPago.EsColegiatura = pagoDto.EsColegiatura;
         existingPago.MesColegiatura = pagoDto.MesColegiatura;
         existingPago.AnioColegiatura = pagoDto.AnioColegiatura;
-        existingPago.UsuarioActualizacion = usuario;
+        existingPago.EsPagoDeCarnet = pagoDto.EsPagoDeCarnet;
+        existingPago.EstadoCarnet = pagoDto.EstadoCarnet;
         // Update audit fields
         existingPago.FechaActualizacion = DateTime.UtcNow;
         existingPago.UsuarioActualizacionId = pagoDto.UsuarioActualizacionId;

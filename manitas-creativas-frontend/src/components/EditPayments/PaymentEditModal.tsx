@@ -137,14 +137,12 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
       // Add existing image URLs to the formData
       newImages.forEach((url, index) => {
         formData.append(`ImageUrls[${index}]`, url);
-      });
-
-      // User information for audit
+      });      // User information for audit
       const userId = getCurrentUserId();
       formData.append("UsuarioActualizacionId", userId.toString());
 
-      // Copy original creation fields
-      formData.append("UsuarioCreacionId", payment.usuarioNombre || "1");
+      // For updates, preserve the original creation user ID
+      formData.append("UsuarioCreacionId", payment.usuarioCreacionId.toString());
       formData.append("EsAnulado", "false");
       formData.append("MotivoAnulacion", "");
 
