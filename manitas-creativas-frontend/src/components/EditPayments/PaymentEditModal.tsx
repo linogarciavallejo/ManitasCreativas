@@ -42,20 +42,28 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
   loading,
 }) => {
   const [form] = Form.useForm();
-  const [fileList, setFileList] = useState<ExtendedUploadFile[]>([]);
-  // Reset form when payment changes or modal opens
+  const [fileList, setFileList] = useState<ExtendedUploadFile[]>([]);  // Reset form when payment changes or modal opens
   useEffect(() => {
     if (payment && visible) {
-      form.setFieldsValue({
-        fecha: dayjs(payment.fecha),
-        monto: payment.monto,
-        medioPago: payment.medioPagoDescripcion,
-        notas: payment.notas || "",
-        cicloEscolar: payment.cicloEscolar,
-        mesColegiatura: payment.mesColegiatura,
-        anioColegiatura: payment.anioColegiatura,
-        estadoCarnet: payment.estadoCarnet || "",
-      });
+      console.log("Setting form values for payment:", payment.id);
+      console.log("payment.monto value:", payment.monto, "type:", typeof payment.monto);
+      
+      // Use a timeout to ensure the modal is fully rendered before setting values
+      setTimeout(() => {
+        form.setFieldsValue({
+          fecha: dayjs(payment.fecha),
+          monto: payment.monto,
+          medioPago: payment.medioPagoDescripcion,
+          notas: payment.notas || "",
+          cicloEscolar: payment.cicloEscolar,
+          mesColegiatura: payment.mesColegiatura,
+          anioColegiatura: payment.anioColegiatura,
+          estadoCarnet: payment.estadoCarnet || "",
+        });
+        
+        // Check what value was actually set
+        console.log("Form monto value after setFieldsValue:", form.getFieldValue('monto'));
+      }, 100);
 
       // Set existing images
       if (payment.imagenesPago && payment.imagenesPago.length > 0) {
@@ -238,8 +246,7 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
     >
       <Form form={form} layout="vertical" scrollToFirstError>
         <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
+          <Col span={12}>            <Form.Item
               label="Fecha de Pago"
               name="fecha"
               rules={[
@@ -252,10 +259,10 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
               <DatePickerES
                 style={{ width: "100%" }}
                 placeholder="Seleccione la fecha de pago"
+                disabled
               />
             </Form.Item>
-          </Col>
-          <Col span={12}>
+          </Col>          <Col span={12}>
             <Form.Item
               label="Monto"
               name="monto"
@@ -263,13 +270,18 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
                 { required: true, message: "Por favor ingrese el monto" },
               ]}
             >
-              {" "}
               <InputNumber
                 style={{ width: "100%" }}
                 placeholder="Ingrese el monto"
                 formatter={(value) =>
                   `Q ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
+                parser={(value: string | undefined) => {
+                  if (!value) return 0;
+                  const cleanValue = value.replace(/Q\s?|,/g, "");
+                  const parsed = parseFloat(cleanValue) || 0;
+                  return parsed;
+                }}
                 min={0}
                 step={0.01}
               />
