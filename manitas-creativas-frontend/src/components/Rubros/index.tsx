@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Form, Input, Button, Select, DatePicker, InputNumber, Switch, Modal, Space, Typography, Popconfirm, message, Tooltip, Tag, Card, Row, Col } from 'antd';
+import { Table, Form, Input, Button, Select, DatePicker, InputNumber, Switch, Modal, Space, Typography, Popconfirm, message, Card, Row, Col } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined, InfoCircleOutlined, SearchOutlined } from '@ant-design/icons';
 import 'antd/dist/reset.css';
 import './Rubros.css';
@@ -165,14 +165,13 @@ const Rubros: React.FC = () => {
   };
 
   // Columns for the table
-  const columns = [
-    {
+  const columns = [    {
       title: 'Descripción',
       dataIndex: 'descripcion',
       key: 'descripcion',
       width: 70,
       sorter: (a: Rubro, b: Rubro) => a.descripcion.localeCompare(b.descripcion),
-      defaultSortOrder: 'ascend',
+      defaultSortOrder: 'ascend' as const,
     },
     {
       title: 'Nivel Educativo',
@@ -188,24 +187,22 @@ const Rubros: React.FC = () => {
       },
     },
     {
-      title: 'Monto',
-      dataIndex: 'montoPreestablecido',
+      title: 'Monto',      dataIndex: 'montoPreestablecido',
       key: 'montoPreestablecido',
       width: 35,
-      align: 'right',
+      align: 'right' as const,
       render: (value: number | undefined) => value ? `Q${value.toFixed(2)}` : '-',
       sorter: (a: Rubro, b: Rubro) => {
         const montoA = a.montoPreestablecido || 0;
         const montoB = b.montoPreestablecido || 0;
         return montoA - montoB;
       },
-    },
-    {
+    },    {
       title: 'Acciones',
       key: 'actions',
       width: 50,
-      align: 'center',
-      render: (_: any, record: Rubro) => (
+      align: 'center' as const,
+      render: (_: unknown, record: Rubro) => (
         <Space size={0} style={{ display: 'flex', justifyContent: 'center' }}>
           <Button 
             type="primary" 
@@ -424,10 +421,9 @@ const Rubros: React.FC = () => {
               } else {
                 setGrados([]);
                 form.setFieldsValue({ gradoId: undefined });
-              }
-            }}
+              }            }}
             filterOption={(input, option) => 
-              option?.children?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              option?.label ? option.label.toString().toLowerCase().indexOf(input.toLowerCase()) >= 0 : false
             }
           >
             {nivelesEducativos.map(nivel => (
@@ -443,12 +439,11 @@ const Rubros: React.FC = () => {
           <Select
             placeholder="Seleccione el grado"
             loading={loadingGrados}
-            disabled={form.getFieldValue('nivelEducativoId') === undefined || loadingGrados}
-            allowClear
+            disabled={form.getFieldValue('nivelEducativoId') === undefined || loadingGrados}            allowClear
             showSearch
             optionFilterProp="children"
             filterOption={(input, option) => 
-              option?.children?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              option?.label ? option.label.toString().toLowerCase().indexOf(input.toLowerCase()) >= 0 : false
             }
           >
             {grados.map(grado => (

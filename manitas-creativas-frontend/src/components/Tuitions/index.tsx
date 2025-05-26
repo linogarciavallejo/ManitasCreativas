@@ -77,32 +77,29 @@ const Tuitions: React.FC = () => {
   const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
-  const [contactos, setContactos] = useState<Contacto[]>([]);
-  const [dinamicRubroId, setDinamicRubroId] = useState<string>("1"); // Default to "1" but will be updated
-  const [gradoId, setGradoId] = useState<number | null>(null);
+  const [contactos, setContactos] = useState<Contacto[]>([]);  const [dinamicRubroId, setDinamicRubroId] = useState<string>("1"); // Default to "1" but will be updated
+  // const [gradoId, setGradoId] = useState<number | null>(null); // Currently unused
   const [form] = Form.useForm(); // Add Form instance
 
   const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth() + 1; // 1-based month number
-
-  // Function to get month name for display
-  const getMonthNameByNumber = (monthNumber: number): string => {
-    const monthNames = [
-      "Enero",
-      "Febrero",
-      "Marzo",
-      "Abril",
-      "Mayo",
-      "Junio",
-      "Julio",
-      "Agosto",
-      "Septiembre",
-      "Octubre",
-      "Noviembre",
-      "Diciembre",
-    ];
-    return monthNames[(monthNumber - 1) % 12]; // Convert 1-based to 0-based index with safety check
-  };
+  const currentMonth = new Date().getMonth() + 1; // 1-based month number  // Function to get month name for display
+  // const getMonthNameByNumber = (monthNumber: number): string => {
+  //   const monthNames = [
+  //     "Enero",
+  //     "Febrero",
+  //     "Marzo",
+  //     "Abril",
+  //     "Mayo",
+  //     "Junio",
+  //     "Julio",
+  //     "Agosto",
+  //     "Septiembre",
+  //     "Octubre",
+  //     "Noviembre",
+  //     "Diciembre",
+  //   ];
+  //   return monthNames[(monthNumber - 1) % 12]; // Convert 1-based to 0-based index with safety check
+  // };
 
   // Update form values when dinamicRubroId changes
   useEffect(() => {
@@ -208,13 +205,12 @@ const Tuitions: React.FC = () => {
       setSelectedCodigo(response.codigo);
       setSelectedStudent(
         `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim()
-      );
-      // Update contactos info from the response
+      );      // Update contactos info from the response
       setContactos(response.contactos || []);
 
       // Set gradoId and fetch appropriate RubroId
       const studentGradoId = response.gradoId;
-      setGradoId(studentGradoId);
+      // setGradoId(studentGradoId); // Currently unused
 
       // Call the function to fetch the correct RubroId for this student's grade
       if (studentGradoId) {
@@ -262,11 +258,9 @@ const Tuitions: React.FC = () => {
       );
       setSelectedCodigo(response.codigo);
       // Update contactos info from the response
-      setContactos(response.contactos || []);
-
-      // Set gradoId and fetch appropriate RubroId
+      setContactos(response.contactos || []);      // Set gradoId and fetch appropriate RubroId
       const studentGradoId = response.gradoId;
-      setGradoId(studentGradoId);
+      // setGradoId(studentGradoId); // Currently unused
 
       // Call the function to fetch the correct RubroId for this student's grade
       if (studentGradoId) {

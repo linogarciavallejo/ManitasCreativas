@@ -7,9 +7,7 @@ import {
   DollarOutlined,
   FileTextOutlined,
   IdcardOutlined,
-  TagOutlined,
-  CreditCardOutlined,
-  EditOutlined,
+  TagOutlined,  CreditCardOutlined,
 } from "@ant-design/icons";
 import { Button, Layout, Menu, theme } from "antd";
 import { Link, Outlet } from "react-router-dom";

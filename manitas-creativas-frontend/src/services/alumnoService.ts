@@ -83,13 +83,15 @@ export const alumnoService = {
   // Update existing student
   updateAlumno: async (id: number, alumno: Alumno): Promise<void> => {
     await makeApiRequest<void>(`/alumnos/${id}`, 'PUT', alumno);
-  },
-
-  // Logical delete - change estado to Inactivo (2)
+  },  // Logical delete - change estado to Inactivo (2)
   setInactiveAlumno: async (id: number): Promise<void> => {
-    const alumno = await this.getAlumnoById(id);
-    alumno.estado = 2; // Inactivo
-    await this.updateAlumno(id, alumno);
+    const alumno = await alumnoService.getAlumnoById(id);
+    if (alumno) {
+      alumno.estado = 2; // Inactivo
+      await alumnoService.updateAlumno(id, alumno);
+    } else {
+      throw new Error('Alumno not found');
+    }
   },
 
   // Get student with payments

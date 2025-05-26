@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Table, Button, Form, Input, Select, Space, Typography, Popconfirm, message, Tabs } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, LinkOutlined, UserOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, LinkOutlined } from '@ant-design/icons';
 import { contactoService, Contacto, AlumnoContacto } from '../../services/contactoService';
-import { Alumno } from '../../services/alumnoService';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Option } = Select;
 const { TabPane } = Tabs;
 
 // Placeholder for NIT validation function - to be replaced with actual implementation later
-const validateNIT = (nit: string): boolean => {
+const validateNIT = (_nit: string): boolean => {
   // This is a placeholder that always returns true
   // It will be replaced with actual validation logic later
   return true;
@@ -540,13 +539,11 @@ const ContactosModal: React.FC<ContactosModalProps> = ({ visible, onClose, alumn
             name="contactoId"
             label="Contacto"
             rules={[{ required: true, message: 'Por favor seleccione un contacto' }]}
-          >
-            <Select
+          >            <Select
               placeholder="Seleccione un contacto"
               showSearch
-              optionFilterProp="children"
               filterOption={(input, option) =>
-                option?.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                option?.label ? option.label.toString().toLowerCase().indexOf(input.toLowerCase()) >= 0 : false
               }
             >
               {Array.isArray(allContactos) ? allContactos.map(contacto => (

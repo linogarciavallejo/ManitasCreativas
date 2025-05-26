@@ -317,7 +317,7 @@ const PaymentReport: React.FC = () => {
         fixed: 'left' as const,
         className: 'student-info-column',
         hidden: true, // Hide this column
-        render: (_, record: PagoReportStudent) => getCarnetValue(record),
+        render: (_: unknown, record: PagoReportStudent) => getCarnetValue(record),
       },
     ];
 

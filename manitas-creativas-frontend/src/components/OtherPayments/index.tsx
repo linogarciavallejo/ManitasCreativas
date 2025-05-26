@@ -84,10 +84,7 @@ const OtherPayments: React.FC = () => {
   // Add state for selected rubro
   const [selectedRubro, setSelectedRubro] = useState<Rubro | null>(null);
   const [form] = Form.useForm();
-
   const currentYear = new Date().getFullYear();
-  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  const currentMonth = new Date().getMonth() + 1; // 1-based month number
 
   // Fetch rubros on component mount
   useEffect(() => {

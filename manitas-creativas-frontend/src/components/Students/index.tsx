@@ -13,11 +13,11 @@ const { Title } = Typography;
 const { Option } = Select;
 
 // Estado Alumno representation
-const estadoAlumnoOptions = [
-  { value: 1, label: 'Activo', color: 'green' },
-  { value: 2, label: 'Inactivo', color: 'red' },
-  { value: 3, label: 'Retirado', color: 'orange' }
-];
+// const estadoAlumnoOptions = [
+//   { value: 1, label: 'Activo', color: 'green' },
+//   { value: 2, label: 'Inactivo', color: 'red' },
+//   { value: 3, label: 'Retirado', color: 'orange' }
+// ];
 
 const Students: React.FC = () => {
   const [form] = Form.useForm();
@@ -628,7 +628,7 @@ const Students: React.FC = () => {
                   loading={loadingSedes}
                   showSearch
                   optionFilterProp="children"
-                  onChange={(value, option: any) => {
+                  onChange={(_value, option: any) => {
                     // When sede is changed, update the sedeNombre field
                     form.setFieldsValue({ 
                       sedeNombre: option.children 
@@ -698,7 +698,7 @@ const Students: React.FC = () => {
                   loading={loadingGrados}
                   showSearch
                   optionFilterProp="children"
-                  onChange={(value, option: any) => {
+                  onChange={(_value, option: any) => {
                     // When grado is changed, update the gradoNombre field
                     form.setFieldsValue({ 
                       gradoNombre: option.children 
