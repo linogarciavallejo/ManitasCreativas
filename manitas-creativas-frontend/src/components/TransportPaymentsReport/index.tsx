@@ -36,10 +36,10 @@ interface XLSXStyledCell {
   s?: XLSXCellStyle;
 }
 
-// Month names for transport report columns (1-12)
+// Month names for transport report columns (1-10)
 const MONTH_NAMES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  'Julio', 'Agosto', 'Septiembre', 'Octubre'
 ];
 
 const TransportPaymentsReport = () => {

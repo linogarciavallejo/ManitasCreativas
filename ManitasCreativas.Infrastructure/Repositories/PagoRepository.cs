@@ -22,6 +22,7 @@ public class PagoRepository : IPagoRepository
         return await _context.Pagos
             .Include(p => p.Alumno)
                 .ThenInclude(a => a.Grado)
+                    .ThenInclude(g => g.NivelEducativo)
             .Include(p => p.Rubro)
             .Include(p => p.ImagenesPago)
             .ToListAsync();

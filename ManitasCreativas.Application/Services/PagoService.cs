@@ -687,12 +687,11 @@ public class PagoService : IPagoService
 
             // Get payments for this student and organize by month
             var alumnoPagos = pagos.Where(p => p.AlumnoId == alumno.Id).ToList();
-            var pagosPorMes = new Dictionary<int, PagoReportItemDto>();
-
-            // Organize payments by month (1-12)
+            var pagosPorMes = new Dictionary<int, PagoReportItemDto>();            // Organize payments by MesColegiatura (which month the payment is for) instead of the actual payment date
             foreach (var pago in alumnoPagos)
             {
-                int mes = pago.Fecha.Month;
+                // Use MesColegiatura instead of Fecha.Month to accurately represent which month the payment covers
+                int mes = pago.MesColegiatura;
                 if (!pagosPorMes.ContainsKey(mes))
                 {
                     pagosPorMes[mes] = new PagoReportItemDto
