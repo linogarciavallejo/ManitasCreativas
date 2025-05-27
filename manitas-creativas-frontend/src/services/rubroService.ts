@@ -24,6 +24,7 @@ export interface Rubro {
   activo: boolean;
   ordenVisualizacionGrid?: number; // Added: new field for display order in grid
   esPagoDeCarnet?: boolean; // Added: new field for ID card payment flag
+  esPagoDeTransporte?: boolean; // Added: new field for transport payment flag
   
   // Audit fields
   fechaCreacion: string;
@@ -65,6 +66,7 @@ export interface PagoItem {
   mesLimitePago?: number;
   ordenVisualizacionGrid?: number; // Added: new field for display order in grid
   esPagoDeCarnet?: boolean; // Added: new field for ID card payment flag
+  esPagoDeTransporte?: boolean; // Added: new field for transport payment flag
   usuarioId?: number;
   usuarioNombre: string;
   fechaCreacion: string;

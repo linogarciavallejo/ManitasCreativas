@@ -26,6 +26,7 @@ namespace ManitasCreativas.Domain.Entities
         public int AnioColegiatura { get; set; }
         public bool? EsPagoDeCarnet { get; set; } = false;
         public string? EstadoCarnet { get; set; } = string.Empty;
+        public bool? EsPagoDeTransporte { get; set; } = false;
 
         // Audit fields
         public DateTime FechaCreacion { get; set; }

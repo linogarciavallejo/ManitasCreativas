@@ -359,6 +359,7 @@ public class AlumnoService : IAlumnoService
             EsColegiatura = p.Rubro?.Tipo == TipoRubro.Colegiatura,
             MesColegiatura = p.MesColegiatura,
             AnioColegiatura = p.AnioColegiatura,
+            EsPagoDeTransporte = p.Rubro?.Tipo == TipoRubro.Transporte,
             Notas = p.Notas ?? string.Empty,
             MontoPreestablecido = p.Rubro?.MontoPreestablecido,
             PenalizacionPorMoraMonto = p.Rubro?.PenalizacionPorMoraMonto,

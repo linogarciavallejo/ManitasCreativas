@@ -62,6 +62,11 @@ const Main: React.FC = () => {
               icon: <FileTextOutlined />,
               label: <Link to="payment-report">Control de Pagos</Link>,
             },
+            {
+              key: "8",
+              icon: <FileTextOutlined />,
+              label: <Link to="transport-payments">Pagos de Bus</Link>,
+            },
           ]}
         />
       </Sider>

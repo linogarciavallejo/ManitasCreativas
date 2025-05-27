@@ -90,7 +90,8 @@ public class PagoService : IPagoService
             FechaLimitePagoAmarillo = rubro?.FechaLimitePagoAmarillo,
             FechaLimitePagoRojo = rubro?.FechaLimitePagoRojo,
             EsPagoDeCarnet = pago.EsPagoDeCarnet,
-            EstadoCarnet = pago.EstadoCarnet,
+            EstadoCarnet = pago.EstadoCarnet ?? string.Empty,
+            EsPagoDeTransporte = pago.EsPagoDeTransporte,
             UsuarioCreacionId = pago.UsuarioCreacionId,
             UsuarioActualizacionId = pago.UsuarioActualizacionId,
             FechaCreacion = pago.FechaCreacion,
@@ -153,6 +154,7 @@ public class PagoService : IPagoService
             AnioColegiatura = pagoDto.AnioColegiatura,
             EsPagoDeCarnet = pagoDto.EsPagoDeCarnet,
             EstadoCarnet = pagoDto.EstadoCarnet,
+            EsPagoDeTransporte = pagoDto.EsPagoDeTransporte,
             UsuarioCreacion = usuario,
 
             // Audit fields
@@ -245,6 +247,7 @@ public class PagoService : IPagoService
         existingPago.AnioColegiatura = pagoDto.AnioColegiatura;
         existingPago.EsPagoDeCarnet = pagoDto.EsPagoDeCarnet;
         existingPago.EstadoCarnet = pagoDto.EstadoCarnet;
+        existingPago.EsPagoDeTransporte = pagoDto.EsPagoDeTransporte;
         // Update audit fields
         existingPago.FechaActualizacion = DateTime.UtcNow;
         existingPago.UsuarioActualizacionId = pagoDto.UsuarioActualizacionId;
@@ -528,6 +531,7 @@ public class PagoService : IPagoService
                     Notas = p.Notas ?? string.Empty,
                     EsPagoDeCarnet = p.EsPagoDeCarnet,
                     EstadoCarnet = p.EstadoCarnet ?? string.Empty,
+                    EsPagoDeTransporte = p.EsPagoDeTransporte,
                     EsAnulado = p.EsAnulado,
                     MotivoAnulacion = p.MotivoAnulacion,
                     FechaAnulacion = p.FechaAnulacion,
@@ -608,6 +612,7 @@ public class PagoService : IPagoService
             Seccion = alumno?.Seccion ?? string.Empty,
             EsPagoDeCarnet = rubro?.EsPagoDeCarnet ?? false,
             EstadoCarnet = pago.EstadoCarnet ?? string.Empty,
+            EsPagoDeTransporte = rubro?.EsPagoDeTransporte ?? false,
             ImagenesPago = pago.ImagenesPago?.Select(pi => new PagoImagenDto
             {
                 Id = pi.Id,

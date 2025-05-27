@@ -46,6 +46,7 @@ public class PagoReadDto
     public int? UsuarioActualizacionId { get; set; }
     public bool? EsPagoDeCarnet { get; set; } = false;
     public string EstadoCarnet { get; set; } = string.Empty;
+    public bool? EsPagoDeTransporte { get; set; } = false;
 
     public bool EsAnulado { get; set; } = false;
     public string? MotivoAnulacion { get; set; } = string.Empty;

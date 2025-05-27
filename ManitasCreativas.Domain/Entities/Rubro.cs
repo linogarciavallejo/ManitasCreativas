@@ -55,6 +55,7 @@ namespace ManitasCreativas.Domain.Entities
         // Opcional: Si deseas tener explícitamente la fecha de fin de la promocion para el rubro.
 
         public bool? EsPagoDeCarnet { get; set; } = false;
+        public bool? EsPagoDeTransporte { get; set; } = false;
 
         public string? Notas { get; set; } = string.Empty;
         // Opcional: Si deseas tener notas adicionales para el rubro.
