@@ -1,109 +1,70 @@
 .payment-report-container {
+  padding: 20px;
   width: 100%;
-  max-width: 100%;
 }
 
 .payment-report-header {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .payment-report-filters {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .payment-report-action {
   display: flex;
-  align-items: flex-end;
 }
 
 .payment-report-content {
-  overflow-x: auto;
+  margin-top: 20px;
 }
 
 .payment-report-loading {
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  padding: 50px 0;
-  color: #999;
+  align-items: center;
+  padding: 50px;
 }
 
-/* Table customizations */
-.payment-report-container .ant-table-small .ant-table-thead > tr > th {
-  background-color: #f0f2f5;
-  text-align: center;
+.payment-report-table {
+  width: 100%;
+  overflow-x: auto;
 }
 
-.payment-report-container .ant-table-cell {
-  padding: 8px !important;
+/* Column Styling */
+.student-info-column {
+  background-color: #f5f5f5;
 }
 
-/* Student info columns */
-.payment-report-container .ant-table-cell:nth-child(-n+4) {
-  background-color: #fafafa;
+.payment-column {
+  background-color: #f0f7ff;
 }
 
-/* Payment columns - colored based on payment status */
-.payment-report-container .payment-paid {
-  color: #52c41a;
-  font-weight: bold;
+/* For nested tables if needed */
+.ant-table-expanded-row .ant-table-wrapper {
+  margin: 0px !important;
 }
 
-.payment-report-container .payment-pending {
-  color: #faad14;
+/* Make sure header sticks to top when scrolling */
+.ant-table-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
-.payment-report-container .payment-late {
-  color: #f5222d;
+/* Improve table cell appearance */
+.ant-table-cell {
+  white-space: normal;
+  word-break: break-word;
 }
 
-/* Colegiatura divider line styles */
-.payment-report-container .colegiatura-header {
-  border-bottom: 1px solid #91caff !important; /* Lighter blue border */
-  background-color: #ffffcc !important; /* Light yellow for headers */
+/* Alternating row colors */
+.ant-table-row:nth-child(even) {
+  background-color: #fbfbfb;
 }
 
-.payment-report-container .colegiatura-month {
-  background-color: #f9f9f9;
-}
-
-/* Bimester divider styles */
-.payment-report-container .bimester-divider {
-  border-right: 1px solid #91caff !important; /* Lighter blue right border */
-}
-
-/* Add colors to columns */
-.payment-report-container .ant-table-thead > tr > th {
-  background-color: #ffffcc !important; /* Light yellow for all headers */
-  font-weight: bold;
-}
-
-/* Student info columns (light green) */
-.payment-report-container .student-info-column {
-  background-color: #e6f7e6 !important; /* Light green */
-}
-
-/* Payment columns (light blue) */
-.payment-report-container .payment-column {
-  background-color: #e6f7ff !important; /* Light blue */
-}
-
-/* Alternating row styles */
-.payment-report-container .ant-table-tbody > tr:nth-child(odd) > td.student-info-column {
-  background-color: #e6f7e6 !important; /* Light green */
-}
-
-.payment-report-container .ant-table-tbody > tr:nth-child(even) > td.student-info-column {
-  background-color: #d4eed4 !important; /* Darker light green */
-}
-
-.payment-report-container .ant-table-tbody > tr:nth-child(odd) > td.payment-column,
-.payment-report-container .ant-table-tbody > tr:nth-child(odd) > td.colegiatura-month {
-  background-color: #e6f7ff !important; /* Light blue */
-}
-
-.payment-report-container .ant-table-tbody > tr:nth-child(even) > td.payment-column,
-.payment-report-container .ant-table-tbody > tr:nth-child(even) > td.colegiatura-month {
-  background-color: #d6eeff !important; /* Darker light blue */
+/* Hover effect on rows */
+.ant-table-row:hover td {
+  background-color: #e6f7ff !important;
 }

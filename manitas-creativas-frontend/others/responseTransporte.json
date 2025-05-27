@@ -1,0 +1,57 @@
+{
+    "alumnos": [
+        {
+            "numeroOrdinal": 1,
+            "alumnoId": 6,
+            "alumno": "Garcia Vallejox, Lino Antonio",
+            "direccion": "",
+            "telefono": "31857884, +505 8200 6494",
+            "encargado": "Rosa Vallejo, Lino Garcia",
+            "grado": "Primero Primaria - N/A",
+            "pagosPorMes": {
+                "1": {
+                    "id": 21,
+                    "monto": 250,
+                    "estado": "",
+                    "mesColegiatura": 1,
+                    "notas": "",
+                    "esPagoDeCarnet": false,
+                    "estadoCarnet": "",
+                    "esPagoDeTransporte": true
+                },
+                "2": {
+                    "id": 22,
+                    "monto": 250,
+                    "estado": "",
+                    "mesColegiatura": 2,
+                    "notas": "",
+                    "esPagoDeCarnet": false,
+                    "estadoCarnet": "",
+                    "esPagoDeTransporte": true
+                },
+                "3": {
+                    "id": 30,
+                    "monto": 250,
+                    "estado": "",
+                    "mesColegiatura": 3,
+                    "notas": "",
+                    "esPagoDeCarnet": false,
+                    "estadoCarnet": "",
+                    "esPagoDeTransporte": true
+                },
+                "5": {
+                    "id": 31,
+                    "monto": 250,
+                    "estado": "",
+                    "mesColegiatura": 5,
+                    "notas": "",
+                    "esPagoDeCarnet": false,
+                    "estadoCarnet": "",
+                    "esPagoDeTransporte": true
+                }
+            }
+        }
+    ],
+    "rubroDescripcion": "Servicio de Bus - Ruta Pueblo",
+    "cicloEscolar": 2025
+}

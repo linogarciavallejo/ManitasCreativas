@@ -13,7 +13,7 @@ const Students = React.lazy(() => import("../components/Students"));
 const PaymentReport = React.lazy(() => import("../components/PaymentReport"));
 const EditPayments = React.lazy(() => import("../components/EditPayments"));
 const TransportPayments = React.lazy(() => import("../components/TransportPayments"));
-const TransportPaymentsReport = React.lazy(() => import("../components/TransportPaymentsReport"));
+const TransportPaymentsReport = React.lazy(() => import("../components/TransportPaymentsReport/index"));
 
 const AppRoutes: React.FC = () => {
   //userStore();

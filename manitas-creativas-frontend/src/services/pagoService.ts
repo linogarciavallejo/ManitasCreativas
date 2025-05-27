@@ -39,6 +39,29 @@ export interface PagoImagen {
   url: string;
 }
 
+// Transport payments report interfaces
+export interface PagoTransporteReportItemDto {
+  id: number;
+  monto: number;
+  estado: string;
+  mesColegiatura?: number;
+  notas?: string;
+  esPagoDeCarnet?: boolean;
+  estadoCarnet?: string;
+  esPagoDeTransporte?: boolean;
+}
+
+export interface PagoTransporteReportDto {
+  numeroOrdinal: number;
+  alumnoId: number;
+  alumno: string;
+  direccion: string;
+  telefono: string;
+  encargado: string;
+  grado: string;
+  pagosPorMes: { [mes: number]: PagoTransporteReportItemDto };
+}
+
 // Service functions
 export const pagoService = {
   // Get payments for editing with optional filters
@@ -79,10 +102,19 @@ export const pagoService = {
 
     return await makeApiRequest(url, "POST", data);
   },
-
   // Update a payment
   updatePayment: async (pagoId: number, pagoData: FormData) => {
     const url = `/pagos/${pagoId}`;
     return await makeApiRequest<Pago>(url, "PUT", pagoData);
+  },
+  
+  // Get transport payments report
+  getTransportPaymentsReport: async (cicloEscolar: number, rubroId: number) => {
+    const url = `/pagos/transport-report?cicloEscolar=${cicloEscolar}&rubroId=${rubroId}`;
+    return await makeApiRequest<{
+      alumnos: PagoTransporteReportDto[],
+      rubroDescripcion: string,
+      cicloEscolar: number
+    }>(url, "GET");
   },
 };
