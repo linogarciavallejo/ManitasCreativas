@@ -469,7 +469,9 @@ public class PagoService : IPagoService
         }
         
         return response;
-    }    public async Task<IEnumerable<PagoReadDto>> GetPagosForEditAsync(int cicloEscolar, int? gradoId = null, int? alumnoId = null)
+    }    
+    
+    public async Task<IEnumerable<PagoReadDto>> GetPagosForEditAsync(int cicloEscolar, int? gradoId = null, int? alumnoId = null)
     {
         try 
         {
@@ -620,5 +622,116 @@ public class PagoService : IPagoService
                 Url = pi.ImagenUrl.ToString()
             }).ToList() ?? new List<PagoImagenDto>()
         };
+    }
+    
+    public async Task<PagoTransporteReportResponseDto> GetPagoTransporteReportAsync(PagoTransporteReportFilterDto filter)
+    {
+        // Get the transport rubro
+        var rubro = await _rubroRepository.GetByIdAsync(filter.RubroId);
+        if (rubro == null)
+        {
+            throw new ArgumentException($"Rubro with ID {filter.RubroId} not found");
+        }        // Verify it's a transport rubro
+        if (rubro.EsPagoDeTransporte != true)
+        {
+            throw new ArgumentException($"Rubro with ID {filter.RubroId} is not a transport payment rubro");
+        }        // Get all students who have made transport payments for this rubro and cycle
+        var pagos = (await _pagoRepository.GetAllAsync())
+            .Where(p => p.CicloEscolar == filter.CicloEscolar && 
+                       p.RubroId == filter.RubroId &&
+                       p.EsPagoDeTransporte == true)
+            .ToList();
+
+        // Get unique student IDs from payments
+        var alumnoIds = pagos.Select(p => p.AlumnoId).Distinct().ToList();
+        
+        // Get all students with their related data
+        var alumnos = (await _alumnoRepository.GetAllAsync())
+            .Where(a => alumnoIds.Contains(a.Id) && a.Estado == EstadoAlumno.Activo)
+            .OrderBy(a => a.PrimerApellido)
+            .ThenBy(a => a.SegundoApellido)
+            .ThenBy(a => a.PrimerNombre)
+            .ThenBy(a => a.SegundoNombre)
+            .ToList();
+
+        var response = new PagoTransporteReportResponseDto
+        {
+            RubroDescripcion = rubro.Descripcion,
+            CicloEscolar = filter.CicloEscolar
+        };
+
+        int ordinal = 1;
+        foreach (var alumno in alumnos)
+        {
+            // Format full name: "Last Names, First Names"
+            string nombreCompleto = string.Format("{0} {1}, {2} {3}",
+                alumno.PrimerApellido?.Trim() ?? string.Empty,
+                alumno.SegundoApellido?.Trim() ?? string.Empty,
+                alumno.PrimerNombre?.Trim() ?? string.Empty,
+                alumno.SegundoNombre?.Trim() ?? string.Empty).Trim();
+
+            // Get contactos for this student
+            var contactos = await _alumnoContactoRepository.GetByAlumnoIdAsync(alumno.Id);
+              // Concatenate cell phones
+            string telefonos = string.Join(", ", contactos
+                .Where(c => !string.IsNullOrEmpty(c.Contacto.Celular))
+                .Select(c => c.Contacto.Celular.Trim()));
+
+            // Concatenate contact names (encargados)
+            string encargados = string.Join(", ", contactos
+                .Where(c => !string.IsNullOrEmpty(c.Contacto.Nombre))
+                .Select(c => c.Contacto.Nombre.Trim()));            // Format grade with level
+            string grado = alumno.Grado != null 
+                ? $"{alumno.Grado.Nombre} - {alumno.Grado.NivelEducativo?.Nombre ?? "N/A"}"
+                : "N/A";
+
+            // Get payments for this student and organize by month
+            var alumnoPagos = pagos.Where(p => p.AlumnoId == alumno.Id).ToList();
+            var pagosPorMes = new Dictionary<int, PagoReportItemDto>();
+
+            // Organize payments by month (1-12)
+            foreach (var pago in alumnoPagos)
+            {
+                int mes = pago.Fecha.Month;
+                if (!pagosPorMes.ContainsKey(mes))
+                {
+                    pagosPorMes[mes] = new PagoReportItemDto
+                    {
+                        Id = pago.Id,
+                        Monto = pago.Monto,
+                        Estado = string.Empty, // Can be set based on payment status if needed
+                        MesColegiatura = mes,
+                        Notas = pago.Notas ?? string.Empty,
+                        EsPagoDeTransporte = true
+                    };
+                }
+                else
+                {
+                    // If multiple payments in the same month, sum the amounts
+                    pagosPorMes[mes].Monto += pago.Monto;
+                    // Keep the latest payment's notes if any
+                    if (!string.IsNullOrEmpty(pago.Notas))
+                    {
+                        pagosPorMes[mes].Notas = pago.Notas;
+                    }
+                }
+            }
+
+            var transporteReport = new PagoTransporteReportDto
+            {
+                NumeroOrdinal = ordinal++,
+                AlumnoId = alumno.Id,
+                Alumno = nombreCompleto,
+                Direccion = string.Empty, // Empty placeholder as requested
+                Telefono = telefonos,
+                Encargado = encargados,
+                Grado = grado,
+                PagosPorMes = pagosPorMes
+            };
+
+            response.Alumnos.Add(transporteReport);
+        }
+
+        return response;
     }
 }

@@ -37,9 +37,7 @@ public static class PagoEndpoints
                 return Results.Created($"/pagos/{nuevoPago.Id}", nuevoPago);
             }
         )
-        .DisableAntiforgery();
-
-        // New endpoint for payment report
+        .DisableAntiforgery();        // New endpoint for payment report
         app.MapGet(
             "/pagos/report",
             async (int cicloEscolar, int gradoId, IPagoService pagoService) =>
@@ -50,6 +48,21 @@ public static class PagoEndpoints
                     GradoId = gradoId
                 };
                 var report = await pagoService.GetPagoReportAsync(filter);
+                return Results.Ok(report);
+            }
+        );
+
+        // New endpoint for transport payment report
+        app.MapGet(
+            "/pagos/transport-report",
+            async (int cicloEscolar, int rubroId, IPagoService pagoService) =>
+            {
+                var filter = new PagoTransporteReportFilterDto
+                {
+                    CicloEscolar = cicloEscolar,
+                    RubroId = rubroId
+                };
+                var report = await pagoService.GetPagoTransporteReportAsync(filter);
                 return Results.Ok(report);
             }
         );

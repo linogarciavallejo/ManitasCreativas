@@ -43,3 +43,28 @@ public class RubroReportDto
     public int OrdenVisualizacionGrid { get; set; }
     public bool EsColegiatura { get; set; }
 }
+
+public class PagoTransporteReportFilterDto
+{
+    public int CicloEscolar { get; set; }
+    public int RubroId { get; set; }
+}
+
+public class PagoTransporteReportDto
+{
+    public int NumeroOrdinal { get; set; }
+    public int AlumnoId { get; set; }
+    public string Alumno { get; set; } = string.Empty;
+    public string Direccion { get; set; } = string.Empty; // Empty placeholder as requested
+    public string Telefono { get; set; } = string.Empty;
+    public string Encargado { get; set; } = string.Empty;
+    public string Grado { get; set; } = string.Empty;
+    public Dictionary<int, PagoReportItemDto> PagosPorMes { get; set; } = new(); // Key: month (1-12), Value: payment info
+}
+
+public class PagoTransporteReportResponseDto
+{
+    public List<PagoTransporteReportDto> Alumnos { get; set; } = new();
+    public string RubroDescripcion { get; set; } = string.Empty;
+    public int CicloEscolar { get; set; }
+}
