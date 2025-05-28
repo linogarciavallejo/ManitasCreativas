@@ -14,6 +14,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { makeApiRequest } from "../../services/apiHelper";
 import { getCurrentUserId } from "../../services/authService";
+import { gradoService } from "../../services/gradoService";
+import { rubroService, Rubro } from "../../services/rubroService";
 import DatePickerES from "../common/DatePickerES"; // Import our custom DatePicker
 import "antd/dist/reset.css";
 
@@ -41,15 +43,7 @@ interface Contacto {
   parentesco: string;
 }
 
-// Add Rubro interface
-interface Rubro {
-  id: number;
-  descripcion: string;
-  tipo: number;
-  montoPreestablecido: number | null;
-  esColegiatura: boolean; // Added esColegiatura property to match backend RubroDto
-  esPagoDeCarnet?: boolean; // Added esPagoDeCarnet property to check if payment is for a student ID card
-}
+// Add Rubro interface - now imported from rubroService
 
 interface AlumnoDetails {
   id: number;
@@ -73,6 +67,7 @@ const { Option } = Select;
 
 const OtherPayments: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const [loadingRubro, setLoadingRubro] = useState<boolean>(false);
   const [alumnoId, setAlumnoId] = useState<string | null>(null);
   const [selectedCodigo, setSelectedCodigo] = useState<string | null>(null);
   const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);
@@ -80,26 +75,66 @@ const OtherPayments: React.FC = () => {
   const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
   const [contactos, setContactos] = useState<Contacto[]>([]);
   // Add state for rubros
-  const [rubros, setRubros] = useState<Rubro[]>([]);
-  // Add state for selected rubro
+  const [rubros, setRubros] = useState<Rubro[]>([]);  // Add state for selected rubro
   const [selectedRubro, setSelectedRubro] = useState<Rubro | null>(null);
   const [form] = Form.useForm();
   const currentYear = new Date().getFullYear();
-
-  // Fetch rubros on component mount
+  // Fetch rubros on component mount - initially empty until student is selected
   useEffect(() => {
-    const fetchRubros = async () => {
-      try {
-        const response = await makeApiRequest<Rubro[]>("/rubrosactivos", "GET");
-        setRubros(response);
-      } catch {
-        toast.error("Error al cargar los rubros.");
-      }
-    };
-
-    fetchRubros();
+    // Don't fetch rubros on mount, wait for student selection
   }, []);
 
+  // Function to fetch and filter appropriate Rubros for Other Payments
+  const fetchRubrosForOtherPayments = async (studentGradoId: number) => {
+    if (!studentGradoId) {
+      console.error("No GradoId provided");
+      return;
+    }
+
+    try {
+      setLoadingRubro(true);
+
+      // Step 1: Get the Grado details to find the NivelEducativoId
+      const gradoDetails = await gradoService.getGradoById(studentGradoId);
+      const nivelEducativoId = gradoDetails.nivelEducativoId;
+
+      if (!nivelEducativoId) {
+        console.error("No NivelEducativoId found for Grado:", studentGradoId);
+        return;
+      }
+
+      // Step 2: Get all active Rubros
+      const activeRubros = await rubroService.getActiveRubros();
+
+      // Step 3: Filter Rubros for Other Payments
+      const otherPaymentRubros = activeRubros.filter(
+        (rubro) =>
+          // Include rubros that match the student's NivelEducativoId OR wildcard (999)
+          (rubro.nivelEducativoId === nivelEducativoId || rubro.nivelEducativoId === 999) &&
+          // Exclude colegiatura rubros
+          rubro.esColegiatura !== true &&
+          // Exclude transport rubros
+          rubro.esPagoDeTransporte !== true
+      );
+
+      // Step 4: Update the rubros state
+      setRubros(otherPaymentRubros);
+      console.log("Filtered rubros for other payments:", otherPaymentRubros);
+
+      if (otherPaymentRubros.length === 0) {
+        toast.warning(
+          "No se encontraron rubros disponibles para este estudiante."
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching appropriate Rubros:", error);
+      toast.error(
+        "Error al obtener los rubros disponibles para este estudiante."
+      );
+    } finally {
+      setLoadingRubro(false);
+    }
+  };
   // Search by codigo input
   const handleCodigoSearch = async (codigo: string) => {
     try {
@@ -108,11 +143,14 @@ const OtherPayments: React.FC = () => {
         "GET"
       );
       setAlumnoId(response.id.toString());
-      setSelectedCodigo(response.codigo);
-      setSelectedStudent(
+      setSelectedCodigo(response.codigo);      setSelectedStudent(
         `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim()
-      );      // Update contactos info from the response
+      );
+      // Update contactos info from the response
       setContactos(response.contactos || []);
+      
+      // Fetch appropriate rubros for this student
+      await fetchRubrosForOtherPayments(response.gradoId);
     } catch {
       toast.error("No se encontró ningún alumno con ese código.");
     }
@@ -140,7 +178,6 @@ const OtherPayments: React.FC = () => {
       toast.error("Error al buscar alumnos.");
     }
   };
-
   const handleTypeaheadSelect = async (value: string, option: AlumnoOption) => {
     setAutoCompleteValue(option.label);
     setAlumnoId(value);
@@ -149,10 +186,12 @@ const OtherPayments: React.FC = () => {
       const response = await makeApiRequest<AlumnoDetails>(
         `/alumnos/codigo/${option.codigo}`,
         "GET"
-      );
-      setSelectedCodigo(response.codigo);
+      );      setSelectedCodigo(response.codigo);
       // Update contactos info from the response
       setContactos(response.contactos || []);
+      
+      // Fetch appropriate rubros for this student
+      await fetchRubrosForOtherPayments(response.gradoId);
       // Success toast removed as requested
     } catch {
       toast.error("Error al obtener los datos del alumno seleccionado.");
@@ -384,24 +423,22 @@ const OtherPayments: React.FC = () => {
             style={{ width: "100%" }}
             placeholder="Seleccione la fecha de pago"
           />
-        </Form.Item>
-        <Form.Item
+        </Form.Item>        <Form.Item
           label="Rubro"
           name="rubroId"
           rules={[{ required: true, message: "Por favor seleccione un rubro" }]}
         >
           <Select
-            placeholder="Seleccione el rubro"
+            placeholder={loadingRubro ? "Cargando rubros..." : selectedStudent ? "Seleccione el rubro" : "Primero seleccione un estudiante"}
             onChange={handleRubroChange}
-            loading={rubros.length === 0}
+            loading={loadingRubro}
+            disabled={!selectedStudent || loadingRubro}
           >
-            {rubros
-              .filter((rubro) => !rubro.esColegiatura) // Filter out rubros with esColegiatura = true
-              .map((rubro) => (
-                <Option key={rubro.id} value={rubro.id.toString()}>
-                  {rubro.descripcion}
-                </Option>
-              ))}
+            {rubros.map((rubro) => (
+              <Option key={rubro.id} value={rubro.id.toString()}>
+                {rubro.descripcion}
+              </Option>
+            ))}
           </Select>
         </Form.Item>
         <Form.Item label="Mes" name="mes" rules={[{ required: false }]}>
