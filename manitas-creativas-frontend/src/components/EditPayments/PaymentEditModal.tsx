@@ -224,12 +224,11 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
 
   if (!payment) return null;
 
-  return (
-    <Modal
+  return (    <Modal
       title={`Editar Pago #${payment.id}`}
       open={visible}
       onCancel={handleCancel}
-      width={800}
+      width={900}
       footer={[
         <Button key="cancel" onClick={handleCancel}>
           Cancelar
