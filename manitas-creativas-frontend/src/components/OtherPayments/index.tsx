@@ -401,12 +401,12 @@ const OtherPayments: React.FC = () => {
         layout="vertical"
         onFinish={handleSubmit}
         autoComplete="off"
-        className="payments-form"
-        initialValues={{
+        className="payments-form"        initialValues={{
           cicloEscolar: currentYear,
           mes: null, // Changed from currentMonth to null to make "Sin mes específico" the default
           monto: 150,
           fechaPago: dayjs().startOf("day"), // Set to start of the current day
+          medioPago: "1", // Set "Efectivo" as default
         }}
       >
         <Form.Item
@@ -485,22 +485,21 @@ const OtherPayments: React.FC = () => {
               }
             }}
           />
-        </Form.Item>{" "}
-        <Form.Item
+        </Form.Item>{" "}        <Form.Item
           label="Medio de Pago"
           name="medioPago"
           rules={[
             { required: true, message: "¡Por favor ingrese el medio de pago!" },
           ]}
-        >
-          <Select placeholder="Seleccione el medio de pago">
-            <Option value={1}>Efectivo</Option>
-            <Option value={2}>Tarjeta de Crédito</Option>
-            <Option value={3}>Tarjeta de Débito</Option>
-            <Option value={4}>Transferencia Bancaria</Option>
-            <Option value={5}>Cheque</Option>
-            <Option value={6}>Boleta de Depósito</Option>
-            <Option value={7}>Pago Móvil</Option>
+          initialValue="1"
+        >          <Select placeholder="Seleccione el medio de pago">
+            <Option value="1">Efectivo</Option>
+            <Option value="2">Tarjeta de Crédito</Option>
+            <Option value="3">Tarjeta de Débito</Option>
+            <Option value="4">Transferencia Bancaria</Option>
+            <Option value="5">Cheque</Option>
+            <Option value="6">Boleta de Depósito</Option>
+            <Option value="7">Pago Móvil</Option>
           </Select>
         </Form.Item>
         <Form.Item label="Notas" name="notas">
