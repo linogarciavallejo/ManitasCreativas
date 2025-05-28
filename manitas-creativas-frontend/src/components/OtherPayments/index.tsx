@@ -70,9 +70,9 @@ const OtherPayments: React.FC = () => {
   const [loadingRubro, setLoadingRubro] = useState<boolean>(false);
   const [alumnoId, setAlumnoId] = useState<string | null>(null);
   const [selectedCodigo, setSelectedCodigo] = useState<string | null>(null);
-  const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
+  const [codigoSearchValue, setCodigoSearchValue] = useState<string>("");
   const [contactos, setContactos] = useState<Contacto[]>([]);
   // Add state for rubros
   const [rubros, setRubros] = useState<Rubro[]>([]);  // Add state for selected rubro
@@ -145,12 +145,14 @@ const OtherPayments: React.FC = () => {
       setAlumnoId(response.id.toString());
       setSelectedCodigo(response.codigo);      setSelectedStudent(
         `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim()
-      );
-      // Update contactos info from the response
+      );      // Update contactos info from the response
       setContactos(response.contactos || []);
       
       // Fetch appropriate rubros for this student
       await fetchRubrosForOtherPayments(response.gradoId);
+      
+      // Clear the search input after successful search
+      setCodigoSearchValue("");
     } catch {
       toast.error("No se encontró ningún alumno con ese código.");
     }
@@ -281,17 +283,19 @@ const OtherPayments: React.FC = () => {
       console.log("Payment response:", response); // Add debug log
 
       // Show success toast notification
-      toast.success("¡Pago enviado con éxito!");
-
-      // Reset form fields
+      toast.success("¡Pago enviado con éxito!");      // Reset form fields
       form.resetFields();
 
-      // Reset student selection
+      // Reset student selection and clear all search filters
       setSelectedStudent(null);
       setAlumnoId(null);
       setSelectedCodigo(null);
       setAutoCompleteValue("");
+      setCodigoSearchValue("");
+      setTypeaheadOptions([]);
       setContactos([]);
+      setRubros([]);
+      setSelectedRubro(null);
     } catch (err) {
       console.error("Error submitting payment:", err); // Add error logging
       toast.error("Error al enviar el pago. Por favor, inténtelo de nuevo.");
@@ -309,11 +313,12 @@ const OtherPayments: React.FC = () => {
       />
       <h2>Realizar un Pago</h2>
 
-      <div style={{ marginBottom: "20px" }}>
-        <Input.Search
+      <div style={{ marginBottom: "20px" }}>        <Input.Search
+          value={codigoSearchValue}
           placeholder="Buscar por Código"
           enterButton="Buscar"
           onSearch={handleCodigoSearch}
+          onChange={(e) => setCodigoSearchValue(e.target.value)}
           style={{ marginBottom: "10px" }}
         />
 
@@ -346,13 +351,17 @@ const OtherPayments: React.FC = () => {
             <strong>Alumno seleccionado:</strong> {selectedStudent}
             <Button
               type="link"
-              style={{ marginLeft: "10px", padding: "0" }}
-              onClick={() => {
+              style={{ marginLeft: "10px", padding: "0" }}              onClick={() => {
                 setSelectedStudent(null);
                 setAlumnoId(null);
                 setSelectedCodigo(null);
                 setAutoCompleteValue("");
+                setCodigoSearchValue("");
+                setTypeaheadOptions([]);
                 setContactos([]);
+                setRubros([]);
+                setSelectedRubro(null);
+                form.resetFields();
               }}
             >
               Limpiar
