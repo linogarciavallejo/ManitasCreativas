@@ -245,7 +245,8 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
     >
       <Form form={form} layout="vertical" scrollToFirstError>
         <Row gutter={16}>
-          <Col span={12}>            <Form.Item
+          <Col span={12}>
+            <Form.Item
               label="Fecha de Pago"
               name="fecha"
               rules={[
@@ -261,7 +262,23 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
                 disabled
               />
             </Form.Item>
-          </Col>          <Col span={12}>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="Rubro">
+              <Input
+                value={payment.rubroDescripcion}
+                readOnly
+                style={{ 
+                  backgroundColor: '#f5f5f5',
+                  cursor: 'default'
+                }}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
             <Form.Item
               label="Monto"
               name="monto"
@@ -286,9 +303,6 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
               />
             </Form.Item>
           </Col>
-        </Row>
-
-        <Row gutter={16}>
           <Col span={12}>
             <Form.Item
               label="Ciclo Escolar"
@@ -308,6 +322,9 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
               />
             </Form.Item>
           </Col>
+        </Row>
+
+        <Row gutter={16}>
           <Col span={12}>
             <Form.Item
               label="Medio de Pago"
