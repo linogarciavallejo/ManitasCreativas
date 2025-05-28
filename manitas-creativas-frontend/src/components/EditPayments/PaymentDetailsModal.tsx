@@ -45,10 +45,9 @@ const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({
             onClick={onVoid}
           >
             Anular Pago
-          </Button>
-        ),
+          </Button>        ),
       ]}
-      width={700}
+      width={900}
     >
       <Descriptions
         bordered
