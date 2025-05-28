@@ -74,10 +74,10 @@ const Tuitions: React.FC = () => {
   const [loadingRubro, setLoadingRubro] = useState<boolean>(false);
   const [alumnoId, setAlumnoId] = useState<string | null>(null);
   const [selectedCodigo, setSelectedCodigo] = useState<string | null>(null);
-  const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
-  const [contactos, setContactos] = useState<Contacto[]>([]);  const [dinamicRubroId, setDinamicRubroId] = useState<string>("1"); // Default to "1" but will be updated
+  const [codigoSearchValue, setCodigoSearchValue] = useState<string>("");
+  const [contactos, setContactos] = useState<Contacto[]>([]);const [dinamicRubroId, setDinamicRubroId] = useState<string>("1"); // Default to "1" but will be updated
   // const [gradoId, setGradoId] = useState<number | null>(null); // Currently unused
   const [form] = Form.useForm(); // Add Form instance
 
@@ -182,13 +182,13 @@ const Tuitions: React.FC = () => {
       notas: "",
       monto: undefined, // Explicitly set monto to undefined to clear the field
       imagenesPago: [],
-    });
-
-    // Clear student selection
+    });    // Clear student selection
     setSelectedStudent(null);
     setAlumnoId(null);
     setSelectedCodigo(null);
     setAutoCompleteValue("");
+    setCodigoSearchValue("");
+    setTypeaheadOptions([]);
     setContactos([]);
     setDinamicRubroId("1"); // Reset to default
     form.setFieldsValue({ rubroId: "1" });
@@ -210,12 +210,14 @@ const Tuitions: React.FC = () => {
 
       // Set gradoId and fetch appropriate RubroId
       const studentGradoId = response.gradoId;
-      // setGradoId(studentGradoId); // Currently unused
-
-      // Call the function to fetch the correct RubroId for this student's grade
+      // setGradoId(studentGradoId); // Currently unused      // Call the function to fetch the correct RubroId for this student's grade
       if (studentGradoId) {
         await fetchRubroIdForGrado(studentGradoId);
       }
+      
+      // Clear the search input after successful search
+      setCodigoSearchValue("");
+      
       // No need for toast notification when student is found by code
     } catch (error: unknown) {
       console.error("Error fetching student by code:", error);
@@ -358,11 +360,12 @@ const Tuitions: React.FC = () => {
         hideProgressBar={false}
       />
       <h2>Realizar un Pago de Colegiatura</h2>
-      <div style={{ marginBottom: "20px" }}>
-        <Input.Search
+      <div style={{ marginBottom: "20px" }}>        <Input.Search
+          value={codigoSearchValue}
           placeholder="Buscar por Código"
           enterButton="Buscar"
           onSearch={handleCodigoSearch}
+          onChange={(e) => setCodigoSearchValue(e.target.value)}
           style={{ marginBottom: "10px" }}
         />
 
