@@ -125,6 +125,59 @@ public static class PagoEndpoints
                 }
             }
         );
+
+        // Endpoint for removing a single payment image (soft deletion)
+        app.MapDelete(
+            "/pagos/images/{imagenId}",
+            async (int imagenId, IPagoService pagoService) =>
+            {
+                try
+                {
+                    var result = await pagoService.RemovePagoImagenAsync(imagenId);
+                    if (result)
+                    {
+                        return Results.Ok(new { message = "Image archived successfully", imagenId });
+                    }
+                    else
+                    {
+                        return Results.BadRequest("Failed to archive image");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return Results.BadRequest(ex.Message);
+                }
+            }
+        );
+
+        // Endpoint for removing multiple payment images (soft deletion)
+        app.MapDelete(
+            "/pagos/images",
+            async (List<int> imagenesIds, IPagoService pagoService) =>
+            {
+                try
+                {
+                    if (imagenesIds == null || !imagenesIds.Any())
+                    {
+                        return Results.BadRequest("No image IDs provided");
+                    }
+
+                    var result = await pagoService.RemoveMultiplePagoImagenesAsync(imagenesIds);
+                    if (result)
+                    {
+                        return Results.Ok(new { message = "All images archived successfully", count = imagenesIds.Count });
+                    }
+                    else
+                    {
+                        return Results.BadRequest("Some images failed to archive");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return Results.BadRequest(ex.Message);
+                }
+            }
+        );
     }
 }
 
