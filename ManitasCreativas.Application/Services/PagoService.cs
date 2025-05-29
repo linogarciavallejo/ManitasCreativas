@@ -721,7 +721,7 @@ public class PagoService : IPagoService
                 NumeroOrdinal = ordinal++,
                 AlumnoId = alumno.Id,
                 Alumno = nombreCompleto,
-                Direccion = string.Empty, // Empty placeholder as requested
+                Direccion = alumno.Direccion ?? string.Empty,
                 Telefono = telefonos,
                 Encargado = encargados,
                 Grado = grado,
