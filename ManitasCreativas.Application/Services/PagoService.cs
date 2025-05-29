@@ -729,8 +729,56 @@ public class PagoService : IPagoService
             };
 
             response.Alumnos.Add(transporteReport);
-        }
+        }        return response;
+    }
 
-        return response;
+    public async Task<bool> RemovePagoImagenAsync(int imagenId)
+    {
+        // Get the image record from database
+        var pagoImagen = await _pagoImagenRepository.GetByIdAsync(imagenId);
+        
+        if (pagoImagen == null)
+        {
+            throw new Exception($"PagoImagen with ID {imagenId} not found.");
+        }        // Extract file name from S3 URL
+        var fileName = _s3Service.ExtractFileNameFromUrl(pagoImagen.ImagenUrl.ToString());
+        
+        // Move to archive folder in S3 bucket (soft deletion)
+        var archivedUrl = await _s3Service.MoveFileToArchiveAsync(fileName);
+        
+        // Update database record for soft deletion
+        pagoImagen.EsImagenEliminada = true;
+        if (!string.IsNullOrEmpty(archivedUrl))
+        {
+            pagoImagen.ImagenUrl = new Uri(archivedUrl); // Update URL to point to archived location
+        }
+        
+        await _pagoImagenRepository.UpdateAsync(pagoImagen);
+        
+        // Return true if archiving succeeded (non-null URL returned)
+        return !string.IsNullOrEmpty(archivedUrl);
+    }
+
+    public async Task<bool> RemoveMultiplePagoImagenesAsync(List<int> imagenesIds)
+    {
+        var allSuccessful = true;
+        
+        foreach (var imagenId in imagenesIds)
+        {
+            try
+            {
+                var result = await RemovePagoImagenAsync(imagenId);
+                if (!result)
+                {
+                    allSuccessful = false;
+                }
+            }
+            catch (Exception)
+            {
+                allSuccessful = false;
+            }
+        }
+        
+        return allSuccessful;
     }
 }

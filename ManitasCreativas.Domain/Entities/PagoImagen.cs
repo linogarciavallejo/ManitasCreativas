@@ -25,6 +25,7 @@ namespace ManitasCreativas.Domain.Entities
         [ForeignKey("UsuarioActualizacionId")]
         public Usuario? UsuarioActualizacion { get; set; }
 
+        public bool? EsImagenEliminada { get; set; } = false;
 
     }
 }

@@ -1,6 +1,8 @@
 namespace ManitasCreativas.Application.Interfaces.Services;
 
 using ManitasCreativas.Application.DTOs;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 public interface IPagoService
 {
@@ -12,8 +14,11 @@ public interface IPagoService
       Task<PagoReportResponseDto> GetPagoReportAsync(PagoReportFilterDto filter);
     
     Task<PagoTransporteReportResponseDto> GetPagoTransporteReportAsync(PagoTransporteReportFilterDto filter);
-    
-    Task<IEnumerable<PagoReadDto>> GetPagosForEditAsync(int cicloEscolar, int? gradoId = null, int? alumnoId = null);
+      Task<IEnumerable<PagoReadDto>> GetPagosForEditAsync(int cicloEscolar, int? gradoId = null, int? alumnoId = null);
     
     Task<PagoReadDto> VoidPagoAsync(int id, string motivoAnulacion, int usuarioAnulacionId);
+    
+    Task<bool> RemovePagoImagenAsync(int imagenId);
+    
+    Task<bool> RemoveMultiplePagoImagenesAsync(List<int> imagenesIds);
 }

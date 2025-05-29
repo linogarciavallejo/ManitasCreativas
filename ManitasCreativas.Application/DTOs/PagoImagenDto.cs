@@ -15,4 +15,6 @@ public class PagoImagenDto
     public int UsuarioCreacionId { get; set; }
     public int? UsuarioActualizacionId { get; set; }
 
+    public bool? EsImagenEliminada { get; set; } = false;
+
 }
