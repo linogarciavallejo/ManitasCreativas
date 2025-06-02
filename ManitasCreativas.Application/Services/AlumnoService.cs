@@ -211,10 +211,10 @@ public class AlumnoService : IAlumnoService
                 Id = p.Id,
                 Monto = p.Monto,
                 Fecha = p.Fecha,
-                CicloEscolar = p.CicloEscolar,
-                MedioPago = p.MedioPago,
+                CicloEscolar = p.CicloEscolar,                MedioPago = p.MedioPago,
                 RubroDescripcion = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
                 ImagenesPago = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
+                    .Where(i => i.EsImagenEliminada != true)
                     .Select(i => new PagoImagenDto
                     {
                         Id = i.Id,
@@ -268,11 +268,10 @@ public class AlumnoService : IAlumnoService
             {
                 Id = p.Id,
                 Monto = p.Monto,
-                Fecha = p.Fecha,
-                CicloEscolar = p.CicloEscolar,
+                Fecha = p.Fecha,                CicloEscolar = p.CicloEscolar,
                 MedioPago = p.MedioPago,
                 RubroDescripcion = p.Rubro.Descripcion,
-                ImagenesPago = p.ImagenesPago.Select(pi => new PagoImagenDto
+                ImagenesPago = p.ImagenesPago.Where(pi => pi.EsImagenEliminada != true).Select(pi => new PagoImagenDto
                 {
                     Id = pi.Id,
                     PagoId = pi.PagoId,
@@ -308,9 +307,9 @@ public class AlumnoService : IAlumnoService
                 Monto = p.Monto,
                 Fecha = p.Fecha,
                 CicloEscolar = p.CicloEscolar,
-                MedioPago = p.MedioPago,
-                RubroDescripcion = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
+                MedioPago = p.MedioPago,                RubroDescripcion = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
                 ImagenesPago = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
+                                .Where(i => i.EsImagenEliminada != true)
                                 .Select(i => new PagoImagenDto
                                 {
                                     Id = i.Id,
@@ -375,11 +374,11 @@ public class AlumnoService : IAlumnoService
             FechaLimitePagoRojo = p.Rubro?.FechaLimitePagoRojo,
             DiaLimitePagoAmarillo = p.Rubro?.DiaLimitePagoAmarillo,
             DiaLimitePagoRojo = p.Rubro?.DiaLimitePagoRojo,
-            MesLimitePago = p.Rubro?.MesLimitePago,
-            UsuarioNombre = p.UsuarioCreacion != null
+            MesLimitePago = p.Rubro?.MesLimitePago,            UsuarioNombre = p.UsuarioCreacion != null
                 ? $"{p.UsuarioCreacion.Nombres} {p.UsuarioCreacion.Apellidos}"
                 : string.Empty,
             ImagenesPago = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
+                .Where(i => i.EsImagenEliminada != true)
                 .Select(i => new PagoImagenDto
                 {
                     Id = i.Id,

@@ -50,10 +50,9 @@ public class PagoService : IPagoService
                 Id = p.Id,
                 Monto = p.Monto,
                 Fecha = p.Fecha,
-                CicloEscolar = p.CicloEscolar,
-                MedioPago = p.MedioPago, // Fix: MedioPago is already of type MedioPago
+                CicloEscolar = p.CicloEscolar,                MedioPago = p.MedioPago, // Fix: MedioPago is already of type MedioPago
                 RubroDescripcion = p.Rubro.Descripcion,
-                ImagenesPago = p.ImagenesPago.Select(pi => new PagoImagenDto
+                ImagenesPago = p.ImagenesPago.Where(pi => pi.EsImagenEliminada != true).Select(pi => new PagoImagenDto
                 {
                     Id = pi.Id,
                     PagoId = pi.PagoId,
@@ -99,8 +98,7 @@ public class PagoService : IPagoService
             EsAnulado = pago.EsAnulado,
             MotivoAnulacion = pago.MotivoAnulacion,
             FechaAnulacion = pago.FechaAnulacion,
-            UsuarioAnulacionId = pago.UsuarioAnulacionId,
-            ImagenesPago = pago.ImagenesPago?.Select(pi => new PagoImagenDto
+            UsuarioAnulacionId = pago.UsuarioAnulacionId,            ImagenesPago = pago.ImagenesPago?.Where(pi => pi.EsImagenEliminada != true).Select(pi => new PagoImagenDto
             {
                 Id = pi.Id,
                 PagoId = pi.PagoId,
@@ -536,8 +534,7 @@ public class PagoService : IPagoService
                         $"{p.Alumno.PrimerNombre} {p.Alumno.SegundoNombre} {p.Alumno.PrimerApellido} {p.Alumno.SegundoApellido}".Trim() : 
                         "Desconocido",
                     GradoNombre = p.Alumno?.Grado?.Nombre ?? "Desconocido",
-                    Seccion = p.Alumno?.Seccion ?? string.Empty,
-                    ImagenesPago = p.ImagenesPago?.Select(pi => new PagoImagenDto
+                    Seccion = p.Alumno?.Seccion ?? string.Empty,                    ImagenesPago = p.ImagenesPago?.Where(pi => pi.EsImagenEliminada != true).Select(pi => new PagoImagenDto
                     {
                         Id = pi.Id,
                         PagoId = pi.PagoId,
@@ -606,8 +603,7 @@ public class PagoService : IPagoService
             Seccion = alumno?.Seccion ?? string.Empty,
             EsPagoDeCarnet = rubro?.EsPagoDeCarnet ?? false,
             EstadoCarnet = pago.EstadoCarnet ?? string.Empty,
-            EsPagoDeTransporte = rubro?.EsPagoDeTransporte ?? false,
-            ImagenesPago = pago.ImagenesPago?.Select(pi => new PagoImagenDto
+            EsPagoDeTransporte = rubro?.EsPagoDeTransporte ?? false,            ImagenesPago = pago.ImagenesPago?.Where(pi => pi.EsImagenEliminada != true).Select(pi => new PagoImagenDto
             {
                 Id = pi.Id,
                 PagoId = pi.PagoId,

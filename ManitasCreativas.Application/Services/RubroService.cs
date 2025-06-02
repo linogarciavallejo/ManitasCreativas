@@ -258,9 +258,8 @@ public class RubroService : IRubroService
             TipoRubroDescripcion = p.Rubro?.Tipo.ToString() ?? "N/A",
             EsColegiatura = p.EsColegiatura,
             MesColegiatura = p.EsColegiatura ? p.MesColegiatura : null,
-            AnioColegiatura = p.EsColegiatura ? p.AnioColegiatura : null,
-            Notas = p.Notas ?? string.Empty,
-            ImagenesPago = p.ImagenesPago?.Select(img => new PagoImagenDto
+            AnioColegiatura = p.EsColegiatura ? p.AnioColegiatura : null,            Notas = p.Notas ?? string.Empty,
+            ImagenesPago = p.ImagenesPago?.Where(img => img.EsImagenEliminada != true).Select(img => new PagoImagenDto
             {
                 Id = img.Id,
                 PagoId = img.PagoId,
