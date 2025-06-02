@@ -11,6 +11,8 @@ import {
   Row,
   Col,
   Popconfirm,
+  Divider,
+  Image,
 } from "antd";
 import { UploadOutlined, DeleteOutlined } from "@ant-design/icons";
 import { UploadFile } from "antd/es/upload/interface";
@@ -62,25 +64,12 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
           anioColegiatura: payment.anioColegiatura,
           estadoCarnet: payment.estadoCarnet || "",
         });
-        
-        // Check what value was actually set
+          // Check what value was actually set
         console.log("Form monto value after setFieldsValue:", form.getFieldValue('monto'));
-      }, 100);      // Set existing images
-      if (payment.imagenesPago && payment.imagenesPago.length > 0) {
-        const existingFiles: ExtendedUploadFile[] = payment.imagenesPago
-          .filter(img => !img.EsImagenEliminada) // Only show non-deleted images  
-          .map((img, index) => ({
-            uid: `existing-${img.id}`,
-            name: `Imagen ${index + 1}`,
-            status: "done" as const,
-            url: img.url,
-            existing: true, // Mark as existing image
-            imageId: img.id, // Store the image ID for deletion
-          }));
-        setFileList(existingFiles);
-      } else {
-        setFileList([]);
-      }
+      }, 100);
+      
+      // Initialize empty file list for new uploads only
+      setFileList([]);
     }
   }, [payment, visible, form]);
 
@@ -152,30 +141,29 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
       } else {
         formData.append("MesColegiatura", "0");
         formData.append("AnioColegiatura", new Date().getFullYear().toString());
+      }      // Handle images
+      const newImages: string[] = [];
+      
+      // Get existing image URLs that haven't been deleted
+      if (payment.imagenesPago) {
+        payment.imagenesPago
+          .filter(img => !img.EsImagenEliminada)
+          .forEach(img => {
+            newImages.push(img.url);
+          });
       }
 
-      // Handle images
-      const newImages: string[] = [];
-      const imageFiles: File[] = [];
-
-      fileList.forEach((file) => {
-        if (file.existing && file.url) {
-          // Existing image - keep the URL
-          newImages.push(file.url);
-        } else if (file.originFileObj) {
-          // New uploaded file
-          formData.append(
-            `ImagenesPago[${imageFiles.length}]`,
-            file.originFileObj
-          );
-          imageFiles.push(file.originFileObj);
+      // Handle new uploaded files
+      fileList.forEach((file, index) => {
+        if (file.originFileObj) {
+          formData.append(`ImagenesPago[${index}]`, file.originFileObj);
         }
       });
 
       // Add existing image URLs to the formData
       newImages.forEach((url, index) => {
         formData.append(`ImageUrls[${index}]`, url);
-      }); // User information for audit
+      });// User information for audit
       const userId = getCurrentUserId();
       formData.append("UsuarioActualizacionId", userId.toString());
 
@@ -198,104 +186,31 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
   };
   const handleCancel = () => {
     onClose();
-  };
-
-  // Handle deletion of existing images
-  const handleDeleteExistingImage = async (file: ExtendedUploadFile) => {
-    if (!file.imageId) return;
+  };  // Handle deletion of existing images
+  const handleDeleteExistingImage = async (imagen: { id: number; url: string; EsImagenEliminada?: boolean }) => {
+    if (!imagen.id) return;
 
     try {
-      await pagoService.removePaymentImage(file.imageId);
-      
-      // Remove from file list
-      const newFileList = fileList.filter((item) => item.uid !== file.uid);
-      setFileList(newFileList);
+      await pagoService.removePaymentImage(imagen.id);
       
       message.success("Imagen eliminada exitosamente");
+      
+      // Update the payment object to reflect the deletion
+      if (payment && payment.imagenesPago) {
+        payment.imagenesPago = payment.imagenesPago.map(img => 
+          img.id === imagen.id ? { ...img, EsImagenEliminada: true } : img
+        );
+      }
     } catch (error) {
       console.error("Error deleting image:", error);
       message.error("Error al eliminar la imagen");
     }
-  };
-
-  // Custom item render function for Upload component
-  const renderUploadItem = (originNode: React.ReactElement, file: ExtendedUploadFile) => {
-    if (file.existing && file.imageId) {
-      // For existing images, show custom delete button with confirmation
-      return (
-        <div className="ant-upload-list-item ant-upload-list-item-done">
-          <div className="ant-upload-list-item-info">
-            <span className="ant-upload-list-item-thumbnail">
-              {file.url && (
-                <img
-                  src={file.url}
-                  alt={file.name}
-                  style={{ width: "48px", height: "48px", objectFit: "cover" }}
-                />
-              )}
-            </span>
-            <span className="ant-upload-list-item-name">{file.name}</span>
-          </div>
-          <span className="ant-upload-list-item-actions">
-            <Popconfirm
-              title="¿Está seguro de eliminar esta imagen?"
-              description="Esta acción no se puede deshacer."
-              onConfirm={() => handleDeleteExistingImage(file)}
-              okText="Sí, eliminar"
-              cancelText="Cancelar"
-              okType="danger"
-            >
-              <Button 
-                type="text" 
-                icon={<DeleteOutlined />} 
-                size="small"
-                danger
-                style={{ color: '#ff4d4f' }}
-              />
-            </Popconfirm>
-          </span>
-        </div>
-      );
-    }
-    
-    // For new files, return the original node
-    return originNode;
-  };
-
-  // Handle file upload changes
-  const handleFileChange = ({
-    fileList: newFileList,
-  }: {
-    fileList: ExtendedUploadFile[];
-  }) => {
-    setFileList(newFileList);
-  };
-  // Custom upload component to prevent auto-upload
-  const uploadProps = {
-    name: "imagenesPago",
-    listType: "picture" as const,
-    fileList,
-    onChange: handleFileChange,
-    beforeUpload: () => false, // Prevent auto upload
-    onRemove: (file: ExtendedUploadFile) => {
-      // Only handle removal of new files here
-      // Existing files are handled by the custom delete button
-      if (!file.existing) {
-        const newFileList = fileList.filter((item) => item.uid !== file.uid);
-        setFileList(newFileList);
-      }
-      return false; // Prevent default removal for existing files
-    },
-    itemRender: renderUploadItem,
-  };
-
-  if (!payment) return null;
-
+  };  if (!payment) return null;
   return (    <Modal
       title={`Editar Pago #${payment.id}`}
       open={visible}
       onCancel={handleCancel}
-      width={900}
+      width={1200}
       footer={[
         <Button key="cancel" onClick={handleCancel}>
           Cancelar
@@ -471,9 +386,7 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
               </Form.Item>
             </Col>
           </Row>
-        )}
-
-        <Form.Item label="Notas" name="notas">
+        )}        <Form.Item label="Notas" name="notas">
           <TextArea
             placeholder="Agregar notas sobre el pago"
             rows={3}
@@ -481,10 +394,92 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
           />
         </Form.Item>
 
-        <Form.Item label="Imágenes de Pago" name="imagenesPago">
-          <Upload {...uploadProps}>
-            <Button icon={<UploadOutlined />}>Subir Imágenes de Pago</Button>
+        {/* Existing Images Section */}
+        {payment.imagenesPago && payment.imagenesPago.filter(img => !img.EsImagenEliminada).length > 0 && (
+          <>
+            <Divider orientation="left">Imágenes Actuales del Pago</Divider>
+            <div style={{ marginBottom: "24px" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+                {payment.imagenesPago
+                  .filter(img => !img.EsImagenEliminada)
+                  .map((imagen, index) => (
+                    <div 
+                      key={imagen.id} 
+                      style={{ 
+                        position: "relative", 
+                        display: "inline-block",
+                        border: "1px solid #d9d9d9",
+                        borderRadius: "6px",
+                        overflow: "hidden"
+                      }}
+                    >
+                      <Image
+                        src={imagen.url}
+                        alt={`Imagen de pago ${payment.id} - ${index + 1}`}
+                        style={{ 
+                          width: 200, 
+                          height: 200, 
+                          objectFit: "cover",
+                          display: "block"
+                        }}
+                        preview={{
+                          mask: "Ver imagen"
+                        }}
+                      />
+                      <div 
+                        style={{ 
+                          position: "absolute", 
+                          top: "8px", 
+                          right: "8px",
+                          backgroundColor: "rgba(0, 0, 0, 0.6)",
+                          borderRadius: "4px",
+                          padding: "4px"
+                        }}
+                      >
+                        <Popconfirm
+                          title="¿Eliminar imagen?"
+                          description="Esta acción no se puede deshacer."
+                          onConfirm={() => handleDeleteExistingImage(imagen)}
+                          okText="Sí, eliminar"
+                          cancelText="Cancelar"
+                          okType="danger"
+                        >
+                          <Button 
+                            type="text" 
+                            icon={<DeleteOutlined />} 
+                            size="small"
+                            style={{ 
+                              color: '#fff',
+                              border: 'none',
+                              padding: '4px'
+                            }}
+                          />
+                        </Popconfirm>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </>
+        )}        {/* Upload New Images Section */}
+        <Divider orientation="left">Agregar Nuevas Imágenes</Divider>
+        <Form.Item label="Subir Imágenes Adicionales" name="imagenesPago">
+          <Upload 
+            name="imagenesPago"
+            listType="picture"
+            fileList={fileList}
+            onChange={({ fileList: newFileList }) => {
+              setFileList(newFileList as ExtendedUploadFile[]);
+            }}
+            beforeUpload={() => false}
+            multiple
+            accept="image/*"
+          >
+            <Button icon={<UploadOutlined />}>Seleccionar Imágenes</Button>
           </Upload>
+          <div style={{ marginTop: "8px", color: "#666", fontSize: "12px" }}>
+            Formatos soportados: JPG, PNG, GIF. Tamaño máximo: 5MB por imagen.
+          </div>
         </Form.Item>
       </Form>
     </Modal>
