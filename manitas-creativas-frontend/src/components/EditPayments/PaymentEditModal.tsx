@@ -46,7 +46,10 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
   loading,
 }) => {
   const [form] = Form.useForm();
-  const [fileList, setFileList] = useState<ExtendedUploadFile[]>([]);  // Reset form when payment changes or modal opens
+  const [fileList, setFileList] = useState<ExtendedUploadFile[]>([]);
+  const [deletedImageIds, setDeletedImageIds] = useState<Set<number>>(new Set());
+
+  // Reset form when payment changes or modal opens
   useEffect(() => {
     if (payment && visible) {
       console.log("Setting form values for payment:", payment.id);
@@ -67,17 +70,19 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
           // Check what value was actually set
         console.log("Form monto value after setFieldsValue:", form.getFieldValue('monto'));
       }, 100);
-      
-      // Initialize empty file list for new uploads only
+        // Initialize empty file list for new uploads only
       setFileList([]);
+      
+      // Reset deleted images tracking
+      setDeletedImageIds(new Set());
     }
   }, [payment, visible, form]);
-
   // Reset form and file list when modal closes
   useEffect(() => {
     if (!visible) {
       form.resetFields();
       setFileList([]);
+      setDeletedImageIds(new Set());
     }
   }, [visible, form]);
 
@@ -144,10 +149,10 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
       }      // Handle images
       const newImages: string[] = [];
       
-      // Get existing image URLs that haven't been deleted
+      // Get existing image URLs that haven't been deleted (both soft deleted and locally deleted)
       if (payment.imagenesPago) {
         payment.imagenesPago
-          .filter(img => !img.EsImagenEliminada)
+          .filter(img => !img.EsImagenEliminada && !deletedImageIds.has(img.id))
           .forEach(img => {
             newImages.push(img.url);
           });
@@ -191,11 +196,14 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
     if (!imagen.id) return;
 
     try {
+      // Immediately hide the image from UI
+      setDeletedImageIds(prev => new Set(prev).add(imagen.id));
+      
       await pagoService.removePaymentImage(imagen.id);
       
       message.success("Imagen eliminada exitosamente");
       
-      // Update the payment object to reflect the deletion
+      // Update the payment object to reflect the deletion (for consistency)
       if (payment && payment.imagenesPago) {
         payment.imagenesPago = payment.imagenesPago.map(img => 
           img.id === imagen.id ? { ...img, EsImagenEliminada: true } : img
@@ -204,8 +212,15 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
     } catch (error) {
       console.error("Error deleting image:", error);
       message.error("Error al eliminar la imagen");
+      
+      // If deletion failed, restore the image in UI
+      setDeletedImageIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(imagen.id);
+        return newSet;
+      });
     }
-  };  if (!payment) return null;
+  };if (!payment) return null;
   return (    <Modal
       title={`Editar Pago #${payment.id}`}
       open={visible}
@@ -392,16 +407,14 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
             rows={3}
             maxLength={500}
           />
-        </Form.Item>
-
-        {/* Existing Images Section */}
-        {payment.imagenesPago && payment.imagenesPago.filter(img => !img.EsImagenEliminada).length > 0 && (
+        </Form.Item>        {/* Existing Images Section */}
+        {payment.imagenesPago && payment.imagenesPago.filter(img => !img.EsImagenEliminada && !deletedImageIds.has(img.id)).length > 0 && (
           <>
             <Divider orientation="left">Imágenes Actuales del Pago</Divider>
             <div style={{ marginBottom: "24px" }}>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
                 {payment.imagenesPago
-                  .filter(img => !img.EsImagenEliminada)
+                  .filter(img => !img.EsImagenEliminada && !deletedImageIds.has(img.id))
                   .map((imagen, index) => (
                     <div 
                       key={imagen.id} 
