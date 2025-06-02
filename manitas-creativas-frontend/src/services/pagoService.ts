@@ -37,6 +37,7 @@ export interface PagoImagen {
   id: number;
   pagoId: number;
   url: string;
+  EsImagenEliminada?: boolean;
 }
 
 // Transport payments report interfaces
@@ -106,6 +107,18 @@ export const pagoService = {
   updatePayment: async (pagoId: number, pagoData: FormData) => {
     const url = `/pagos/${pagoId}`;
     return await makeApiRequest<Pago>(url, "PUT", pagoData);
+  },
+
+  // Remove a single payment image (soft deletion)
+  removePaymentImage: async (imagenId: number) => {
+    const url = `/pagos/images/${imagenId}`;
+    return await makeApiRequest<{ message: string; imagenId: number }>(url, "DELETE");
+  },
+
+  // Remove multiple payment images (soft deletion)
+  removeMultiplePaymentImages: async (imagenesIds: number[]) => {
+    const url = `/pagos/images`;
+    return await makeApiRequest<{ message: string; count: number }>(url, "DELETE", imagenesIds);
   },
   
   // Get transport payments report

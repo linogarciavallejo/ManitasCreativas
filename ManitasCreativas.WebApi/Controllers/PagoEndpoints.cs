@@ -148,12 +148,12 @@ public static class PagoEndpoints
                     return Results.BadRequest(ex.Message);
                 }
             }
-        );
-
+        );        
+        
         // Endpoint for removing multiple payment images (soft deletion)
         app.MapDelete(
             "/pagos/images",
-            async (List<int> imagenesIds, IPagoService pagoService) =>
+            async ([Microsoft.AspNetCore.Mvc.FromBody] List<int> imagenesIds, IPagoService pagoService) =>
             {
                 try
                 {

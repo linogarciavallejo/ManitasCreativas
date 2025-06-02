@@ -212,7 +212,9 @@ public class PagoService : IPagoService
 
         // Return the created pago as a DTO
         return await GetPagoByIdAsync(pago.Id);
-    }    public async Task<PagoReadDto> UpdatePagoAsync(int id, PagoUploadDto pagoDto)
+    }    
+    
+    public async Task<PagoReadDto> UpdatePagoAsync(int id, PagoUploadDto pagoDto)
     {
         // Verify that UsuarioActualizacionId is provided
         if (pagoDto.UsuarioActualizacionId == null || pagoDto.UsuarioActualizacionId <= 0)
@@ -280,27 +282,17 @@ public class PagoService : IPagoService
             }
         }
 
-        // Handle existing image URLs (for updates/edits)
-        if (pagoDto.ImageUrls != null && pagoDto.ImageUrls.Any())
-        {
-            foreach (var imageUrl in pagoDto.ImageUrls)
-            {
-                var pagoImagen = new PagoImagen
-                {
-                    PagoId = existingPago.Id,
-                    ImagenUrl = new Uri(imageUrl),
-                    FechaCreacion = DateTime.UtcNow,
-                    UsuarioCreacionId = pagoDto.UsuarioActualizacionId.Value
-                };
-                pagoImagenes.Add(pagoImagen);
-            }
-        }
+        // NOTE: pagoDto.ImageUrls contains existing image URLs that should be preserved
+        // We don't need to recreate database records for existing images - they already exist!
+        // Only new uploaded files (pagoDto.ImagenesPago) should create new database records
 
-        // Remove existing images if we have new ones to add
-        if (pagoImagenes.Any() && existingImages.Any())
-        {
-            await _pagoImagenRepository.DeleteRangeAsync(existingImages);
-        }
+        // FIXED: Don't delete existing images when updating - only add new uploads
+        // The original code was deleting all existing images and recreating them with new IDs
+        // Now we only add truly new uploaded files while preserving existing ones
+        // if (pagoImagenes.Any() && existingImages.Any())
+        // {
+        //     await _pagoImagenRepository.DeleteRangeAsync(existingImages);
+        // }
 
         // Add new images if any
         if (pagoImagenes.Any())
@@ -740,7 +732,8 @@ public class PagoService : IPagoService
         if (pagoImagen == null)
         {
             throw new Exception($"PagoImagen with ID {imagenId} not found.");
-        }        // Extract file name from S3 URL
+        }        
+        // Extract file name from S3 URL
         var fileName = _s3Service.ExtractFileNameFromUrl(pagoImagen.ImagenUrl.ToString());
         
         // Move to archive folder in S3 bucket (soft deletion)

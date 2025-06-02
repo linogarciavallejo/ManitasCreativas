@@ -10,17 +10,19 @@ import {
   message,
   Row,
   Col,
+  Popconfirm,
 } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import { UploadOutlined, DeleteOutlined } from "@ant-design/icons";
 import { UploadFile } from "antd/es/upload/interface";
 import dayjs from "dayjs";
-import { Pago } from "../../services/pagoService";
+import { Pago, pagoService } from "../../services/pagoService";
 import DatePickerES from "../common/DatePickerES";
 import { getCurrentUserId } from "../../services/authService";
 
 // Extend UploadFile to include our custom properties
 interface ExtendedUploadFile extends UploadFile {
   existing?: boolean;
+  imageId?: number; // Add imageId for tracking
 }
 
 const { Option } = Select;
@@ -63,19 +65,18 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
         
         // Check what value was actually set
         console.log("Form monto value after setFieldsValue:", form.getFieldValue('monto'));
-      }, 100);
-
-      // Set existing images
+      }, 100);      // Set existing images
       if (payment.imagenesPago && payment.imagenesPago.length > 0) {
-        const existingFiles: ExtendedUploadFile[] = payment.imagenesPago.map(
-          (img, index) => ({
+        const existingFiles: ExtendedUploadFile[] = payment.imagenesPago
+          .filter(img => !img.EsImagenEliminada) // Only show non-deleted images  
+          .map((img, index) => ({
             uid: `existing-${img.id}`,
             name: `Imagen ${index + 1}`,
             status: "done" as const,
             url: img.url,
             existing: true, // Mark as existing image
-          })
-        );
+            imageId: img.id, // Store the image ID for deletion
+          }));
         setFileList(existingFiles);
       } else {
         setFileList([]);
@@ -195,9 +196,70 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
       message.error("Error al actualizar el pago");
     }
   };
-
   const handleCancel = () => {
     onClose();
+  };
+
+  // Handle deletion of existing images
+  const handleDeleteExistingImage = async (file: ExtendedUploadFile) => {
+    if (!file.imageId) return;
+
+    try {
+      await pagoService.removePaymentImage(file.imageId);
+      
+      // Remove from file list
+      const newFileList = fileList.filter((item) => item.uid !== file.uid);
+      setFileList(newFileList);
+      
+      message.success("Imagen eliminada exitosamente");
+    } catch (error) {
+      console.error("Error deleting image:", error);
+      message.error("Error al eliminar la imagen");
+    }
+  };
+
+  // Custom item render function for Upload component
+  const renderUploadItem = (originNode: React.ReactElement, file: ExtendedUploadFile) => {
+    if (file.existing && file.imageId) {
+      // For existing images, show custom delete button with confirmation
+      return (
+        <div className="ant-upload-list-item ant-upload-list-item-done">
+          <div className="ant-upload-list-item-info">
+            <span className="ant-upload-list-item-thumbnail">
+              {file.url && (
+                <img
+                  src={file.url}
+                  alt={file.name}
+                  style={{ width: "48px", height: "48px", objectFit: "cover" }}
+                />
+              )}
+            </span>
+            <span className="ant-upload-list-item-name">{file.name}</span>
+          </div>
+          <span className="ant-upload-list-item-actions">
+            <Popconfirm
+              title="¿Está seguro de eliminar esta imagen?"
+              description="Esta acción no se puede deshacer."
+              onConfirm={() => handleDeleteExistingImage(file)}
+              okText="Sí, eliminar"
+              cancelText="Cancelar"
+              okType="danger"
+            >
+              <Button 
+                type="text" 
+                icon={<DeleteOutlined />} 
+                size="small"
+                danger
+                style={{ color: '#ff4d4f' }}
+              />
+            </Popconfirm>
+          </span>
+        </div>
+      );
+    }
+    
+    // For new files, return the original node
+    return originNode;
   };
 
   // Handle file upload changes
@@ -208,7 +270,6 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
   }) => {
     setFileList(newFileList);
   };
-
   // Custom upload component to prevent auto-upload
   const uploadProps = {
     name: "imagenesPago",
@@ -217,9 +278,15 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
     onChange: handleFileChange,
     beforeUpload: () => false, // Prevent auto upload
     onRemove: (file: ExtendedUploadFile) => {
-      const newFileList = fileList.filter((item) => item.uid !== file.uid);
-      setFileList(newFileList);
+      // Only handle removal of new files here
+      // Existing files are handled by the custom delete button
+      if (!file.existing) {
+        const newFileList = fileList.filter((item) => item.uid !== file.uid);
+        setFileList(newFileList);
+      }
+      return false; // Prevent default removal for existing files
     },
+    itemRender: renderUploadItem,
   };
 
   if (!payment) return null;
