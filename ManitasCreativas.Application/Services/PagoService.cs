@@ -171,9 +171,9 @@ public class PagoService : IPagoService
         {
             foreach (var file in pagoDto.ImagenesPago)
             {
-                // Upload to S3 and get the URL
+                // Upload to S3 and get the URL (with year/month folder structure based on payment date)
                 var fileName = $"payment-{pago.Id}-{Guid.NewGuid()}-{file.FileName}";
-                var imageUrl = await _s3Service.UploadFileAsync(file.OpenReadStream(), fileName, file.ContentType);
+                var imageUrl = await _s3Service.UploadFileAsync(file.OpenReadStream(), fileName, file.ContentType, pago.Fecha);
                 
                 var pagoImagen = new PagoImagen
                 {
@@ -258,16 +258,14 @@ public class PagoService : IPagoService
 
         // Handle image updates - both uploaded files and existing URLs
         var existingImages = await _pagoImagenRepository.GetByPagoIdAsync(id);
-        var pagoImagenes = new List<PagoImagen>();
-
-        // Handle uploaded files
+        var pagoImagenes = new List<PagoImagen>();        // Handle uploaded files
         if (pagoDto.ImagenesPago != null && pagoDto.ImagenesPago.Any())
         {
             foreach (var file in pagoDto.ImagenesPago)
             {
-                // Upload to S3 and get the URL
+                // Upload to S3 and get the URL (with year/month folder structure based on payment date)
                 var fileName = $"payment-{existingPago.Id}-{Guid.NewGuid()}-{file.FileName}";
-                var imageUrl = await _s3Service.UploadFileAsync(file.OpenReadStream(), fileName, file.ContentType);
+                var imageUrl = await _s3Service.UploadFileAsync(file.OpenReadStream(), fileName, file.ContentType, existingPago.Fecha);
                 
                 var pagoImagen = new PagoImagen
                 {
@@ -718,9 +716,7 @@ public class PagoService : IPagoService
 
             response.Alumnos.Add(transporteReport);
         }        return response;
-    }
-
-    public async Task<bool> RemovePagoImagenAsync(int imagenId)
+    }    public async Task<bool> RemovePagoImagenAsync(int imagenId)
     {
         // Get the image record from database
         var pagoImagen = await _pagoImagenRepository.GetByIdAsync(imagenId);
@@ -729,11 +725,11 @@ public class PagoService : IPagoService
         {
             throw new Exception($"PagoImagen with ID {imagenId} not found.");
         }        
-        // Extract file name from S3 URL
-        var fileName = _s3Service.ExtractFileNameFromUrl(pagoImagen.ImagenUrl.ToString());
+        // Extract file key (including year/month path) from S3 URL
+        var fileKey = _s3Service.ExtractFileKeyFromUrl(pagoImagen.ImagenUrl.ToString());
         
         // Move to archive folder in S3 bucket (soft deletion)
-        var archivedUrl = await _s3Service.MoveFileToArchiveAsync(fileName);
+        var archivedUrl = await _s3Service.MoveFileToArchiveAsync(fileKey);
         
         // Update database record for soft deletion
         pagoImagen.EsImagenEliminada = true;
