@@ -14,6 +14,7 @@ export interface Alumno {
   seccion?: string;
   becado?: boolean;
   becaParcialPorcentaje?: number;
+  direccion?: string;
   observaciones?: string;
   estado: number;
   contactos?: AlumnoContacto[];

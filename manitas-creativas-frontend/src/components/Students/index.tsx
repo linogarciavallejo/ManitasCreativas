@@ -727,6 +727,21 @@ const Students: React.FC = () => {
           <Row gutter={16}>
             <Col span={24}>
               <Form.Item
+                label="Dirección"
+                name="direccion"
+              >
+                <Input.TextArea 
+                  placeholder="Ingrese la dirección del estudiante (opcional)" 
+                  rows={2}
+                  maxLength={255}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={24}>
+              <Form.Item
                 label="Observaciones"
                 name="observaciones"
               >
