@@ -10,6 +10,8 @@ import {
   SearchOutlined, EyeOutlined, WarningOutlined, ClockCircleOutlined,
   CheckCircleOutlined
 } from '@ant-design/icons';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { fetchAlumnoStatement } from '../../services/statementService';
 import { makeApiRequest } from '../../services/apiHelper';
 import { PagoReadDto, AlumnoSimpleDto, AlumnoDto, PagoImagenDto } from '../../types/payment';
@@ -102,35 +104,47 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
   const handleExportExcel = () => {
     console.log('Export to Excel not yet implemented');
     // Will implement Excel export logic later
-  };
-
-  // Search by code functionality
+  };  // Search by code functionality
   const handleCodigoSearch = async (codigo: string) => {
-    if (!codigo) return;
+    console.log('handleCodigoSearch called with codigo:', codigo);
     
     setLoading(true);
     try {
+      console.log('Making API request to:', `/alumnos/codigo/${codigo}`);
       const alumno = await makeApiRequest<AlumnoDto>(`/alumnos/codigo/${codigo}`, 'GET');
+      console.log('API response:', alumno);
+      console.log('Alumno ID from API:', alumno.id);
+      console.log('Type of alumno.id:', typeof alumno.id);
+      console.log('Full alumno object keys:', Object.keys(alumno));
       
-      if (alumno) {
-        setAlumnoDetails(alumno);
-        // Create a simple alumno object to store as selectedAlumno
-        const simpleAlumno: AlumnoSimpleDto = {
-          id: alumno.id,
-          codigo: alumno.codigo,
-          fullName: `${alumno.primerNombre} ${alumno.segundoNombre} ${alumno.primerApellido} ${alumno.segundoApellido}`.trim()
-        };
-        setSelectedAlumno(simpleAlumno);
-        
-        // Fetch statement data
-        const statement = await fetchAlumnoStatement(alumno.id);
-        // Sort by date (newest first)
-        setStatements(statement.sort((a, b) => 
-          new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
-        ));
+      // Check if the alumno object and id are valid
+      if (!alumno || alumno.id === undefined || alumno.id === null) {
+        console.error('Invalid alumno object or missing ID:', alumno);
+        toast.error('No se encontró ningún alumno con ese código.');
+        return;
       }
+      
+      setAlumnoDetails(alumno);
+      // Create a simple alumno object to store as selectedAlumno
+      const simpleAlumno: AlumnoSimpleDto = {
+        id: alumno.id,
+        codigo: alumno.codigo,
+        fullName: `${alumno.primerNombre} ${alumno.segundoNombre} ${alumno.primerApellido} ${alumno.segundoApellido}`.trim()
+      };
+      setSelectedAlumno(simpleAlumno);
+      
+      console.log('About to call fetchAlumnoStatement with ID:', alumno.id);
+      // Fetch statement data
+      const statement = await fetchAlumnoStatement(alumno.id);
+      // Sort by date (newest first)
+      setStatements(statement.sort((a, b) => 
+        new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+      ));
+      console.log('Student found and data loaded successfully');
     } catch (error) {
       console.error('Error searching by code:', error);
+      console.log('Showing toast error message');
+      toast.error('No se encontró ningún alumno con ese código.');
     } finally {
       setLoading(false);
     }
@@ -239,7 +253,7 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
     {
       title: 'Imágenes',
       key: 'imagenesPago',
-      render: (_: any, record: PagoReadDto) => (
+      render: (_: unknown, record: PagoReadDto) => (
         record.imagenesPago && record.imagenesPago.length > 0 ? (
           <Button 
             type="link" 
@@ -505,10 +519,22 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
               <div style={{ marginTop: '8px' }}>
                 {image.fileName && <Text type="secondary">{image.fileName}</Text>}
               </div>
-            </div>
-          ))}
+            </div>          ))}
         </div>
       </Modal>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
     </div>
   );
 };
