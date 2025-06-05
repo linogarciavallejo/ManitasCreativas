@@ -7,7 +7,10 @@ import {
   DollarOutlined,
   FileTextOutlined,
   IdcardOutlined,
-  TagOutlined,  CreditCardOutlined,
+  TagOutlined,
+  CreditCardOutlined,
+  UserOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import { Button, Layout, Menu, theme } from "antd";
 import { Link, Outlet } from "react-router-dom";
@@ -34,44 +37,102 @@ const Main: React.FC = () => {
             },
             {
               key: "2",
-              icon: <DollarOutlined />,
-              label: <Link to="other-payments">Otros Pagos</Link>,
-            },
-            {
-              key: "3",
-              icon: <BankOutlined />,
-              label: <Link to="statement">Estado de Cuenta</Link>,
-            },
-            {
-              key: "7",
-              icon: <DollarOutlined />,
-              label: <Link to="edit-payments">Editar/Anular Pagos</Link>,
-            },
-            {
-              key: "4",
-              icon: <TagOutlined />,
-              label: <Link to="rubros">Rubros</Link>,
-            },
-            {
-              key: "5",
-              icon: <IdcardOutlined />,
-              label: <Link to="students">Alumnos</Link>,
-            },
-            {
-              key: "6",
-              icon: <FileTextOutlined />,
-              label: <Link to="payment-report">Control de Pagos</Link>,
-            },
-            {
-              key: "8",
               icon: <FileTextOutlined />,
               label: <Link to="transport-payments">Pagos de Bus</Link>,
             },
             {
-              key: "9",
-              icon: <FileTextOutlined />,
-              label: <Link to="transport-payments-report">Reporte de Pagos de Bus</Link>,
+              key: "3",
+              icon: <DollarOutlined />,
+              label: <Link to="other-payments">Otros Pagos</Link>,
             },
+            {
+              key: "4",
+              icon: <DollarOutlined />,
+              label: <Link to="edit-payments">Editar/Anular Pagos</Link>,
+            },
+            {
+              key: "divider-1",
+              disabled: true,
+              label: (
+                <div
+                  style={{
+                    borderTop: "1px solid #F99F1F",
+                    margin: "8px 0",
+                    opacity: 0.6,
+                  }}
+                ></div>
+              ),
+            },
+            {
+              key: "5",
+              icon: <FileTextOutlined />,
+              label: <Link to="payment-report">Control de Pagos</Link>,
+            },
+            {
+              key: "6",
+              icon: <FileTextOutlined />,
+              label: (
+                <Link to="transport-payments-report">
+                  Reporte de Pagos de Bus
+                </Link>
+              ),
+            },
+            {
+              key: "7",
+              icon: <BankOutlined />,
+              label: <Link to="statement">Estado de Cuenta</Link>,
+            },
+            {
+              key: "divider-2",
+              disabled: true,
+              label: (
+                <div
+                  style={{
+                    borderTop: "1px solid #F99F1F",
+                    margin: "8px 0",
+                    opacity: 0.6,
+                  }}
+                ></div>
+              ),
+            },
+            {
+              key: "8",
+              icon: <TagOutlined />,
+              label: <Link to="rubros">Rubros</Link>,
+            },
+            {
+              key: "9",
+              icon: <IdcardOutlined />,
+              label: <Link to="students">Alumnos</Link>,
+            },
+            {
+              key: "divider-3",
+              disabled: true,
+              label: (
+                <div
+                  style={{
+                    borderTop: "1px solid #F99F1F",
+                    margin: "8px 0",
+                    opacity: 0.6,
+                  }}
+                ></div>
+              ),
+            },            {
+              key: "10",
+              icon: <UserOutlined />,
+              label: <Link to="students">Usuarios</Link>,
+            },
+            {
+              key: "11",
+              icon: <LogoutOutlined />,
+              label: <Link to="students">Salir</Link>,
+            },
+            // {
+            //   key: "11",
+            //   icon: <FileTextOutlined />,
+            //   label: <Link to="settings">Configuración</Link>,
+            // },
+
           ]}
         />
       </Sider>
