@@ -70,12 +70,13 @@ const OtherPayments: React.FC = () => {
   const [loadingRubro, setLoadingRubro] = useState<boolean>(false);
   const [alumnoId, setAlumnoId] = useState<string | null>(null);
   const [selectedCodigo, setSelectedCodigo] = useState<string | null>(null);
-  const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
   const [codigoSearchValue, setCodigoSearchValue] = useState<string>("");
   const [contactos, setContactos] = useState<Contacto[]>([]);
   // Add state for rubros
-  const [rubros, setRubros] = useState<Rubro[]>([]);  // Add state for selected rubro
+  const [rubros, setRubros] = useState<Rubro[]>([]); // Add state for selected rubro
   const [selectedRubro, setSelectedRubro] = useState<Rubro | null>(null);
   const [form] = Form.useForm();
   const currentYear = new Date().getFullYear();
@@ -110,7 +111,8 @@ const OtherPayments: React.FC = () => {
       const otherPaymentRubros = activeRubros.filter(
         (rubro) =>
           // Include rubros that match the student's NivelEducativoId OR wildcard (999)
-          (rubro.nivelEducativoId === nivelEducativoId || rubro.nivelEducativoId === 999) &&
+          (rubro.nivelEducativoId === nivelEducativoId ||
+            rubro.nivelEducativoId === 999) &&
           // Exclude colegiatura rubros
           rubro.esColegiatura !== true &&
           // Exclude transport rubros
@@ -143,14 +145,15 @@ const OtherPayments: React.FC = () => {
         "GET"
       );
       setAlumnoId(response.id.toString());
-      setSelectedCodigo(response.codigo);      setSelectedStudent(
+      setSelectedCodigo(response.codigo);
+      setSelectedStudent(
         `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim()
-      );      // Update contactos info from the response
+      ); // Update contactos info from the response
       setContactos(response.contactos || []);
-      
+
       // Fetch appropriate rubros for this student
       await fetchRubrosForOtherPayments(response.gradoId);
-      
+
       // Clear the search input after successful search
       setCodigoSearchValue("");
     } catch {
@@ -188,10 +191,11 @@ const OtherPayments: React.FC = () => {
       const response = await makeApiRequest<AlumnoDetails>(
         `/alumnos/codigo/${option.codigo}`,
         "GET"
-      );      setSelectedCodigo(response.codigo);
+      );
+      setSelectedCodigo(response.codigo);
       // Update contactos info from the response
       setContactos(response.contactos || []);
-      
+
       // Fetch appropriate rubros for this student
       await fetchRubrosForOtherPayments(response.gradoId);
       // Success toast removed as requested
@@ -283,7 +287,7 @@ const OtherPayments: React.FC = () => {
       console.log("Payment response:", response); // Add debug log
 
       // Show success toast notification
-      toast.success("¡Pago enviado con éxito!");      // Reset form fields
+      toast.success("¡Pago enviado con éxito!"); // Reset form fields
       form.resetFields();
 
       // Reset student selection and clear all search filters
@@ -313,15 +317,16 @@ const OtherPayments: React.FC = () => {
       />
       <h2>Realizar un Pago</h2>
 
-      <div style={{ marginBottom: "20px" }}>        <Input.Search
+      <div style={{ marginBottom: "20px" }}>
+        {" "}
+        <Input.Search
           value={codigoSearchValue}
           placeholder="Buscar por Código"
           enterButton="Buscar"
           onSearch={handleCodigoSearch}
           onChange={(e) => setCodigoSearchValue(e.target.value)}
           style={{ marginBottom: "10px" }}
-        />
-
+        />{" "}
         <div style={{ marginBottom: "15px" }}>
           <AutoComplete
             value={autoCompleteValue}
@@ -331,6 +336,7 @@ const OtherPayments: React.FC = () => {
             placeholder="Buscar por Nombre o Apellido"
             style={{ width: "100%" }}
             allowClear
+            defaultActiveFirstOption={false}
             onClear={() => {
               setAutoCompleteValue("");
               setTypeaheadOptions([]);
@@ -338,7 +344,6 @@ const OtherPayments: React.FC = () => {
             fieldNames={{ label: "label", value: "value" }}
           />
         </div>
-
         {selectedStudent && (
           <div
             style={{
@@ -351,7 +356,8 @@ const OtherPayments: React.FC = () => {
             <strong>Alumno seleccionado:</strong> {selectedStudent}
             <Button
               type="link"
-              style={{ marginLeft: "10px", padding: "0" }}              onClick={() => {
+              style={{ marginLeft: "10px", padding: "0" }}
+              onClick={() => {
                 setSelectedStudent(null);
                 setAlumnoId(null);
                 setSelectedCodigo(null);
@@ -368,7 +374,6 @@ const OtherPayments: React.FC = () => {
             </Button>
           </div>
         )}
-
         {selectedCodigo && (
           <Input
             value={selectedCodigo}
@@ -401,7 +406,8 @@ const OtherPayments: React.FC = () => {
         layout="vertical"
         onFinish={handleSubmit}
         autoComplete="off"
-        className="payments-form"        initialValues={{
+        className="payments-form"
+        initialValues={{
           cicloEscolar: currentYear,
           mes: null, // Changed from currentMonth to null to make "Sin mes específico" the default
           monto: 150,
@@ -432,13 +438,20 @@ const OtherPayments: React.FC = () => {
             style={{ width: "100%" }}
             placeholder="Seleccione la fecha de pago"
           />
-        </Form.Item>        <Form.Item
+        </Form.Item>{" "}
+        <Form.Item
           label="Rubro"
           name="rubroId"
           rules={[{ required: true, message: "Por favor seleccione un rubro" }]}
         >
           <Select
-            placeholder={loadingRubro ? "Cargando rubros..." : selectedStudent ? "Seleccione el rubro" : "Primero seleccione un estudiante"}
+            placeholder={
+              loadingRubro
+                ? "Cargando rubros..."
+                : selectedStudent
+                ? "Seleccione el rubro"
+                : "Primero seleccione un estudiante"
+            }
             onChange={handleRubroChange}
             loading={loadingRubro}
             disabled={!selectedStudent || loadingRubro}
@@ -485,14 +498,17 @@ const OtherPayments: React.FC = () => {
               }
             }}
           />
-        </Form.Item>{" "}        <Form.Item
+        </Form.Item>{" "}
+        <Form.Item
           label="Medio de Pago"
           name="medioPago"
           rules={[
             { required: true, message: "¡Por favor ingrese el medio de pago!" },
           ]}
           initialValue="1"
-        >          <Select placeholder="Seleccione el medio de pago">
+        >
+          {" "}
+          <Select placeholder="Seleccione el medio de pago">
             <Option value="1">Efectivo</Option>
             <Option value="2">Tarjeta de Crédito</Option>
             <Option value="3">Tarjeta de Débito</Option>

@@ -74,10 +74,12 @@ const Tuitions: React.FC = () => {
   const [loadingRubro, setLoadingRubro] = useState<boolean>(false);
   const [alumnoId, setAlumnoId] = useState<string | null>(null);
   const [selectedCodigo, setSelectedCodigo] = useState<string | null>(null);
-  const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
   const [codigoSearchValue, setCodigoSearchValue] = useState<string>("");
-  const [contactos, setContactos] = useState<Contacto[]>([]);const [dinamicRubroId, setDinamicRubroId] = useState<string>("1"); // Default to "1" but will be updated
+  const [contactos, setContactos] = useState<Contacto[]>([]);
+  const [dinamicRubroId, setDinamicRubroId] = useState<string>("1"); // Default to "1" but will be updated
   // const [gradoId, setGradoId] = useState<number | null>(null); // Currently unused
   const [form] = Form.useForm(); // Add Form instance
 
@@ -182,7 +184,7 @@ const Tuitions: React.FC = () => {
       notas: "",
       monto: undefined, // Explicitly set monto to undefined to clear the field
       imagenesPago: [],
-    });    // Clear student selection
+    }); // Clear student selection
     setSelectedStudent(null);
     setAlumnoId(null);
     setSelectedCodigo(null);
@@ -205,7 +207,7 @@ const Tuitions: React.FC = () => {
       setSelectedCodigo(response.codigo);
       setSelectedStudent(
         `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim()
-      );      // Update contactos info from the response
+      ); // Update contactos info from the response
       setContactos(response.contactos || []);
 
       // Set gradoId and fetch appropriate RubroId
@@ -214,18 +216,18 @@ const Tuitions: React.FC = () => {
       if (studentGradoId) {
         await fetchRubroIdForGrado(studentGradoId);
       }
-      
+
       // Clear the search input after successful search
       setCodigoSearchValue("");
-      
+
       // No need for toast notification when student is found by code
     } catch (error: unknown) {
       console.error("Error fetching student by code:", error);
       toast.error("No se encontró ningún alumno con ese código.");
     }
   };
-
   const handleTypeaheadSearch = async (query: string) => {
+    console.log("handleTypeaheadSearch called with query:", query); // Debug log
     setAutoCompleteValue(query);
     const trimmedQuery = query.trim();
     if (!trimmedQuery) {
@@ -249,6 +251,15 @@ const Tuitions: React.FC = () => {
     }
   };
 
+  // Add explicit focus handler to prevent unwanted behavior
+  const handleAutoCompleteFocus = () => {
+    console.log("AutoComplete focused"); // Debug log
+    // Don't trigger search on focus if input is empty
+    if (!autoCompleteValue.trim()) {
+      setTypeaheadOptions([]);
+    }
+  };
+
   const handleTypeaheadSelect = async (value: string, option: AlumnoOption) => {
     setAutoCompleteValue(option.label);
     setAlumnoId(value);
@@ -260,7 +271,7 @@ const Tuitions: React.FC = () => {
       );
       setSelectedCodigo(response.codigo);
       // Update contactos info from the response
-      setContactos(response.contactos || []);      // Set gradoId and fetch appropriate RubroId
+      setContactos(response.contactos || []); // Set gradoId and fetch appropriate RubroId
       const studentGradoId = response.gradoId;
       // setGradoId(studentGradoId); // Currently unused
 
@@ -360,32 +371,34 @@ const Tuitions: React.FC = () => {
         hideProgressBar={false}
       />
       <h2>Realizar un Pago de Colegiatura</h2>
-      <div style={{ marginBottom: "20px" }}>        <Input.Search
+      <div style={{ marginBottom: "20px" }}>
+        {" "}
+        <Input.Search
           value={codigoSearchValue}
           placeholder="Buscar por Código"
           enterButton="Buscar"
           onSearch={handleCodigoSearch}
           onChange={(e) => setCodigoSearchValue(e.target.value)}
           style={{ marginBottom: "10px" }}
-        />
-
+        />{" "}
         <div style={{ marginBottom: "15px" }}>
           <AutoComplete
             value={autoCompleteValue}
             options={typeaheadOptions}
             onSearch={handleTypeaheadSearch}
             onSelect={handleTypeaheadSelect}
+            onFocus={handleAutoCompleteFocus}
             placeholder="Buscar por Nombre o Apellido"
             style={{ width: "100%" }}
             allowClear
-            fieldNames={{ label: "label", value: "value" }}
+            defaultActiveFirstOption={false}
             onClear={() => {
               setAutoCompleteValue("");
               setTypeaheadOptions([]);
             }}
+            fieldNames={{ label: "label", value: "value" }}
           />
         </div>
-
         {selectedStudent && (
           <div
             style={{
@@ -407,7 +420,6 @@ const Tuitions: React.FC = () => {
             </Button>
           </div>
         )}
-
         {selectedCodigo && (
           <Input
             value={selectedCodigo}
