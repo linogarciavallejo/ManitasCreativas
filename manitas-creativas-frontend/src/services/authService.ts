@@ -5,6 +5,22 @@ import { Usuario } from '../types/usuario';
 const USER_KEY = 'manitasCreativas_user';
 const USER_NAME_KEY = 'manitasCreativas_username';
 const USER_ID_KEY = 'manitasCreativas_userId';
+const SESSION_EXPIRY_KEY = 'manitasCreativas_sessionExpiry';
+
+// Session duration in milliseconds (e.g., 1 hour)
+const SESSION_DURATION_MS = 60 * 60 * 1000;
+
+export const isSessionExpired = (): boolean => {
+  const expiry = localStorage.getItem(SESSION_EXPIRY_KEY);
+  return expiry !== null && Date.now() > parseInt(expiry, 10);
+};
+
+const updateSessionExpiry = (): void => {
+  localStorage.setItem(
+    SESSION_EXPIRY_KEY,
+    (Date.now() + SESSION_DURATION_MS).toString()
+  );
+};
 
 // Store user in localStorage
 export const storeUser = (user: Usuario): void => {
@@ -13,10 +29,15 @@ export const storeUser = (user: Usuario): void => {
   localStorage.setItem(USER_NAME_KEY, `${user.nombres} ${user.apellidos}`);
   // Store user ID separately for audit fields
   localStorage.setItem(USER_ID_KEY, user.id.toString());
+  updateSessionExpiry();
 };
 
 // Get current user from localStorage
 export const getCurrentUser = (): Usuario | null => {
+  if (isSessionExpired()) {
+    signOut();
+    return null;
+  }
   const userJson = localStorage.getItem(USER_KEY);
   if (userJson) {
     return JSON.parse(userJson);
@@ -37,6 +58,10 @@ export const getCurrentUserId = (): number => {
 
 // Check if user is logged in
 export const isAuthenticated = (): boolean => {
+  if (isSessionExpired()) {
+    signOut();
+    return false;
+  }
   return localStorage.getItem(USER_KEY) !== null;
 };
 
@@ -45,6 +70,7 @@ export const signOut = (): void => {
   localStorage.removeItem(USER_KEY);
   localStorage.removeItem(USER_NAME_KEY);
   localStorage.removeItem(USER_ID_KEY);
+  localStorage.removeItem(SESSION_EXPIRY_KEY);
 };
 
 export const signIn = async (codigoUsuario: string, password: string): Promise<Usuario> => {
