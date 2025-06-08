@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import useSessionExpiration from "../../hooks/useSessionExpiration";
 import "antd/dist/reset.css"; // Import Ant Design styles
 import {
   MenuFoldOutlined,
@@ -18,6 +19,7 @@ import { Link, Outlet } from "react-router-dom";
 const { Header, Sider, Content } = Layout;
 
 const Main: React.FC = () => {
+  useSessionExpiration();
   const [collapsed, setCollapsed] = useState(false);
   const {
     token: { colorBgContainer, borderRadiusLG },
