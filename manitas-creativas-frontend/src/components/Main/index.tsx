@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import useSessionExpiration from "../../hooks/useSessionExpiration";
+import { signOut } from "../../services/authService";
 import "antd/dist/reset.css"; // Import Ant Design styles
 import {
   MenuFoldOutlined,
@@ -14,16 +15,21 @@ import {
   LogoutOutlined,
 } from "@ant-design/icons";
 import { Button, Layout, Menu, theme } from "antd";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 
 const { Header, Sider, Content } = Layout;
 
 const Main: React.FC = () => {
   useSessionExpiration();
+  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+  const handleSignOut = () => {
+    signOut();
+    navigate('/'); // Redirect to login page after signing out
+  };
   return (
     <Layout style={{ minHeight: "100vh", width: "100%" }}>
       <Sider trigger={null} collapsible collapsed={collapsed}>
@@ -122,11 +128,11 @@ const Main: React.FC = () => {
               key: "10",
               icon: <UserOutlined />,
               label: <Link to="users">Usuarios</Link>,
-            },
-            {
+            },            {
               key: "11",
               icon: <LogoutOutlined />,
-              label: <Link to="students">Salir</Link>,
+              label: "Salir",
+              onClick: handleSignOut,
             },
             // {
             //   key: "11",
