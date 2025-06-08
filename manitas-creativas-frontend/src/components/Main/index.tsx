@@ -118,11 +118,10 @@ const Main: React.FC = () => {
                     opacity: 0.6,
                   }}
                 ></div>
-              ),
-            },            {
+              ),            },            {
               key: "10",
               icon: <UserOutlined />,
-              label: <Link to="students">Usuarios</Link>,
+              label: <Link to="users">Usuarios</Link>,
             },
             {
               key: "11",

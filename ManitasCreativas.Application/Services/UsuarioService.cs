@@ -4,13 +4,17 @@ using ManitasCreativas.Application.Interfaces.Services;
 using ManitasCreativas.Domain.Entities;
 using ManitasCreativas.Domain.Enums;
 
+namespace ManitasCreativas.Application.Services;
+
 public class UsuarioService : IUsuarioService
 {
     private readonly IUsuarioRepository _usuarioRepository;
+    private readonly IRolRepository _rolRepository;
 
-    public UsuarioService(IUsuarioRepository usuarioRepository)
+    public UsuarioService(IUsuarioRepository usuarioRepository, IRolRepository rolRepository)
     {
         _usuarioRepository = usuarioRepository;
+        _rolRepository = rolRepository;
     }
 
     public async Task<IEnumerable<UsuarioDto>> GetAllUsuariosAsync()
@@ -45,10 +49,17 @@ public class UsuarioService : IUsuarioService
             EstadoUsuario = usuario.EstadoUsuario.ToString(),
             Rol = usuario.Rol?.Nombre
         };
-    }
-
-    public async Task AddUsuarioAsync(UsuarioDto usuarioDto)
+    }    public async Task AddUsuarioAsync(UsuarioDto usuarioDto)
     {
+        // Find existing Rol instead of creating a new one
+        var roles = await _rolRepository.GetAllAsync();
+        var rol = roles.FirstOrDefault(r => r.Nombre == usuarioDto.Rol);
+        
+        if (rol == null)
+        {
+            throw new ArgumentException($"Rol '{usuarioDto.Rol}' no encontrado");
+        }
+
         var usuario = new Usuario
         {
             Nombres = usuarioDto.Nombres,
@@ -58,13 +69,20 @@ public class UsuarioService : IUsuarioService
             Celular = usuarioDto.Celular,
             Password = usuarioDto.Password,
             EstadoUsuario = Enum.Parse<EstadoUsuario>(usuarioDto.EstadoUsuario),
-            Rol = new Rol { Nombre = usuarioDto.Rol }
+            Rol = rol
         };
         await _usuarioRepository.AddAsync(usuario);
-    }
-
-    public async Task UpdateUsuarioAsync(UsuarioDto usuarioDto)
+    }    public async Task UpdateUsuarioAsync(UsuarioDto usuarioDto)
     {
+        // Find existing Rol instead of creating a new one
+        var roles = await _rolRepository.GetAllAsync();
+        var rol = roles.FirstOrDefault(r => r.Nombre == usuarioDto.Rol);
+        
+        if (rol == null)
+        {
+            throw new ArgumentException($"Rol '{usuarioDto.Rol}' no encontrado");
+        }
+
         var usuario = new Usuario
         {
             Id = usuarioDto.Id,
@@ -75,7 +93,7 @@ public class UsuarioService : IUsuarioService
             Celular = usuarioDto.Celular,
             Password = usuarioDto.Password,
             EstadoUsuario = Enum.Parse<EstadoUsuario>(usuarioDto.EstadoUsuario),
-            Rol = new Rol { Nombre = usuarioDto.Rol }
+            Rol = rol
         };
         await _usuarioRepository.UpdateAsync(usuario);
     }

@@ -9,7 +9,7 @@ namespace ManitasCreativas.Domain.Enums
     public enum EstadoUsuario
     {
         Activo,
-        Desactivado,
+        Inactivo,
         Bloqueado
     }
 }

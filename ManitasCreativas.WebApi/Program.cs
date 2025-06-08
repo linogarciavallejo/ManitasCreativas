@@ -43,16 +43,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Dependency Injection for Services
-builder.Services.AddScoped<IUsuarioService, UsuarioService>();
-builder.Services.AddScoped<IRubroService, RubroService>();
-builder.Services.AddScoped<INivelEducativoService, NivelEducativoService>();
-builder.Services.AddScoped<IGradoService, GradoService>();
-builder.Services.AddScoped<ISedeService, SedeService>();
-builder.Services.AddScoped<IContactoService, ContactoService>();
-
 // Dependency Injection for Repositories
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IRolRepository, RolRepository>();
 builder.Services.AddScoped<IAlumnoRepository, AlumnoRepository>();
 builder.Services.AddScoped<IPagoRepository, PagoRepository>();
 builder.Services.AddScoped<IPagoImagenRepository, PagoImagenRepository>();
@@ -62,6 +55,18 @@ builder.Services.AddScoped<IGradoRepository, GradoRepository>();
 builder.Services.AddScoped<ISedeRepository, SedeRepository>();
 builder.Services.AddScoped<IContactoRepository, ContactoRepository>();
 builder.Services.AddScoped<IAlumnoContactoRepository, AlumnoContactoRepository>();
+
+// Dependency Injection for Services
+builder.Services.AddScoped<IUsuarioService, UsuarioService>(sp => {
+    var usuarioRepository = sp.GetRequiredService<IUsuarioRepository>();
+    var rolRepository = sp.GetRequiredService<IRolRepository>();
+    return new UsuarioService(usuarioRepository, rolRepository);
+});
+builder.Services.AddScoped<IRubroService, RubroService>();
+builder.Services.AddScoped<INivelEducativoService, NivelEducativoService>();
+builder.Services.AddScoped<IGradoService, GradoService>();
+builder.Services.AddScoped<ISedeService, SedeService>();
+builder.Services.AddScoped<IContactoService, ContactoService>();
 
 // Register AlumnoService after its dependencies with all three repositories
 builder.Services.AddScoped<IAlumnoService, AlumnoService>(sp => {
