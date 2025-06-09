@@ -22,12 +22,12 @@ const { Search } = Input;
 const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<AlumnoSimpleDto[]>([]);
   const [selectedAlumno, setSelectedAlumno] = useState<AlumnoSimpleDto | null>(null);
   const [alumnoDetails, setAlumnoDetails] = useState<AlumnoDto | null>(null);
-  const [statements, setStatements] = useState<PagoReadDto[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [statements, setStatements] = useState<PagoReadDto[]>([]);  const [loading, setLoading] = useState<boolean>(false);
   const [options, setOptions] = useState<{value: string, label: string}[]>([]);
   const isMobile = window.innerWidth < 768; // Simple mobile detection
   const [selectedImages, setSelectedImages] = useState<PagoImagenDto[]>([]);
   const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [autoCompleteValue, setAutoCompleteValue] = useState<string>('');
 
   // Fetch all alumnos on component mount
   useEffect(() => {
@@ -108,6 +108,13 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
   const handleCodigoSearch = async (codigo: string) => {
     console.log('handleCodigoSearch called with codigo:', codigo);
     
+    // If the search is empty (clear button clicked), reset the state
+    if (!codigo || codigo.trim() === '') {
+      console.log('Empty search detected, clearing state');
+      clearStudentData();
+      return;
+    }
+    
     setLoading(true);
     try {
       console.log('Making API request to:', `/alumnos/codigo/${codigo}`);
@@ -149,8 +156,15 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
       setLoading(false);
     }
   };
-
-  const onSelect = (value: string) => {
+  // Function to clear student data and reset state
+  const clearStudentData = () => {
+    setSelectedAlumno(null);
+    setAlumnoDetails(null);
+    setStatements([]);
+    setLoading(false);
+    setAutoCompleteValue('');
+    setOptions([]);
+  };  const onSelect = (value: string) => {
     const selectedText = value;
     const selected = alumnos.find(alumno => 
       alumno.fullName === selectedText || `${alumno.fullName} (${alumno.codigo})` === selectedText
@@ -158,6 +172,9 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
     
     if (selected) {
       setSelectedAlumno(selected);
+      // Clear the options and set the selected value
+      setOptions([]);
+      setAutoCompleteValue(selectedText);
     }
   };
   const onSearch = (searchText: string) => {
@@ -354,8 +371,7 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
               style={{ width: '100%' }}
             />
           </Col>
-          <Col xs={24} md={12}>
-            <AutoComplete
+          <Col xs={24} md={12}>            <AutoComplete
               style={{ width: '100%' }}
               options={options}
               onSelect={onSelect}
@@ -363,6 +379,8 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
               placeholder="Buscar por Nombre o Apellido"
               size="large"
               notFoundContent="No se encontraron estudiantes"
+              value={autoCompleteValue}
+              onChange={setAutoCompleteValue}
             />
           </Col>
         </Row>
