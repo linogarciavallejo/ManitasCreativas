@@ -1,5 +1,3 @@
-import { makeApiRequest } from './apiHelper';
-
 export interface Rol {
   id: number;
   nombre: string;

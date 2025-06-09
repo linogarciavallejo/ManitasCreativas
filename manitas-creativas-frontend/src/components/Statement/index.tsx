@@ -208,24 +208,32 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
     }
     return { status: 'ontime', daysPastDue: null };
   };
-
   // Table columns configuration
   const columns: TableColumnsType<PagoReadDto> = [
     {
       title: 'Fecha',
       dataIndex: 'fecha',
       key: 'fecha',
-      render: (text: string) => formatDate(text)
+      render: (text: string, record: PagoReadDto) => (
+        <span style={record.esAnulado ? { textDecoration: 'line-through', color: '#999' } : {}}>
+          {formatDate(text)}
+        </span>
+      )
     },
     {
       title: 'Descripción',
       dataIndex: 'rubroDescripcion',
       key: 'rubroDescripcion',
       render: (_: string, record: PagoReadDto) => (
-        <span>
+        <span style={record.esAnulado ? { textDecoration: 'line-through', color: '#999' } : {}}>
           {record.rubroDescripcion}
           {record.esColegiatura && record.mesColegiatura && record.anioColegiatura && (
             ` (${record.mesColegiatura}/${record.anioColegiatura})`
+          )}
+          {record.esAnulado && (
+            <Tag color="red" style={{ marginLeft: 8 }}>
+              ANULADO
+            </Tag>
           )}
         </span>
       )
@@ -234,21 +242,38 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
       title: 'Monto',
       dataIndex: 'monto',
       key: 'monto',
-      render: (amount: number) => {
-        return <Text strong>{formatCurrency(amount)}</Text>;
+      render: (amount: number, record: PagoReadDto) => {
+        return (
+          <Text 
+            strong 
+            style={record.esAnulado ? { textDecoration: 'line-through', color: '#999' } : {}}
+          >
+            {formatCurrency(amount)}
+          </Text>
+        );
       },      
       align: 'right' as const
     },
     {
       title: 'Forma de Pago',
       dataIndex: 'medioPagoDescripcion',
-      key: 'medioPagoDescripcion'
+      key: 'medioPagoDescripcion',
+      render: (text: string, record: PagoReadDto) => (
+        <span style={record.esAnulado ? { textDecoration: 'line-through', color: '#999' } : {}}>
+          {text}
+        </span>
+      )
     },
     {
       title: 'Usuario',
       dataIndex: 'usuarioNombre',
       key: 'usuarioNombre',
-      responsive: ['md']
+      responsive: ['md'],
+      render: (text: string, record: PagoReadDto) => (
+        <span style={record.esAnulado ? { textDecoration: 'line-through', color: '#999' } : {}}>
+          {text}
+        </span>
+      )
     },
     {
       title: 'Imágenes',
@@ -259,18 +284,57 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
             type="link" 
             icon={<EyeOutlined />} 
             onClick={() => handleViewImages(record.imagenesPago)}
+            disabled={record.esAnulado}
+            style={record.esAnulado ? { color: '#999' } : {}}
           >
             Ver {record.imagenesPago.length} {record.imagenesPago.length === 1 ? 'imagen' : 'imágenes'}
           </Button>
-        ) : 'Sin imágenes'
+        ) : (
+          <span style={record.esAnulado ? { color: '#999' } : {}}>
+            Sin imágenes
+          </span>
+        )
       ),
       responsive: ['md']
-    },
-    {
+    },    {
       title: 'Notas',
       dataIndex: 'notas',
       key: 'notas',
-      responsive: ['lg']
+      responsive: ['lg'],
+      render: (text: string, record: PagoReadDto) => (
+        <span style={record.esAnulado ? { textDecoration: 'line-through', color: '#999' } : {}}>
+          {text || ''}
+        </span>
+      )
+    },
+    {
+      title: 'Estado',
+      key: 'estado',
+      responsive: ['lg'],
+      render: (_: unknown, record: PagoReadDto) => (
+        record.esAnulado ? (
+          <div>
+            <Tag color="red">ANULADO</Tag>
+            {record.motivoAnulacion && (
+              <div style={{ fontSize: '12px', color: '#ff4d4f', marginTop: '4px' }}>
+                {record.motivoAnulacion}
+              </div>
+            )}
+            {record.fechaAnulacion && (
+              <div style={{ fontSize: '12px', color: '#999', marginTop: '2px' }}>
+                {formatDate(record.fechaAnulacion)}
+              </div>
+            )}
+            {record.usuarioAnulacionNombre && (
+              <div style={{ fontSize: '12px', color: '#999', marginTop: '2px' }}>
+                Por: {record.usuarioAnulacionNombre}
+              </div>
+            )}
+          </div>
+        ) : (
+          <Tag color="green">ACTIVO</Tag>
+        )
+      )
     },
   ];
 
@@ -383,13 +447,12 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
                     {isMobile ? "Imprimir" : "Imprimir Estado"}
                   </Button>
                 </Space>
-              </div>
-
-              <div style={{ marginBottom: '16px' }}>
-                <Space>
+              </div>              <div style={{ marginBottom: '16px' }}>
+                <Space wrap>
                   <Badge color="green" text={<><CheckCircleOutlined /> Pago a tiempo</>} />
                   <Badge color="gold" text={<><ClockCircleOutlined /> Pago con retraso (entre 6-15 días)</>} />
                   <Badge color="red" text={<><WarningOutlined /> Pago con retraso mayor (más de 15 días)</>} />
+                  <Badge color="gray" text={<><span style={{ textDecoration: 'line-through' }}>Pago anulado</span></>} />
                 </Space>
               </div>
 
@@ -404,8 +467,7 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
               ) : (
                 <>
                   {/* Table view for larger screens */}
-                  <div className="desktop-table" style={{ display: isMobile ? 'none' : 'block' }}>
-                    <Table 
+                  <div className="desktop-table" style={{ display: isMobile ? 'none' : 'block' }}>                    <Table 
                       dataSource={statements}
                       columns={columns}
                       rowKey="id"
@@ -414,7 +476,10 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
                         const { status } = getPaymentStatus(record);
                         const style: React.CSSProperties = {};
                         
-                        if (status === 'verylate') {
+                        if (record.esAnulado) {
+                          style.backgroundColor = '#f5f5f5'; // Light gray for voided payments
+                          style.opacity = 0.7;
+                        } else if (status === 'verylate') {
                           style.backgroundColor = '#ffccc7'; // Light red
                         } else if (status === 'late') {
                           style.backgroundColor = '#ffffb8'; // Light yellow
@@ -429,24 +494,37 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
                   <div className="mobile-view" style={{ display: isMobile ? 'block' : 'none' }}>
                     <List
                       itemLayout="vertical"
-                      dataSource={statements}
-                      renderItem={payment => {
+                      dataSource={statements}                      renderItem={payment => {
                         const { status, daysPastDue } = getPaymentStatus(payment);
                         const cardStyle: React.CSSProperties = { marginBottom: 8 };
                         
-                        if (status === 'verylate') {
+                        if (payment.esAnulado) {
+                          cardStyle.backgroundColor = '#f5f5f5'; // Light gray for voided payments
+                          cardStyle.opacity = 0.7;
+                        } else if (status === 'verylate') {
                           cardStyle.backgroundColor = '#ffccc7'; // Light red
                         } else if (status === 'late') {
                           cardStyle.backgroundColor = '#ffffb8'; // Light yellow
                         }
                         
+                        const textStyle: React.CSSProperties = payment.esAnulado ? 
+                          { textDecoration: 'line-through', color: '#999' } : {};
+                        
                         return (
                           <List.Item>
                             <Card style={cardStyle}>
-                              <Text strong>{payment.rubroDescripcion}</Text>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <Text strong style={textStyle}>{payment.rubroDescripcion}</Text>                                {payment.esAnulado && (
+                                  <Tag color="red">
+                                    ANULADO
+                                  </Tag>
+                                )}
+                              </div>
                               <div style={{ marginTop: 8 }}>
-                                <Text type="success" style={{ fontSize: 18 }}>{formatCurrency(payment.monto)}</Text>
-                                {payment.rubroId === 1 && status !== 'ontime' && (
+                                <Text type="success" style={{ fontSize: 18, ...textStyle }}>
+                                  {formatCurrency(payment.monto)}
+                                </Text>
+                                {payment.rubroId === 1 && status !== 'ontime' && !payment.esAnulado && (
                                   <Badge 
                                     style={{ marginLeft: 8 }}
                                     status={status === 'verylate' ? 'error' : 'warning'} 
@@ -455,22 +533,43 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
                                 )}
                               </div>
                               <div style={{ marginTop: 8 }}>
-                                <Text type="secondary">Fecha: {formatDate(payment.fecha)}</Text>
+                                <Text type="secondary" style={textStyle}>Fecha: {formatDate(payment.fecha)}</Text>
                               </div>
                               <div>
-                                <Text type="secondary">Forma de Pago: {payment.medioPagoDescripcion}</Text>
+                                <Text type="secondary" style={textStyle}>Forma de Pago: {payment.medioPagoDescripcion}</Text>
                               </div>
                               <div>
-                                <Text type="secondary">Usuario: {payment.usuarioNombre}</Text>
+                                <Text type="secondary" style={textStyle}>Usuario: {payment.usuarioNombre}</Text>
                               </div>
                               {payment.esColegiatura && payment.mesColegiatura && payment.anioColegiatura && (
                                 <div>
-                                  <Text type="secondary">Periodo: {payment.mesColegiatura}/{payment.anioColegiatura}</Text>
+                                  <Text type="secondary" style={textStyle}>Periodo: {payment.mesColegiatura}/{payment.anioColegiatura}</Text>
+                                </div>
+                              )}
+                              {payment.esAnulado && payment.motivoAnulacion && (
+                                <div style={{ marginTop: 8 }}>
+                                  <Text type="secondary" style={{ color: '#ff4d4f' }}>
+                                    Motivo de anulación: {payment.motivoAnulacion}
+                                  </Text>
+                                </div>
+                              )}
+                              {payment.esAnulado && payment.fechaAnulacion && (
+                                <div>
+                                  <Text type="secondary" style={{ color: '#ff4d4f' }}>
+                                    Fecha de anulación: {formatDate(payment.fechaAnulacion)}
+                                  </Text>
+                                </div>
+                              )}
+                              {payment.esAnulado && payment.usuarioAnulacionNombre && (
+                                <div>
+                                  <Text type="secondary" style={{ color: '#ff4d4f' }}>
+                                    Anulado por: {payment.usuarioAnulacionNombre}
+                                  </Text>
                                 </div>
                               )}
                               {payment.notas && (
                                 <div style={{ marginTop: 8 }}>
-                                  <Text type="secondary">Notas: {payment.notas}</Text>
+                                  <Text type="secondary" style={textStyle}>Notas: {payment.notas}</Text>
                                 </div>
                               )}
                               {payment.imagenesPago && payment.imagenesPago.length > 0 && (
@@ -480,6 +579,8 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
                                     size="small"
                                     icon={<EyeOutlined />} 
                                     onClick={() => handleViewImages(payment.imagenesPago)}
+                                    disabled={payment.esAnulado}
+                                    style={payment.esAnulado ? { color: '#999' } : {}}
                                   >
                                     Ver {payment.imagenesPago.length} {payment.imagenesPago.length === 1 ? 'imagen' : 'imágenes'}
                                   </Button>

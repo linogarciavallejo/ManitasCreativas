@@ -4,7 +4,7 @@ import { isAuthenticated } from '../services/authService';
 import { message } from 'antd';
 
 interface Props {
-  children: JSX.Element;
+  children: React.ReactElement;
 }
 
 const PrivateRoute: React.FC<Props> = ({ children }) => {

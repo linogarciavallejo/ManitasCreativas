@@ -373,9 +373,15 @@ public class AlumnoService : IAlumnoService
             FechaLimitePagoAmarillo = p.Rubro?.FechaLimitePagoAmarillo,
             FechaLimitePagoRojo = p.Rubro?.FechaLimitePagoRojo,
             DiaLimitePagoAmarillo = p.Rubro?.DiaLimitePagoAmarillo,
-            DiaLimitePagoRojo = p.Rubro?.DiaLimitePagoRojo,
-            MesLimitePago = p.Rubro?.MesLimitePago,            UsuarioNombre = p.UsuarioCreacion != null
+            DiaLimitePagoRojo = p.Rubro?.DiaLimitePagoRojo,            MesLimitePago = p.Rubro?.MesLimitePago,            UsuarioNombre = p.UsuarioCreacion != null
                 ? $"{p.UsuarioCreacion.Nombres} {p.UsuarioCreacion.Apellidos}"
+                : string.Empty,
+            EsAnulado = p.EsAnulado,
+            MotivoAnulacion = p.MotivoAnulacion ?? string.Empty,
+            FechaAnulacion = p.FechaAnulacion,
+            UsuarioAnulacionId = p.UsuarioAnulacionId,
+            UsuarioAnulacionNombre = p.UsuarioAnulacion != null
+                ? $"{p.UsuarioAnulacion.Nombres} {p.UsuarioAnulacion.Apellidos}"
                 : string.Empty,
             ImagenesPago = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
                 .Where(i => i.EsImagenEliminada != true)

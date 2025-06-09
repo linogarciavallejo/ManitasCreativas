@@ -24,10 +24,15 @@ export interface PagoReadDto {
   notas: string;
   imagenesPago: PagoImagenDto[];
   montoPreestablecido?: number;
-  penalizacionPorMora?: number;
-  ordenVisualizacionGrid?: number; // Added: new field for display order in grid
+  penalizacionPorMora?: number;  ordenVisualizacionGrid?: number; // Added: new field for display order in grid
   usuarioId?: number;
   usuarioNombre: string;
+  // Voided payment fields
+  esAnulado?: boolean;
+  motivoAnulacion?: string;
+  fechaAnulacion?: string;
+  usuarioAnulacionId?: number;
+  usuarioAnulacionNombre?: string;
 }
 
 export interface AlumnoSimpleDto {

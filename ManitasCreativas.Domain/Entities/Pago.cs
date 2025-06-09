@@ -34,9 +34,7 @@ namespace ManitasCreativas.Domain.Entities
 
         public int UsuarioCreacionId { get; set; }
         [ForeignKey("UsuarioCreacionId")]
-        public Usuario? UsuarioCreacion { get; set; }
-
-        public int? UsuarioActualizacionId { get; set; }
+        public Usuario? UsuarioCreacion { get; set; }        public int? UsuarioActualizacionId { get; set; }
         [ForeignKey("UsuarioActualizacionId")]
         public Usuario? UsuarioActualizacion { get; set; }
 
@@ -47,6 +45,8 @@ namespace ManitasCreativas.Domain.Entities
         public DateTime? FechaAnulacion { get; set; } = null;
 
         public int? UsuarioAnulacionId { get; set; } = null;
+        [ForeignKey("UsuarioAnulacionId")]
+        public Usuario? UsuarioAnulacion { get; set; }
 
     }
 }

@@ -88,6 +88,10 @@ public class AlumnoRepository : IAlumnoRepository
             .Include(a => a.Pagos)
                 .ThenInclude(p => p.ImagenesPago)
             .Include(a => a.Pagos)
+                .ThenInclude(p => p.UsuarioCreacion)
+            .Include(a => a.Pagos)
+                .ThenInclude(p => p.UsuarioAnulacion)
+            .Include(a => a.Pagos)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 
