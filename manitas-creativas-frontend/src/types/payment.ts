@@ -66,6 +66,7 @@ export interface AlumnoDto {
   sedeNombre: string;
   gradoId: number;
   gradoNombre: string;
+  seccion: string;
   becado: boolean;
   becaParcialPorcentaje: number;
   pagos: PagoReadDto[];

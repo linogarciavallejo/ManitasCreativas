@@ -397,6 +397,7 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
                     </Descriptions.Item>
                     <Descriptions.Item label="Sede">{alumnoDetails.sedeNombre}</Descriptions.Item>
                     <Descriptions.Item label="Grado">{alumnoDetails.gradoNombre}</Descriptions.Item>
+                    <Descriptions.Item label="Sección">{alumnoDetails.seccion}</Descriptions.Item>
                     {alumnoDetails.becado && (
                       <Descriptions.Item label="Beca">
                         <Tag color="green">{alumnoDetails.becaParcialPorcentaje}%</Tag>
