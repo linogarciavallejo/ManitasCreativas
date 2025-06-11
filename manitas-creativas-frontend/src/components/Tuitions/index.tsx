@@ -76,6 +76,8 @@ const Tuitions: React.FC = () => {
   const [selectedCodigo, setSelectedCodigo] = useState<string | null>(null);
   const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [selectedStudentDetails, setSelectedStudentDetails] =
+    useState<AlumnoDetails | null>(null);
   const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
   const [codigoSearchValue, setCodigoSearchValue] = useState<string>("");
   const [contactos, setContactos] = useState<Contacto[]>([]);
@@ -207,7 +209,10 @@ const Tuitions: React.FC = () => {
       setSelectedCodigo(response.codigo);
       setSelectedStudent(
         `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim()
-      ); // Update contactos info from the response
+      );
+      setSelectedStudentDetails(response);
+
+      // Update contactos info from the response
       setContactos(response.contactos || []);
 
       // Set gradoId and fetch appropriate RubroId
@@ -270,6 +275,7 @@ const Tuitions: React.FC = () => {
         "GET"
       );
       setSelectedCodigo(response.codigo);
+      setSelectedStudentDetails(response);
       // Update contactos info from the response
       setContactos(response.contactos || []); // Set gradoId and fetch appropriate RubroId
       const studentGradoId = response.gradoId;
@@ -395,6 +401,9 @@ const Tuitions: React.FC = () => {
             onClear={() => {
               setAutoCompleteValue("");
               setTypeaheadOptions([]);
+              setAlumnoId(null);
+              setSelectedStudent(null);
+              setSelectedStudentDetails(null);
             }}
             fieldNames={{ label: "label", value: "value" }}
           />
@@ -409,6 +418,25 @@ const Tuitions: React.FC = () => {
             }}
           >
             <strong>Alumno seleccionado:</strong> {selectedStudent}{" "}
+            {selectedStudentDetails &&
+              (selectedStudentDetails.gradoNombre ||
+                selectedStudentDetails.seccion) && (
+                <div
+                  style={{
+                    marginTop: "4px",
+                    fontSize: "14px",
+                    color: "#666",
+                  }}
+                >
+                  {selectedStudentDetails.gradoNombre &&
+                    `Grado: ${selectedStudentDetails.gradoNombre}`}
+                  {selectedStudentDetails.gradoNombre &&
+                    selectedStudentDetails.seccion &&
+                    " • "}
+                  {selectedStudentDetails.seccion &&
+                    `Sección: ${selectedStudentDetails.seccion}`}
+                </div>
+              )}{" "}
             <Button
               type="link"
               style={{ marginLeft: "10px", padding: "0" }}

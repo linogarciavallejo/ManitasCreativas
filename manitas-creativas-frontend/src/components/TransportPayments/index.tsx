@@ -77,12 +77,15 @@ interface AlumnoDetails {
 
 const { Option } = Select;
 
-const TransportPayments: React.FC = () => {  const [loading, setLoading] = useState(false);
+const TransportPayments: React.FC = () => {
+  const [loading, setLoading] = useState(false);
   const [loadingRubro, setLoadingRubro] = useState<boolean>(false);
   const [alumnoId, setAlumnoId] = useState<string | null>(null);
   const [selectedCodigo, setSelectedCodigo] = useState<string | null>(null);
   const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [selectedStudentDetails, setSelectedStudentDetails] =
+    useState<AlumnoDetails | null>(null);
   const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
   const [contactos, setContactos] = useState<Contacto[]>([]);
   // Add state for transport rubros
@@ -117,10 +120,12 @@ const TransportPayments: React.FC = () => {  const [loading, setLoading] = useSt
 
   // Add handler for rubro selection
   const handleRubroChange = (rubroId: string) => {
-    const selected = transportRubros.find((rubro) => rubro.id.toString() === rubroId);
+    const selected = transportRubros.find(
+      (rubro) => rubro.id.toString() === rubroId
+    );
     setSelectedRubro(selected || null);
     setDinamicRubroId(rubroId);
-    
+
     if (selected && selected.montoPreestablecido) {
       form.setFieldsValue({ monto: selected.montoPreestablecido });
     }
@@ -130,7 +135,7 @@ const TransportPayments: React.FC = () => {  const [loading, setLoading] = useSt
   // Update form values when dinamicRubroId changes
   useEffect(() => {
     form.setFieldsValue({ rubroId: dinamicRubroId });
-  }, [dinamicRubroId, form]);  // Function to reset the form after a successful submission
+  }, [dinamicRubroId, form]); // Function to reset the form after a successful submission
   const resetForm = () => {
     // Reset form but keep these fields
     form.setFieldsValue({
@@ -146,6 +151,7 @@ const TransportPayments: React.FC = () => {  const [loading, setLoading] = useSt
 
     // Clear student selection
     setSelectedStudent(null);
+    setSelectedStudentDetails(null);
     setAlumnoId(null);
     setSelectedCodigo(null);
     setAutoCompleteValue("");
@@ -165,7 +171,9 @@ const TransportPayments: React.FC = () => {  const [loading, setLoading] = useSt
       setSelectedCodigo(response.codigo);
       setSelectedStudent(
         `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim()
-      );      // Update contactos info from the response
+      ); 
+      setSelectedStudentDetails(response);
+      // Update contactos info from the response
       setContactos(response.contactos || []);
 
       // No need for toast notification when student is found by code
@@ -207,7 +215,9 @@ const TransportPayments: React.FC = () => {  const [loading, setLoading] = useSt
       const response = await makeApiRequest<AlumnoDetails>(
         `/alumnos/codigo/${option.codigo}`,
         "GET"
-      );      setSelectedCodigo(response.codigo);
+      );
+      setSelectedStudentDetails(response);
+      setSelectedCodigo(response.codigo);
       // Update contactos info from the response
       setContactos(response.contactos || []);
 
@@ -244,13 +254,14 @@ const TransportPayments: React.FC = () => {  const [loading, setLoading] = useSt
       formData.append("Monto", values.monto.toString());
       formData.append("MedioPago", values.medioPago.toString());
       formData.append("MesColegiatura", values.mes.toString());
-      formData.append("RubroId", values.rubroId);      formData.append("AlumnoId", alumnoId);
+      formData.append("RubroId", values.rubroId);
+      formData.append("AlumnoId", alumnoId);
       formData.append("EsColegiatura", "true");
       formData.append("AnioColegiatura", new Date().getFullYear().toString());
-      
+
       // Set transport payment flag to true
       formData.append("EsPagoDeTransporte", "true");
-      
+
       if (values.notas) formData.append("Notas", values.notas);
 
       // Get the current user ID from localStorage and use it for UsuarioCreacionId
@@ -340,6 +351,25 @@ const TransportPayments: React.FC = () => {  const [loading, setLoading] = useSt
             }}
           >
             <strong>Alumno seleccionado:</strong> {selectedStudent}{" "}
+            {selectedStudentDetails &&
+              (selectedStudentDetails.gradoNombre ||
+                selectedStudentDetails.seccion) && (
+                <div
+                  style={{
+                    marginTop: "4px",
+                    fontSize: "14px",
+                    color: "#666",
+                  }}
+                >
+                  {selectedStudentDetails.gradoNombre &&
+                    `Grado: ${selectedStudentDetails.gradoNombre}`}
+                  {selectedStudentDetails.gradoNombre &&
+                    selectedStudentDetails.seccion &&
+                    " • "}
+                  {selectedStudentDetails.seccion &&
+                    `Sección: ${selectedStudentDetails.seccion}`}
+                </div>
+              )}{" "}
             <Button
               type="link"
               style={{ marginLeft: "10px", padding: "0" }}
@@ -382,7 +412,8 @@ const TransportPayments: React.FC = () => {  const [loading, setLoading] = useSt
         layout="vertical"
         onFinish={handleSubmit}
         autoComplete="off"
-        className="payments-form"        initialValues={{
+        className="payments-form"
+        initialValues={{
           cicloEscolar: currentYear,
           mes: currentMonth.toString(), // Convert to string to match Option values
           fechaPago: dayjs(),
@@ -411,11 +442,17 @@ const TransportPayments: React.FC = () => {  const [loading, setLoading] = useSt
           <DatePickerES
             style={{ width: "100%" }}
             placeholder="Seleccione la fecha de pago"
-          />        </Form.Item>
+          />{" "}
+        </Form.Item>
         <Form.Item
           label="Rubro de Transporte"
           name="rubroId"
-          rules={[{ required: true, message: "Por favor seleccione un rubro de transporte" }]}
+          rules={[
+            {
+              required: true,
+              message: "Por favor seleccione un rubro de transporte",
+            },
+          ]}
         >
           <Select
             placeholder="Seleccione el rubro de transporte"
@@ -428,7 +465,8 @@ const TransportPayments: React.FC = () => {  const [loading, setLoading] = useSt
                 {rubro.descripcion}
               </Option>
             ))}
-          </Select>        </Form.Item>
+          </Select>{" "}
+        </Form.Item>
         <Form.Item label="Mes" name="mes" rules={[{ required: false }]}>
           <Select>
             <Option value="1">Enero</Option>
@@ -503,7 +541,9 @@ const TransportPayments: React.FC = () => {  const [loading, setLoading] = useSt
             <Button icon={<UploadOutlined />}>Subir Imágenes de Pago</Button>
           </Upload>
         </Form.Item>
-        <Form.Item>          <Button
+        <Form.Item>
+          {" "}
+          <Button
             type="primary"
             htmlType="submit"
             block

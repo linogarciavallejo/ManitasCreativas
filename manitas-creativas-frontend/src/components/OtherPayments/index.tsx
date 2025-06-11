@@ -72,6 +72,9 @@ const OtherPayments: React.FC = () => {
   const [selectedCodigo, setSelectedCodigo] = useState<string | null>(null);
   const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [selectedStudentDetails, setSelectedStudentDetails] =
+    useState<AlumnoDetails | null>(null);
+
   const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
   const [codigoSearchValue, setCodigoSearchValue] = useState<string>("");
   const [contactos, setContactos] = useState<Contacto[]>([]);
@@ -148,7 +151,9 @@ const OtherPayments: React.FC = () => {
       setSelectedCodigo(response.codigo);
       setSelectedStudent(
         `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim()
-      ); // Update contactos info from the response
+      );
+      setSelectedStudentDetails(response);
+      // Update contactos info from the response
       setContactos(response.contactos || []);
 
       // Fetch appropriate rubros for this student
@@ -192,6 +197,7 @@ const OtherPayments: React.FC = () => {
         `/alumnos/codigo/${option.codigo}`,
         "GET"
       );
+      setSelectedStudentDetails(response);
       setSelectedCodigo(response.codigo);
       // Update contactos info from the response
       setContactos(response.contactos || []);
@@ -292,6 +298,7 @@ const OtherPayments: React.FC = () => {
 
       // Reset student selection and clear all search filters
       setSelectedStudent(null);
+      setSelectedStudentDetails(null);
       setAlumnoId(null);
       setSelectedCodigo(null);
       setAutoCompleteValue("");
@@ -340,6 +347,11 @@ const OtherPayments: React.FC = () => {
             onClear={() => {
               setAutoCompleteValue("");
               setTypeaheadOptions([]);
+              setAlumnoId(null);
+              setSelectedStudent(null);
+              setSelectedStudentDetails(null);
+              setSelectedCodigo(null);
+              setContactos([]);
             }}
             fieldNames={{ label: "label", value: "value" }}
           />
@@ -354,11 +366,31 @@ const OtherPayments: React.FC = () => {
             }}
           >
             <strong>Alumno seleccionado:</strong> {selectedStudent}
+            {selectedStudentDetails &&
+              (selectedStudentDetails.gradoNombre ||
+                selectedStudentDetails.seccion) && (
+                <div
+                  style={{
+                    marginTop: "4px",
+                    fontSize: "14px",
+                    color: "#666",
+                  }}
+                >
+                  {selectedStudentDetails.gradoNombre &&
+                    `Grado: ${selectedStudentDetails.gradoNombre}`}
+                  {selectedStudentDetails.gradoNombre &&
+                    selectedStudentDetails.seccion &&
+                    " • "}
+                  {selectedStudentDetails.seccion &&
+                    `Sección: ${selectedStudentDetails.seccion}`}
+                </div>
+              )}{" "}
             <Button
               type="link"
               style={{ marginLeft: "10px", padding: "0" }}
               onClick={() => {
                 setSelectedStudent(null);
+                setSelectedStudentDetails(null);
                 setAlumnoId(null);
                 setSelectedCodigo(null);
                 setAutoCompleteValue("");

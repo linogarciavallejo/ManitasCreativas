@@ -94,7 +94,8 @@ const EditPayments: React.FC = () => {
   const [typeaheadOptions, setTypeaheadOptions] = useState<AlumnoOption[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [selectedStudentDetails, setSelectedStudentDetails] =
-    useState<AlumnoDetails | null>(null);  const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
+    useState<AlumnoDetails | null>(null);
+  const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
   const [codigoInputValue, setCodigoInputValue] = useState<string>("");
   const [grados, setGrados] = useState<Grado[]>([]);
   const [selectedGradoId, setSelectedGradoId] = useState<number | null>(null);
@@ -151,7 +152,8 @@ const EditPayments: React.FC = () => {
       setAlumnoId(response.id.toString());
       setSelectedStudent(
         `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim()
-      );      setSelectedStudentDetails(response);      
+      );
+      setSelectedStudentDetails(response);
       // Set active filter to "alumno" and clear grado selection
       setActiveFilter("alumno");
       setSelectedGradoId(null);
@@ -205,12 +207,13 @@ const EditPayments: React.FC = () => {
         `/alumnos/codigo/${option.codigo}`,
         "GET"
       );
-      setSelectedStudentDetails(response);    } catch (error) {
+      setSelectedStudentDetails(response);
+    } catch (error) {
       console.error("Error fetching student details:", error);
       toast.error("Error al obtener los datos del alumno seleccionado.");
     }
-  }; 
-  
+  };
+
   // Function to reset filters
   const resetFilters = () => {
     form.resetFields();
@@ -388,7 +391,11 @@ const EditPayments: React.FC = () => {
     setIsVoiding(true);
     try {
       // Call the actual API to void payment
-      await pagoService.voidPayment(selectedPayment.id, voidReason.trim(), currentUserId);
+      await pagoService.voidPayment(
+        selectedPayment.id,
+        voidReason.trim(),
+        currentUserId
+      );
 
       toast.success(`Pago #${selectedPayment.id} anulado correctamente`);
 
@@ -476,7 +483,9 @@ const EditPayments: React.FC = () => {
             </Col>
           </Row>
           <Row gutter={16}>
-            <Col xs={24} sm={12}>              <Form.Item label="Código de Alumno">
+            <Col xs={24} sm={12}>
+              {" "}
+              <Form.Item label="Código de Alumno">
                 <Input.Search
                   placeholder="Buscar por Código"
                   enterButton={<SearchOutlined />}
@@ -499,7 +508,8 @@ const EditPayments: React.FC = () => {
                   placeholder="Buscar por Nombre o Apellido"
                   style={{ width: "100%" }}
                   allowClear
-                  disabled={activeFilter === "grado"}                  onClear={() => {
+                  disabled={activeFilter === "grado"}
+                  onClear={() => {
                     console.log("AutoComplete onClear triggered");
                     setAutoCompleteValue("");
                     setTypeaheadOptions([]);
@@ -564,7 +574,8 @@ const EditPayments: React.FC = () => {
                     {selectedStudentDetails.seccion &&
                       `Sección: ${selectedStudentDetails.seccion}`}
                   </div>
-                )}              <Button
+                )}{" "}
+              <Button
                 type="link"
                 style={{ marginLeft: "10px", padding: "0" }}
                 onClick={() => {
@@ -707,7 +718,8 @@ const EditPayments: React.FC = () => {
                               icon={<EditOutlined />}
                               onClick={() => handleEditPayment(record)}
                               title="Editar pago"
-                            />                            <Button
+                            />{" "}
+                            <Button
                               size="small"
                               danger
                               icon={<StopOutlined />}
