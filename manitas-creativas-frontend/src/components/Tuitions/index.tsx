@@ -54,6 +54,7 @@ interface AlumnoDetails {
   sedeNombre: string;
   gradoId: number;
   gradoNombre: string;
+  seccion: string | null;
   becado: boolean | null;
   becaParcialPorcentaje: number | null;
   observaciones?: string;
