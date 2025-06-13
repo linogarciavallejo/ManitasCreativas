@@ -517,8 +517,7 @@ const Tuitions: React.FC = () => {
           style={{ display: "none" }}
         >
           <Input type="hidden" disabled={loadingRubro} />
-        </Form.Item>{" "}
-        <Form.Item label="Mes" name="mes" rules={[{ required: false }]}>
+        </Form.Item>{" "}        <Form.Item label="Mes" name="mes" rules={[{ required: false }]}>
           <Select>
             <Option value="1">Enero</Option>
             <Option value="2">Febrero</Option>
@@ -530,8 +529,6 @@ const Tuitions: React.FC = () => {
             <Option value="8">Agosto</Option>
             <Option value="9">Septiembre</Option>
             <Option value="10">Octubre</Option>
-            <Option value="11">Noviembre</Option>
-            <Option value="12">Diciembre</Option>
           </Select>
         </Form.Item>
         <Form.Item
