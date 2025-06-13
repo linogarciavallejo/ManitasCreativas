@@ -36,8 +36,11 @@ interface Contacto {
   contacto: {
     id: number;
     nombre: string;
-    telefono: string;
-    email: string;
+    telefonoTrabajo?: string;
+    celular?: string;
+    email?: string;
+    direccion?: string;
+    nit?: string;
   };
   parentesco: string;
 }
@@ -396,11 +399,10 @@ const TransportPayments: React.FC = () => {
       {contactos.length > 0 && (
         <div style={{ marginBottom: "20px" }}>
           <h3>Contactos</h3>
-          <ul style={{ paddingLeft: "20px" }}>
-            {contactos.map((contacto) => (
+          <ul style={{ paddingLeft: "20px" }}>            {contactos.map((contacto) => (
               <li key={contacto.contactoId}>
                 <strong>{contacto.parentesco}:</strong>{" "}
-                {contacto.contacto.nombre} — {contacto.contacto.telefono} —{" "}
+                {contacto.contacto.nombre} — {contacto.contacto.telefonoTrabajo || contacto.contacto.celular || 'Sin teléfono'} —{" "}
                 {contacto.contacto.email}
               </li>
             ))}

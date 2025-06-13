@@ -44,8 +44,11 @@ export interface AlumnoSimpleDto {
 export interface ContactoDto {
   id: number;
   nombre: string;
-  telefono: string;
-  email: string;
+  telefonoTrabajo?: string;
+  celular?: string;
+  email?: string;
+  direccion?: string;
+  nit?: string;
 }
 
 export interface AlumnoContactoDto {

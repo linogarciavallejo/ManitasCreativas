@@ -408,8 +408,7 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
               </Col>
 
               <Col xs={24} sm={12}>
-                <Card title="Información de Contacto" type="inner">
-                  {!alumnoDetails.contactos || alumnoDetails.contactos.length === 0 ? (
+                <Card title="Información de Contacto" type="inner">                  {!alumnoDetails.contactos || alumnoDetails.contactos.length === 0 ? (
                     <Empty description="No hay información de contacto disponible" />
                   ) : (
                     <List
@@ -418,11 +417,20 @@ const Statement: React.FC = () => {  const [alumnos, setAlumnos] = useState<Alum
                       renderItem={contact => (
                         <List.Item>
                           <List.Item.Meta
-                            title={`${contact.contacto.nombre} (${contact.parentesco})`}
-                            description={
+                            title={`${contact.contacto.nombre} (${contact.parentesco})`}                            description={
                               <Space direction="vertical">
-                                <Text>Tel: {contact.contacto.telefono}</Text>
-                                {contact.contacto.email && <Text>Email: {contact.contacto.email}</Text>}
+                                {contact.contacto.telefonoTrabajo && (
+                                  <Text>Tel. Trabajo: {contact.contacto.telefonoTrabajo}</Text>
+                                )}
+                                {contact.contacto.celular && (
+                                  <Text>Celular: {contact.contacto.celular}</Text>
+                                )}
+                                {contact.contacto.email && (
+                                  <Text>Email: {contact.contacto.email}</Text>
+                                )}
+                                {contact.contacto.direccion && (
+                                  <Text>Dirección: {contact.contacto.direccion}</Text>
+                                )}
                               </Space>
                             }
                           />
