@@ -554,8 +554,7 @@ public class PagoService : IPagoService
                         PagoId = pi.PagoId,
                         Url = pi.ImagenUrl.ToString()
                     }).ToList() ?? new List<PagoImagenDto>()
-                };
-            }).ToList();        Console.WriteLine($"Returning {dtos.Count} payment DTOs");
+                };            }).OrderBy(dto => dto.Fecha).ToList();        Console.WriteLine($"Returning {dtos.Count} payment DTOs");
             return dtos;
         }
         catch (Exception ex)
