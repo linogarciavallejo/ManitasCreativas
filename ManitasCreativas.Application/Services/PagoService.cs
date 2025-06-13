@@ -143,7 +143,11 @@ public class PagoService : IPagoService
             AlumnoId = pagoDto.AlumnoId,
             RubroId = pagoDto.RubroId,
             CicloEscolar = pagoDto.CicloEscolar,
-            Fecha = pagoDto.Fecha,
+            Fecha = pagoDto.Fecha.Kind == DateTimeKind.Utc 
+                ? pagoDto.Fecha 
+                : pagoDto.Fecha.Kind == DateTimeKind.Unspecified 
+                    ? DateTime.SpecifyKind(pagoDto.Fecha, DateTimeKind.Utc)
+                    : pagoDto.Fecha.ToUniversalTime(),
             Monto = pagoDto.Monto,
             MedioPago = (MedioPago)pagoDto.MedioPago,
             Notas = pagoDto.Notas,
@@ -161,9 +165,13 @@ public class PagoService : IPagoService
 
             EsAnulado = pagoDto.EsAnulado,
             MotivoAnulacion = pagoDto.MotivoAnulacion,
-            FechaAnulacion = pagoDto.FechaAnulacion,
+            FechaAnulacion = pagoDto.FechaAnulacion?.Kind == DateTimeKind.Utc 
+                ? pagoDto.FechaAnulacion 
+                : pagoDto.FechaAnulacion?.Kind == DateTimeKind.Unspecified 
+                    ? (pagoDto.FechaAnulacion.HasValue ? DateTime.SpecifyKind(pagoDto.FechaAnulacion.Value, DateTimeKind.Utc) : null)
+                    : pagoDto.FechaAnulacion?.ToUniversalTime(),
             UsuarioAnulacionId = pagoDto.UsuarioAnulacionId
-        };        await _pagoRepository.AddAsync(pago);
+        };await _pagoRepository.AddAsync(pago);
 
         // Handle images - both uploaded files and existing URLs
         var pagoImagenes = new List<PagoImagen>();        // Handle uploaded files
@@ -238,7 +246,11 @@ public class PagoService : IPagoService
         existingPago.AlumnoId = pagoDto.AlumnoId;
         existingPago.RubroId = pagoDto.RubroId;
         existingPago.CicloEscolar = pagoDto.CicloEscolar;
-        existingPago.Fecha = pagoDto.Fecha;
+        existingPago.Fecha = pagoDto.Fecha.Kind == DateTimeKind.Utc 
+            ? pagoDto.Fecha 
+            : pagoDto.Fecha.Kind == DateTimeKind.Unspecified 
+                ? DateTime.SpecifyKind(pagoDto.Fecha, DateTimeKind.Utc)
+                : pagoDto.Fecha.ToUniversalTime();
         existingPago.Monto = pagoDto.Monto;
         existingPago.MedioPago = (MedioPago)pagoDto.MedioPago;
         existingPago.Notas = pagoDto.Notas;
@@ -253,8 +265,12 @@ public class PagoService : IPagoService
         existingPago.UsuarioActualizacionId = pagoDto.UsuarioActualizacionId;
         existingPago.EsAnulado = pagoDto.EsAnulado;
         existingPago.MotivoAnulacion = pagoDto.MotivoAnulacion;
-        existingPago.FechaAnulacion = pagoDto.FechaAnulacion;
-        existingPago.UsuarioAnulacionId = pagoDto.UsuarioAnulacionId;        await _pagoRepository.UpdateAsync(existingPago);
+        existingPago.FechaAnulacion = pagoDto.FechaAnulacion?.Kind == DateTimeKind.Utc 
+            ? pagoDto.FechaAnulacion 
+            : pagoDto.FechaAnulacion?.Kind == DateTimeKind.Unspecified 
+                ? (pagoDto.FechaAnulacion.HasValue ? DateTime.SpecifyKind(pagoDto.FechaAnulacion.Value, DateTimeKind.Utc) : null)
+                : pagoDto.FechaAnulacion?.ToUniversalTime();
+        existingPago.UsuarioAnulacionId = pagoDto.UsuarioAnulacionId;await _pagoRepository.UpdateAsync(existingPago);
 
         // Handle image updates - both uploaded files and existing URLs
         var existingImages = await _pagoImagenRepository.GetByPagoIdAsync(id);

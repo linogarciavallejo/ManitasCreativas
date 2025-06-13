@@ -121,8 +121,12 @@ public class RubroService : IRubroService
             Tipo = (TipoRubro)rubroDto.Tipo,
             PenalizacionPorMoraMonto = rubroDto.PenalizacionPorMoraMonto,
             PenalizacionPorMoraPorcentaje = rubroDto.PenalizacionPorMoraPorcentaje,
-            FechaLimitePagoAmarillo = rubroDto.FechaLimitePagoAmarillo,
-            FechaLimitePagoRojo = rubroDto.FechaLimitePagoRojo,
+            FechaLimitePagoAmarillo = rubroDto.FechaLimitePagoAmarillo?.Kind == DateTimeKind.Utc 
+                ? rubroDto.FechaLimitePagoAmarillo 
+                : rubroDto.FechaLimitePagoAmarillo?.ToUniversalTime(),
+            FechaLimitePagoRojo = rubroDto.FechaLimitePagoRojo?.Kind == DateTimeKind.Utc 
+                ? rubroDto.FechaLimitePagoRojo 
+                : rubroDto.FechaLimitePagoRojo?.ToUniversalTime(),
             EsColegiatura = rubroDto.EsColegiatura,
             DiaLimitePagoAmarillo = rubroDto.DiaLimitePagoAmarillo,
             DiaLimitePagoRojo = rubroDto.DiaLimitePagoRojo,
@@ -130,8 +134,12 @@ public class RubroService : IRubroService
             NivelEducativoId = rubroDto.NivelEducativoId,
             GradoId = rubroDto.GradoId,
             MontoPreestablecido = rubroDto.MontoPreestablecido,
-            FechaInicioPromocion = rubroDto.FechaInicioPromocion,
-            FechaFinPromocion = rubroDto.FechaFinPromocion,
+            FechaInicioPromocion = rubroDto.FechaInicioPromocion?.Kind == DateTimeKind.Utc 
+                ? rubroDto.FechaInicioPromocion 
+                : rubroDto.FechaInicioPromocion?.ToUniversalTime(),
+            FechaFinPromocion = rubroDto.FechaFinPromocion?.Kind == DateTimeKind.Utc 
+                ? rubroDto.FechaFinPromocion 
+                : rubroDto.FechaFinPromocion?.ToUniversalTime(),
             EsPagoDeCarnet = rubroDto.EsPagoDeCarnet,
             EsPagoDeTransporte = rubroDto.EsPagoDeTransporte,
             Notas = rubroDto.Notas,
@@ -182,18 +190,24 @@ public class RubroService : IRubroService
         existingRubro.Descripcion = rubroDto.Descripcion;
         existingRubro.Tipo = (TipoRubro)rubroDto.Tipo;
         existingRubro.PenalizacionPorMoraMonto = rubroDto.PenalizacionPorMoraMonto;
-        existingRubro.PenalizacionPorMoraPorcentaje = rubroDto.PenalizacionPorMoraPorcentaje;
-        existingRubro.FechaLimitePagoAmarillo = rubroDto.FechaLimitePagoAmarillo;
-        existingRubro.FechaLimitePagoRojo = rubroDto.FechaLimitePagoRojo;
+        existingRubro.PenalizacionPorMoraPorcentaje = rubroDto.PenalizacionPorMoraPorcentaje;        existingRubro.FechaLimitePagoAmarillo = rubroDto.FechaLimitePagoAmarillo?.Kind == DateTimeKind.Utc 
+            ? rubroDto.FechaLimitePagoAmarillo 
+            : rubroDto.FechaLimitePagoAmarillo?.ToUniversalTime();
+        existingRubro.FechaLimitePagoRojo = rubroDto.FechaLimitePagoRojo?.Kind == DateTimeKind.Utc 
+            ? rubroDto.FechaLimitePagoRojo 
+            : rubroDto.FechaLimitePagoRojo?.ToUniversalTime();
         existingRubro.EsColegiatura = rubroDto.EsColegiatura;
         existingRubro.DiaLimitePagoAmarillo = rubroDto.DiaLimitePagoAmarillo;
         existingRubro.DiaLimitePagoRojo = rubroDto.DiaLimitePagoRojo;
         existingRubro.MesLimitePago = rubroDto.MesLimitePago;
         existingRubro.NivelEducativoId = rubroDto.NivelEducativoId;
         existingRubro.GradoId = rubroDto.GradoId;
-        existingRubro.MontoPreestablecido = rubroDto.MontoPreestablecido;
-        existingRubro.FechaInicioPromocion = rubroDto.FechaInicioPromocion;
-        existingRubro.FechaFinPromocion = rubroDto.FechaFinPromocion;
+        existingRubro.MontoPreestablecido = rubroDto.MontoPreestablecido;        existingRubro.FechaInicioPromocion = rubroDto.FechaInicioPromocion?.Kind == DateTimeKind.Utc 
+            ? rubroDto.FechaInicioPromocion 
+            : rubroDto.FechaInicioPromocion?.ToUniversalTime();
+        existingRubro.FechaFinPromocion = rubroDto.FechaFinPromocion?.Kind == DateTimeKind.Utc 
+            ? rubroDto.FechaFinPromocion 
+            : rubroDto.FechaFinPromocion?.ToUniversalTime();
         existingRubro.EsPagoDeCarnet = rubroDto.EsPagoDeCarnet;
         existingRubro.EsPagoDeTransporte = rubroDto.EsPagoDeTransporte;
         existingRubro.Notas = rubroDto.Notas;

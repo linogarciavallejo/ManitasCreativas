@@ -266,9 +266,7 @@ namespace ManitasCreativas.Infrastructure
                     }
                 }
             }
-        }
-
-        // Helper method to convert all DateTime properties to UTC
+        }        // Helper method to convert all DateTime properties to UTC
         private void ConvertDateTimePropertiesToUtc(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry)
         {
             foreach (var property in entry.Properties)
@@ -278,7 +276,15 @@ namespace ManitasCreativas.Infrastructure
                 {
                     if (dateTime.Kind != DateTimeKind.Utc)
                     {
-                        property.CurrentValue = dateTime.ToUniversalTime();
+                        // If the DateTime is Unspecified, treat it as UTC to avoid timezone conversion issues
+                        if (dateTime.Kind == DateTimeKind.Unspecified)
+                        {
+                            property.CurrentValue = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+                        }
+                        else
+                        {
+                            property.CurrentValue = dateTime.ToUniversalTime();
+                        }
                     }
                 }
                 // Handle nullable DateTime properties
@@ -287,7 +293,15 @@ namespace ManitasCreativas.Infrastructure
                     var nullableDateTime = (DateTime?)property.CurrentValue;
                     if (nullableDateTime.HasValue && nullableDateTime.Value.Kind != DateTimeKind.Utc)
                     {
-                        property.CurrentValue = nullableDateTime.Value.ToUniversalTime();
+                        // If the DateTime is Unspecified, treat it as UTC to avoid timezone conversion issues
+                        if (nullableDateTime.Value.Kind == DateTimeKind.Unspecified)
+                        {
+                            property.CurrentValue = DateTime.SpecifyKind(nullableDateTime.Value, DateTimeKind.Utc);
+                        }
+                        else
+                        {
+                            property.CurrentValue = nullableDateTime.Value.ToUniversalTime();
+                        }
                     }
                 }
             }
