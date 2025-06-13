@@ -151,9 +151,7 @@ public class RubroService : IRubroService
 
         await _rubroRepository.AddAsync(rubro);
         rubroDto.Id = rubro.Id;
-    }
-
-    public async Task UpdateRubroAsync(RubroDto rubroDto)
+    }    public async Task UpdateRubroAsync(RubroDto rubroDto)
     {
         // Verify that UsuarioActualizacionId is provided
         if (rubroDto.UsuarioActualizacionId <= 0)

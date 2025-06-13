@@ -73,9 +73,7 @@ public class RubroRepository : IRubroRepository
             }
 
             // Detach the existing entity to avoid tracking conflicts
-            _context.Entry(existingRubro).State = EntityState.Detached;
-
-            // Create a SQL UPDATE statement to bypass EF Core's DateTime handling
+            _context.Entry(existingRubro).State = EntityState.Detached;            // Create a SQL UPDATE statement to bypass EF Core's DateTime handling
             var sql = @"
                 UPDATE ""Rubros""
                 SET ""Descripcion"" = @Descripcion,
@@ -92,15 +90,14 @@ public class RubroRepository : IRubroRepository
                     ""FechaInicioPromocion"" = @FechaInicioPromocion,
                     ""FechaFinPromocion"" = @FechaFinPromocion,
                     ""EsPagoDeCarnet"" = @EsPagoDeCarnet,
+                    ""EsPagoDeTransporte"" = @EsPagoDeTransporte,
                     ""Notas"" = @Notas,
                     ""Activo"" = @Activo,
                     ""UsuarioActualizacionId"" = @UsuarioActualizacionId,
                     ""FechaActualizacion"" = @FechaActualizacion,
                     ""FechaLimitePagoAmarillo"" = @FechaLimitePagoAmarillo,
                     ""FechaLimitePagoRojo"" = @FechaLimitePagoRojo
-                WHERE ""Id"" = @Id";
-
-            var parameters = new[]
+                WHERE ""Id"" = @Id";            var parameters = new[]
             {
                 new Npgsql.NpgsqlParameter("@Descripcion", rubro.Descripcion),
                 // Convert enum to int for PostgreSQL
@@ -117,6 +114,7 @@ public class RubroRepository : IRubroRepository
                 new Npgsql.NpgsqlParameter("@FechaInicioPromocion", (object)rubro.FechaInicioPromocion ?? DBNull.Value),
                 new Npgsql.NpgsqlParameter("@FechaFinPromocion", (object)rubro.FechaFinPromocion ?? DBNull.Value),
                 new Npgsql.NpgsqlParameter("@EsPagoDeCarnet", (object)rubro.EsPagoDeCarnet ?? DBNull.Value),
+                new Npgsql.NpgsqlParameter("@EsPagoDeTransporte", (object)rubro.EsPagoDeTransporte ?? DBNull.Value),
                 new Npgsql.NpgsqlParameter("@Notas", (object)rubro.Notas ?? DBNull.Value),
                 new Npgsql.NpgsqlParameter("@Activo", rubro.Activo),
                 new Npgsql.NpgsqlParameter("@UsuarioActualizacionId", (object)rubro.UsuarioActualizacionId ?? DBNull.Value),

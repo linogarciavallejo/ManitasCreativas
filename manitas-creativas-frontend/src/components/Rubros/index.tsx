@@ -310,16 +310,23 @@ const Rubros: React.FC = () => {
         </Form>
       </Card>
     );
-  };
-  const handleEdit = (record: Rubro) => {
+  };  const handleEdit = (record: Rubro) => {
     setEditingId(record.id);
-    form.setFieldsValue({
+    console.log('Editing record:', record);
+    console.log('EsPagoDeTransporte value in record:', record.esPagoDeTransporte);
+    
+    const formValues = {
       ...record,
       fechaLimitePagoAmarillo: record.fechaLimitePagoAmarillo ? dayjs(record.fechaLimitePagoAmarillo) : undefined,
       fechaLimitePagoRojo: record.fechaLimitePagoRojo ? dayjs(record.fechaLimitePagoRojo) : undefined,
       fechaInicioPromocion: record.fechaInicioPromocion ? dayjs(record.fechaInicioPromocion) : undefined,
       fechaFinPromocion: record.fechaFinPromocion ? dayjs(record.fechaFinPromocion) : undefined,
-    });
+    };
+    
+    console.log('Form values being set:', formValues);
+    console.log('EsPagoDeTransporte in form values:', formValues.esPagoDeTransporte);
+    
+    form.setFieldsValue(formValues);
     
     // Fetch grados if a nivel educativo is specified
     if (record.nivelEducativoId) {
@@ -359,7 +366,6 @@ const Rubros: React.FC = () => {
     form.setFieldsValue({ activo: true });
     setModalVisible(true);
   };
-
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
@@ -373,6 +379,9 @@ const Rubros: React.FC = () => {
         fechaInicioPromocion: values.fechaInicioPromocion ? values.fechaInicioPromocion.format('YYYY-MM-DD') : undefined,
         fechaFinPromocion: values.fechaFinPromocion ? values.fechaFinPromocion.format('YYYY-MM-DD') : undefined,
       };
+
+      console.log('Form values before sending:', formattedValues);
+      console.log('EsPagoDeTransporte value:', formattedValues.esPagoDeTransporte);
 
       if (editingId === null) {
         // Add new rubro
@@ -657,10 +666,20 @@ const Rubros: React.FC = () => {
               unCheckedChildren="No" 
             />
           </Form.Item>
-          
-          <Form.Item 
+            <Form.Item 
             label="Es Pago de Carnet" 
             name="esPagoDeCarnet" 
+            valuePropName="checked"
+          >
+            <Switch 
+              checkedChildren="Sí" 
+              unCheckedChildren="No" 
+            />
+          </Form.Item>
+          
+          <Form.Item 
+            label="Es Pago de Transporte" 
+            name="esPagoDeTransporte" 
             valuePropName="checked"
           >
             <Switch 
