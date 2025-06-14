@@ -400,7 +400,6 @@ const PaymentReport: React.FC = () => {
     // Filter out hidden columns
     return [...fixedColumns, ...dynamicColumns].filter(column => !('hidden' in column && column.hidden));
   };
-
   // Generate table data source for a specific section
   const generateDataSource = (seccion: PagoReportSeccion) => {
     if (!seccion || !seccion.alumnos.length) {
@@ -408,6 +407,19 @@ const PaymentReport: React.FC = () => {
     }
 
     return seccion.alumnos;
+  };
+
+  // Generate tab label in format "Grado.Nombre-Seccion{Seccion}"
+  const generateTabLabel = (seccion: PagoReportSeccion) => {
+    const selectedGrado = grados.find(g => g.id === selectedGradoId);
+    const gradoNombre = selectedGrado?.nombre || 'Grado';
+    const seccionNombre = seccion.seccion || 'Sin Sección';
+    return `${gradoNombre}-Seccion${seccionNombre}`;
+  };
+
+  // Generate sheet name for Excel export
+  const generateSheetName = (seccion: PagoReportSeccion) => {
+    return generateTabLabel(seccion);
   };
 
   // Export to Excel function with styling - CREATE SEPARATE SHEETS FOR EACH SECTION
@@ -580,9 +592,8 @@ const PaymentReport: React.FC = () => {
         }
         
         ws['!cols'] = colWidths;
-        
-        // Add sheet to workbook
-        const sheetName = seccion.seccion || 'Sin Sección';
+          // Add sheet to workbook
+        const sheetName = generateSheetName(seccion);
         XLSX.utils.book_append_sheet(wb, ws, sheetName);
       });
       
@@ -678,13 +689,12 @@ const PaymentReport: React.FC = () => {
           closable
           style={{ marginTop: 16, marginBottom: 16 }}
         />
-      )}
-
-      <Tabs
+      )}      <Tabs
         type="card"
-        items={reportData ? reportData.secciones.map((seccion) => ({
-          label: seccion.seccion || 'Sin Sección',
+        items={reportData ? reportData.secciones.map((seccion, index) => ({
+          label: generateTabLabel(seccion),
           key: seccion.seccion || 'sin-seccion',
+          className: `payment-tab-${index % 5}`, // Cycle through 5 different colors
           children: (
             <div className="payment-report-content">
               {loading ? (
