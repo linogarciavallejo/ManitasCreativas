@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Select, Card, Typography, Spin, Row, Col, Empty, Button, Space, message, Alert, Tooltip } from 'antd';
+import { Table, Select, Card, Typography, Spin, Row, Col, Empty, Button, Space, message, Alert, Tooltip, Tabs } from 'antd';
 import { makeApiRequest } from '../../services/apiHelper';
 import { gradoService } from '../../services/gradoService';
 import { ReloadOutlined, DownloadOutlined, InfoCircleOutlined } from '@ant-design/icons';
@@ -678,39 +678,48 @@ const PaymentReport: React.FC = () => {
           closable
           style={{ marginTop: 16, marginBottom: 16 }}
         />
-      )}
-
-      <div className="payment-report-content">
-        {loading ? (
-          <div className="payment-report-loading">
-            <Spin size="large" />
-            <p>Cargando datos...</p>
-          </div>
-        ) : reportData ? (
-          <>            {reportData.alumnos.length > 0 ? (              <Table
-                columns={generateColumns()}
-                dataSource={generateDataSource()}
-                rowKey="alumnoId"
-                pagination={false}
-                scroll={{ x: 'max-content' }}
-                bordered
-                size="small"
-                className="payment-report-table"
-              />
-            ) : (
-              <Empty
-                description="No se encontraron resultados con los filtros seleccionados"
-                style={{ margin: '40px 0' }}
-              />
-            )}
-          </>
-        ) : (
-          <Empty
-            description="Seleccione los filtros y genere el reporte para ver los resultados"
-            style={{ margin: '40px 0' }}
-          />
-        )}
-      </div>
+      )}      <Tabs
+        type="card"
+        items={[
+          {
+            label: 'Reporte de Pagos',
+            key: 'payment-report',
+            children: (
+              <div className="payment-report-content">
+                {loading ? (
+                  <div className="payment-report-loading">
+                    <Spin size="large" />
+                    <p>Cargando datos...</p>
+                  </div>
+                ) : reportData ? (
+                  <>            {reportData.alumnos.length > 0 ? (              <Table
+                        columns={generateColumns()}
+                        dataSource={generateDataSource()}
+                        rowKey="alumnoId"
+                        pagination={false}
+                        scroll={{ x: 'max-content' }}
+                        bordered
+                        size="small"
+                        className="payment-report-table"
+                      />
+                    ) : (
+                      <Empty
+                        description="No se encontraron resultados con los filtros seleccionados"
+                        style={{ margin: '40px 0' }}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <Empty
+                    description="Seleccione los filtros y genere el reporte para ver los resultados"
+                    style={{ margin: '40px 0' }}
+                  />
+                )}
+              </div>
+            ),
+          },
+        ]}
+      />
       
       {/* Add a legend for notes */}
       {reportData && reportData.alumnos.length > 0 && (
