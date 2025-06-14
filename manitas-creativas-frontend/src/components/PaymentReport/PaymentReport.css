@@ -73,6 +73,11 @@
   border-right: 1px solid #91caff !important; /* Lighter blue right border */
 }
 
+/* Bimester end columns - add right border to visually separate bimesters */
+.payment-report-container .bimester-end {
+  border-right: 2px solid #1890ff !important; /* Blue right border for bimester separation */
+}
+
 /* Add colors to columns */
 .payment-report-container .ant-table-thead > tr > th {
   background-color: #ffffcc !important; /* Light yellow for all headers */

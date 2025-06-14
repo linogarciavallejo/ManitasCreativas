@@ -350,38 +350,27 @@ const PaymentReport: React.FC = () => {
         hidden: true, // Hide this column
         render: (_: unknown, record: PagoReportStudent) => getCarnetValue(record),
       },
-    ];    // Dynamic columns based on rubros
+    ];
+
+    // Dynamic columns based on rubros
     const dynamicColumns = [];
     
     for (const rubro of reportData.rubros) {
       if (rubro.esColegiatura) {
-        // For colegiatura rubros, create grouped columns with bimester structure
-        const colegiaturaChildren = [];
-        
-        // Create monthly columns grouped by bimester
+        // For colegiatura rubros, create monthly columns
         for (let month = 1; month <= 10; month++) {
           const monthName = MONTH_NAMES[month - 1];
-          const isBimesterEnd = month % 2 === 0;
-          
-          colegiaturaChildren.push({
-            title: monthName,
+          dynamicColumns.push({
+            title: `${rubro.descripcion} - ${monthName}`,
             key: `rubro-${rubro.id}-month-${month}`,
             width: 120,
-            className: `payment-column${isBimesterEnd ? ' bimester-end' : ''}`,
+            className: 'payment-column',
             render: (_: unknown, record: PagoReportStudent) => {
               const payment = record.pagosPorRubro[rubro.id]?.[month];
               return renderPaymentCell(payment);
             },
           });
         }
-        
-        // Add the grouped column with children
-        dynamicColumns.push({
-          title: rubro.descripcion,
-          key: `rubro-${rubro.id}`,
-          className: 'colegiatura-header',
-          children: colegiaturaChildren,
-        });
       } else {
         // For non-colegiatura rubros, create a single column
         dynamicColumns.push({

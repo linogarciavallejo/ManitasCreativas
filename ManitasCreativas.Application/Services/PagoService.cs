@@ -365,8 +365,7 @@ public class PagoService : IPagoService
             OrdenVisualizacionGrid = r.OrdenVisualizacionGrid ?? rubroOrder++, // Assign sequential order for those without a value
             EsColegiatura = r.EsColegiatura
         }).OrderBy(r => r.OrdenVisualizacionGrid).ToList(); // Make sure they are ordered by the grid order
-        
-        // 3. Get all Alumnos for the selected GradoId
+          // 3. Get all Alumnos for the selected GradoId
         var alumnos = (await _alumnoRepository.GetAllAsync())
             .Where(a => a.GradoId == filter.GradoId && a.Estado == EstadoAlumno.Activo)
             .OrderBy(a => a.PrimerApellido)
@@ -374,8 +373,13 @@ public class PagoService : IPagoService
             .ThenBy(a => a.PrimerNombre)
             .ThenBy(a => a.SegundoNombre)
             .ToList();
-        
-        // 4. Get all Pagos for these students in the selected CicloEscolar for the filtered Rubros
+
+        // Group students by section
+        var estudiantesPorSeccion = alumnos
+            .GroupBy(a => a.Seccion ?? "Sin Sección")
+            .OrderBy(g => g.Key == "Sin Sección" ? "Z" : g.Key) // Put "Sin Sección" at the end
+            .ToList();
+          // 4. Get all Pagos for these students in the selected CicloEscolar for the filtered Rubros
         var rubroIds = rubros.Select(r => r.Id).ToList();
         var alumnoIds = alumnos.Select(a => a.Id).ToList();
         
@@ -385,91 +389,103 @@ public class PagoService : IPagoService
                    rubroIds.Contains(p.RubroId))
             .ToList();
         
-        // 5. Create PagoReportDto for each alumno with their ordered pagos
-        int ordinal = 1;
-        foreach (var alumno in alumnos)
+        // 5. Process each section
+        foreach (var seccionGroup in estudiantesPorSeccion)
         {
-            // Format the full name as requested: "Primer Apellido Segundo Apellido, Primer Nombre Segundo Nombre"
-            string nombreCompleto = string.Format("{0} {1}, {2} {3}",
-                alumno.PrimerApellido,
-                alumno.SegundoApellido ?? string.Empty,
-                alumno.PrimerNombre,
-                alumno.SegundoNombre ?? string.Empty).Trim();
-            
-            // Get all contactos for this alumno to extract NITs
-            var contactos = await _alumnoContactoRepository.GetByAlumnoIdAsync(alumno.Id);
-            string nit = string.Join(", ", contactos
-                .Where(c => !string.IsNullOrEmpty(c.Contacto.Nit))
-                .Select(c => c.Contacto.Nit));
-            
-            // Get all pagos for this alumno
-            var alumnoPagos = pagos.Where(p => p.AlumnoId == alumno.Id).ToList();
-            
-            // Structure the pagos by rubro and month (for colegiatura)
-            var pagosPorRubro = new Dictionary<int, Dictionary<int, PagoReportItemDto>>();
-            
-            foreach (var rubro in rubros)
+            var seccionDto = new PagoReportSeccionDto
             {
-                var rubroPagos = alumnoPagos.Where(p => p.RubroId == rubro.Id).ToList();
+                Seccion = seccionGroup.Key,
+                Alumnos = new List<PagoReportDto>()
+            };
+
+            // Create PagoReportDto for each alumno in this section with their ordered pagos
+            int ordinal = 1;
+            foreach (var alumno in seccionGroup)
+            {
+                // Format the full name as requested: "Primer Apellido Segundo Apellido, Primer Nombre Segundo Nombre"
+                string nombreCompleto = string.Format("{0} {1}, {2} {3}",
+                    alumno.PrimerApellido,
+                    alumno.SegundoApellido ?? string.Empty,
+                    alumno.PrimerNombre,
+                    alumno.SegundoNombre ?? string.Empty).Trim();
                 
-                // For each rubro, create a dictionary for month-based payments (or just use 0 as key for non-colegiatura)
-                var pagosPorMes = new Dictionary<int, PagoReportItemDto>();
-                  if (rubro.EsColegiatura)
+                // Get all contactos for this alumno to extract NITs
+                var contactos = await _alumnoContactoRepository.GetByAlumnoIdAsync(alumno.Id);
+                string nit = string.Join(", ", contactos
+                    .Where(c => !string.IsNullOrEmpty(c.Contacto.Nit))
+                    .Select(c => c.Contacto.Nit));
+                
+                // Get all pagos for this alumno
+                var alumnoPagos = pagos.Where(p => p.AlumnoId == alumno.Id).ToList();
+                
+                // Structure the pagos by rubro and month (for colegiatura)
+                var pagosPorRubro = new Dictionary<int, Dictionary<int, PagoReportItemDto>>();
+                
+                foreach (var rubro in rubros)
                 {
-                    // For colegiatura rubros, organize by month
-                    foreach (var pago in rubroPagos)
+                    var rubroPagos = alumnoPagos.Where(p => p.RubroId == rubro.Id).ToList();
+                    
+                    // For each rubro, create a dictionary for month-based payments (or just use 0 as key for non-colegiatura)
+                    var pagosPorMes = new Dictionary<int, PagoReportItemDto>();
+                      if (rubro.EsColegiatura)
                     {
-                        if (!pagosPorMes.ContainsKey(pago.MesColegiatura))
+                        // For colegiatura rubros, organize by month
+                        foreach (var pago in rubroPagos)
                         {
-                            pagosPorMes[pago.MesColegiatura] = new PagoReportItemDto
+                            if (!pagosPorMes.ContainsKey(pago.MesColegiatura))
+                            {
+                                pagosPorMes[pago.MesColegiatura] = new PagoReportItemDto
+                                {
+                                    Id = pago.Id,
+                                    Monto = pago.Monto,
+                                    Estado = string.Empty,  // You can set this based on payment status if needed
+                                    MesColegiatura = pago.MesColegiatura,
+                                    Notas = pago.Notas ?? string.Empty,
+                                    EsPagoDeCarnet = pago.EsPagoDeCarnet,
+                                    EstadoCarnet = pago.EstadoCarnet ?? string.Empty
+                                };
+                            }
+                        }                }
+                    else
+                    {
+                        // For non-colegiatura rubros, just use the first/most recent payment
+                        var pago = rubroPagos.OrderByDescending(p => p.Fecha).FirstOrDefault();
+                        if (pago != null)
+                        {
+                            pagosPorMes[0] = new PagoReportItemDto
                             {
                                 Id = pago.Id,
                                 Monto = pago.Monto,
                                 Estado = string.Empty,  // You can set this based on payment status if needed
-                                MesColegiatura = pago.MesColegiatura,
+                                MesColegiatura = null,
                                 Notas = pago.Notas ?? string.Empty,
                                 EsPagoDeCarnet = pago.EsPagoDeCarnet,
                                 EstadoCarnet = pago.EstadoCarnet ?? string.Empty
                             };
                         }
-                    }                }
-                else
-                {
-                    // For non-colegiatura rubros, just use the first/most recent payment
-                    var pago = rubroPagos.OrderByDescending(p => p.Fecha).FirstOrDefault();
-                    if (pago != null)
+                    }
+                    
+                    // Add this rubro's payments to the dictionary
+                    if (pagosPorMes.Any())
                     {
-                        pagosPorMes[0] = new PagoReportItemDto
-                        {
-                            Id = pago.Id,
-                            Monto = pago.Monto,
-                            Estado = string.Empty,  // You can set this based on payment status if needed
-                            MesColegiatura = null,
-                            Notas = pago.Notas ?? string.Empty,
-                            EsPagoDeCarnet = pago.EsPagoDeCarnet,
-                            EstadoCarnet = pago.EstadoCarnet ?? string.Empty
-                        };
+                        pagosPorRubro[rubro.Id] = pagosPorMes;
                     }
                 }
                 
-                // Add this rubro's payments to the dictionary
-                if (pagosPorMes.Any())
-                {
-                    pagosPorRubro[rubro.Id] = pagosPorMes;
-                }
+                // Create and add the student report object
+                var alumnoReport = new PagoReportDto
+                {                NumeroOrdinal = ordinal++,
+                    AlumnoId = alumno.Id,
+                    NombreCompleto = nombreCompleto,
+                    Notas = alumno.Observaciones ?? string.Empty,
+                    Nit = nit,
+                    PagosPorRubro = pagosPorRubro
+                };
+                
+                seccionDto.Alumnos.Add(alumnoReport);
             }
-            
-            // Create and add the student report object
-            var alumnoReport = new PagoReportDto
-            {                NumeroOrdinal = ordinal++,
-                AlumnoId = alumno.Id,
-                NombreCompleto = nombreCompleto,
-                Notas = alumno.Observaciones ?? string.Empty,
-                Nit = nit,
-                PagosPorRubro = pagosPorRubro
-            };
-            
-            response.Alumnos.Add(alumnoReport);
+
+            response.Secciones.Add(seccionDto);
         }
         
         return response;

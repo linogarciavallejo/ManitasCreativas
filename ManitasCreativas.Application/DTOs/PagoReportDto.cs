@@ -32,8 +32,14 @@ public class PagoReportFilterDto
 
 public class PagoReportResponseDto
 {
-    public List<PagoReportDto> Alumnos { get; set; } = new();
+    public List<PagoReportSeccionDto> Secciones { get; set; } = new();
     public List<RubroReportDto> Rubros { get; set; } = new();
+}
+
+public class PagoReportSeccionDto
+{
+    public string Seccion { get; set; } = string.Empty;
+    public List<PagoReportDto> Alumnos { get; set; } = new();
 }
 
 public class RubroReportDto
