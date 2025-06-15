@@ -23,7 +23,6 @@ import type { TableColumnsType } from "antd";
 import {
   FilePdfOutlined,
   PrinterOutlined,
-  FileExcelOutlined,
   SearchOutlined,
   EyeOutlined,
   WarningOutlined,
@@ -128,19 +127,21 @@ const Statement: React.FC = () => {
       return dateString;
     }
   };
-
   const handleExportPDF = () => {
-    console.log("Export to PDF not yet implemented");
-    // Will implement PDF export logic later
+    // Add print-specific class to body for PDF styling
+    document.body.classList.add('pdf-export');
+    
+    // Trigger browser print dialog which can save as PDF
+    window.print();
+    
+    // Remove the class after a short delay
+    setTimeout(() => {
+      document.body.classList.remove('pdf-export');
+    }, 1000);
   };
 
   const handlePrint = () => {
-    window.print();
-  };
-  const handleExportExcel = () => {
-    console.log("Export to Excel not yet implemented");
-    // Will implement Excel export logic later
-  };
+    window.print();  };
 
   // Search by code functionality
   const handleCodigoSearch = async (codigo: string) => {
@@ -472,9 +473,7 @@ const Statement: React.FC = () => {
   return (
     <div style={{ padding: "24px" }}>
       <Card>
-        <Title level={2}>Estado de Cuenta</Title>
-
-        <Row gutter={[16, 16]}>
+        <Title level={2}>Estado de Cuenta</Title>        <Row gutter={[16, 16]} className="no-print">
           <Col xs={24} md={12}>
             <Search
               placeholder="Buscar por Código"
@@ -503,10 +502,18 @@ const Statement: React.FC = () => {
               onChange={setAutoCompleteValue}
             />
           </Col>
-        </Row>
-
-        {alumnoDetails && (
+        </Row>        {alumnoDetails && (
           <>
+            {/* PDF-only header */}
+            <div style={{ display: 'none' }} className="print-only">
+              <Title level={2} style={{ textAlign: 'center', marginBottom: '24px' }}>
+                Estado de Cuenta - {alumnoDetails.primerNombre} {alumnoDetails.segundoNombre} {alumnoDetails.primerApellido} {alumnoDetails.segundoApellido}
+              </Title>
+              <Text style={{ display: 'block', textAlign: 'center', marginBottom: '24px' }}>
+                Código: {alumnoDetails.codigo} | Sede: {alumnoDetails.sedeNombre} | Grado: {alumnoDetails.gradoNombre} - Sección: {alumnoDetails.seccion}
+              </Text>
+            </div>
+
             <Row gutter={[16, 16]} style={{ marginTop: "24px" }}>
               <Col xs={24} sm={12}>
                 <Card title="Información del Estudiante" type="inner">
@@ -583,10 +590,9 @@ const Statement: React.FC = () => {
                   )}
                 </Card>
               </Col>
-            </Row>
-
-            <div style={{ margin: "24px 0" }}>
+            </Row>            <div style={{ margin: "24px 0" }}>
               <div
+                className="no-print"
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
@@ -598,20 +604,12 @@ const Statement: React.FC = () => {
                 <Title level={4} style={{ margin: 0 }}>
                   Historial de Pagos
                 </Title>
-                <Space>
-                  <Button
+                <Space>                  <Button
                     icon={<FilePdfOutlined />}
                     onClick={handleExportPDF}
                     size={isMobile ? "small" : "middle"}
-                  >
-                    {isMobile ? "PDF" : "Exportar PDF"}
-                  </Button>
-                  <Button
-                    icon={<FileExcelOutlined />}
-                    onClick={handleExportExcel}
-                    size={isMobile ? "small" : "middle"}
-                  >
-                    {isMobile ? "Excel" : "Exportar Excel"}
+                    type="default"                  >
+                    {isMobile ? "PDF" : "Guardar como PDF"}
                   </Button>
                   <Button
                     icon={<PrinterOutlined />}
@@ -622,7 +620,7 @@ const Statement: React.FC = () => {
                   </Button>
                 </Space>
               </div>{" "}
-              <div style={{ marginBottom: "16px" }}>
+              <div style={{ marginBottom: "16px" }} className="no-print">
                 <Space wrap>
                   <Badge
                     color="green"
