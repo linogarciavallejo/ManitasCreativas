@@ -79,10 +79,15 @@ public class AlumnoService : IAlumnoService
                 Fecha = p.Fecha
             }).ToList()
         };
-    }
-
-    public async Task AddAlumnoAsync(AlumnoDto alumnoDto)
+    }    public async Task AddAlumnoAsync(AlumnoDto alumnoDto)
     {
+        // Validate codigo uniqueness first
+        var isCodigoUnique = await IsCodigoUniqueAsync(alumnoDto.Codigo);
+        if (!isCodigoUnique)
+        {
+            throw new Exception($"El código '{alumnoDto.Codigo}' ya está en uso por otro estudiante.");
+        }
+
         // Fetch the Grado entity
         var grado = await _gradoRepository.GetByIdAsync(alumnoDto.GradoId);
         if (grado == null)
@@ -129,15 +134,20 @@ public class AlumnoService : IAlumnoService
         
         // Update the DTO with the new ID
         alumnoDto.Id = alumno.Id;
-    }
-
-    public async Task UpdateAlumnoAsync(AlumnoDto alumnoDto)
+    }    public async Task UpdateAlumnoAsync(AlumnoDto alumnoDto)
     {
         // Instead of creating a new entity, first fetch the existing one
         var existingAlumno = await _alumnoRepository.GetByIdAsync(alumnoDto.Id);
         if (existingAlumno == null)
         {
             throw new Exception($"Alumno with ID {alumnoDto.Id} not found.");
+        }
+
+        // Validate codigo uniqueness (excluding the current student)
+        var isCodigoUnique = await IsCodigoUniqueAsync(alumnoDto.Codigo, alumnoDto.Id);
+        if (!isCodigoUnique)
+        {
+            throw new Exception($"El código '{alumnoDto.Codigo}' ya está en uso por otro estudiante.");
         }
 
         // Fetch the Grado entity
@@ -396,6 +406,22 @@ public class AlumnoService : IAlumnoService
                 .ToList()
         })
         .ToList();
+    }
+
+    public async Task<bool> IsCodigoUniqueAsync(string codigo, int? excludeAlumnoId = null)
+    {
+        var existingAlumno = await _alumnoRepository.GetAlumnoByCodigoAsync(codigo);
+        
+        // If no alumno exists with this codigo, it's unique
+        if (existingAlumno == null)
+            return true;
+            
+        // If we're editing and the existing alumno is the same we're editing, it's unique
+        if (excludeAlumnoId.HasValue && existingAlumno.Id == excludeAlumnoId.Value)
+            return true;
+            
+        // Otherwise, it's not unique
+        return false;
     }
 
 }

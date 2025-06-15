@@ -66,6 +66,13 @@ export const alumnoService = {
     return await makeApiRequest<Alumno>(`/alumnos/codigo/${codigo}`);
   },
 
+  // Validate if codigo is unique
+  validateCodigoUnique: async (codigo: string, excludeAlumnoId?: number): Promise<boolean> => {
+    const queryParam = excludeAlumnoId ? `?excludeAlumnoId=${excludeAlumnoId}` : '';
+    const response = await makeApiRequest<{ isUnique: boolean }>(`/alumnos/validate-codigo/${codigo}${queryParam}`);
+    return response.isUnique;
+  },
+
   // Search students by name or surname
   searchAlumnosByName: async (nombre: string, apellido: string): Promise<Alumno[]> => {
     return await makeApiRequest<Alumno[]>(`/alumnos/search?nombre=${nombre}&apellido=${apellido}`);

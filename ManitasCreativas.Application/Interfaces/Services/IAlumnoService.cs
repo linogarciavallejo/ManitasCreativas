@@ -17,4 +17,6 @@ public interface IAlumnoService
     Task<IEnumerable<AlumnoSimpleDto>> GetAlumnosWithFullNameAsync();
 
     Task<IEnumerable<PagoReadDto>> GetAlumnoStatementAsync(int id);
+    
+    Task<bool> IsCodigoUniqueAsync(string codigo, int? excludeAlumnoId = null);
 }

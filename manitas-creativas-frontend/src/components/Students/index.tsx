@@ -29,6 +29,9 @@ const Students: React.FC = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   
+  // Form validation state
+  const [isFormValid, setIsFormValid] = useState<boolean>(false);
+  
   // State for ContactosModal
   const [contactsModalVisible, setContactsModalVisible] = useState<boolean>(false);
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
@@ -248,16 +251,58 @@ const Students: React.FC = () => {
     form.setFieldsValue({
       ...record
     });
+    setIsFormValid(false); // Reset form validity initially
     setModalVisible(true);
+    // Check validity after form is populated (non-async)
+    setTimeout(checkFormValidity, 100);
   };
 
   const handleAdd = () => {
     setEditingId(null);
     form.resetFields();
     form.setFieldsValue({ estado: 1 }); // Set default estado to Activo
+    setIsFormValid(false); // Reset form validity
     setModalVisible(true);
   };
-  
+
+  // Function to validate unique codigo
+  const validateUniqueCodigo = async (codigo: string): Promise<boolean> => {
+    try {
+      const isUnique = await alumnoService.validateCodigoUnique(codigo, editingId || undefined);
+      return isUnique;
+    } catch (error) {
+      console.error('Error validating codigo uniqueness:', error);
+      // In case of error, allow the validation to proceed
+      return true;
+    }
+  };
+
+  // Function to check if form is valid (simplified version)
+  const checkFormValidity = useCallback(() => {
+    if (!modalVisible) return;
+    
+    const values = form.getFieldsValue();
+    const requiredFields = ['codigo', 'primerNombre', 'primerApellido', 'sedeId', 'gradoId'];
+    
+    // Check if all required fields have values
+    const hasAllRequiredFields = requiredFields.every(field => {
+      const value = values[field];
+      return value !== undefined && value !== null && value !== '';
+    });
+    
+    // For now, just check if required fields are filled
+    // The detailed validation (including async codigo validation) happens on save
+    setIsFormValid(hasAllRequiredFields);
+  }, [form, modalVisible]);
+
+  // Effect to check form validity when modal opens
+  useEffect(() => {
+    if (modalVisible) {
+      // Small delay to ensure form is populated
+      setTimeout(checkFormValidity, 200);
+    }
+  }, [modalVisible, checkFormValidity]);
+
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
@@ -297,6 +342,7 @@ const Students: React.FC = () => {
       }
 
       setModalVisible(false);
+      setIsFormValid(false); // Reset form validity after successful save
     } catch (error) {
       console.error('Error al guardar:', error);
       toast.error('Error al guardar el estudiante. Por favor, revise los datos e intente nuevamente.');
@@ -348,7 +394,7 @@ const Students: React.FC = () => {
       title: 'Nombre Completo',
       key: 'nombreCompleto',
       width: 200,
-      render: (_: any, record: Alumno) => getFullName(record),
+      render: (_: unknown, record: Alumno) => getFullName(record),
       sorter: (a: Alumno, b: Alumno) => {
         const fullNameA = getFullName(a);
         const fullNameB = getFullName(b);
@@ -398,7 +444,7 @@ const Students: React.FC = () => {
       title: 'Acciones',
       key: 'actions',
       width: 140,
-      render: (_: any, record: Alumno) => (
+      render: (_: unknown, record: Alumno) => (
         <Space size={0}>
           <Button 
             type="primary" 
@@ -585,9 +631,15 @@ const Students: React.FC = () => {
       <Modal
         title={editingId === null ? 'Crear Nuevo Estudiante' : 'Editar Estudiante'}
         open={modalVisible}
-        onCancel={() => setModalVisible(false)}
+        onCancel={() => {
+          setModalVisible(false);
+          setIsFormValid(false); // Reset form validity when closing
+        }}
         footer={[
-          <Button key="back" onClick={() => setModalVisible(false)}>
+          <Button key="back" onClick={() => {
+            setModalVisible(false);
+            setIsFormValid(false); // Reset form validity when canceling
+          }}>
             Cancelar
           </Button>,
           <Button
@@ -595,6 +647,7 @@ const Students: React.FC = () => {
             type="primary"
             loading={loading}
             onClick={handleSave}
+            disabled={!isFormValid || loading}
           >
             Guardar
           </Button>,
@@ -606,13 +659,35 @@ const Students: React.FC = () => {
           layout="vertical"
           name="studentForm"
           initialValues={{ estado: 1 }}
+          onValuesChange={() => {
+            // Simple check for required fields when values change
+            checkFormValidity();
+          }}
         >
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
                 label="Código"
                 name="codigo"
-                rules={[{ required: true, message: 'Por favor ingrese el código!' }]}
+                rules={[
+                  { required: true, message: 'Por favor ingrese el código!' },
+                  { 
+                    min: 3, 
+                    message: 'El código debe tener al menos 3 caracteres!' 
+                  },
+                  {
+                    validator: async (_, value) => {
+                      if (!value) return Promise.resolve();
+                      
+                      const isUnique = await validateUniqueCodigo(value);
+                      if (!isUnique) {
+                        return Promise.reject(new Error('Este código ya está en uso por otro estudiante!'));
+                      }
+                      return Promise.resolve();
+                    }
+                  }
+                ]}
+                validateTrigger={['onBlur', 'onChange']}
               >
                 <Input placeholder="Ingrese el código del estudiante" />
               </Form.Item>
@@ -628,10 +703,10 @@ const Students: React.FC = () => {
                   loading={loadingSedes}
                   showSearch
                   optionFilterProp="children"
-                  onChange={(_value, option: any) => {
+                  onChange={(_value, option) => {
                     // When sede is changed, update the sedeNombre field
                     form.setFieldsValue({ 
-                      sedeNombre: option.children 
+                      sedeNombre: Array.isArray(option) ? option[0]?.children : option?.children
                     });
                   }}
                 >
@@ -651,7 +726,25 @@ const Students: React.FC = () => {
               <Form.Item
                 label="Primer Nombre"
                 name="primerNombre"
-                rules={[{ required: true, message: 'Por favor ingrese el primer nombre!' }]}
+                rules={[
+                  { required: true, message: 'Por favor ingrese el primer nombre!' },
+                  { 
+                    min: 2, 
+                    message: 'El primer nombre debe tener al menos 2 caracteres!' 
+                  },
+                  {
+                    pattern: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/,
+                    message: 'El nombre solo puede contener letras y espacios!'
+                  },
+                  {
+                    validator: (_, value) => {
+                      if (value && value.trim().length === 0) {
+                        return Promise.reject(new Error('El nombre no puede estar vacío o contener solo espacios!'));
+                      }
+                      return Promise.resolve();
+                    }
+                  }
+                ]}
               >
                 <Input placeholder="Primer nombre" />
               </Form.Item>
@@ -660,6 +753,12 @@ const Students: React.FC = () => {
               <Form.Item
                 label="Segundo Nombre"
                 name="segundoNombre"
+                rules={[
+                  {
+                    pattern: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/,
+                    message: 'El nombre solo puede contener letras y espacios!'
+                  }
+                ]}
               >
                 <Input placeholder="Segundo nombre (opcional)" />
               </Form.Item>
@@ -671,7 +770,25 @@ const Students: React.FC = () => {
               <Form.Item
                 label="Primer Apellido"
                 name="primerApellido"
-                rules={[{ required: true, message: 'Por favor ingrese el primer apellido!' }]}
+                rules={[
+                  { required: true, message: 'Por favor ingrese el primer apellido!' },
+                  { 
+                    min: 2, 
+                    message: 'El primer apellido debe tener al menos 2 caracteres!' 
+                  },
+                  {
+                    pattern: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/,
+                    message: 'El apellido solo puede contener letras y espacios!'
+                  },
+                  {
+                    validator: (_, value) => {
+                      if (value && value.trim().length === 0) {
+                        return Promise.reject(new Error('El apellido no puede estar vacío o contener solo espacios!'));
+                      }
+                      return Promise.resolve();
+                    }
+                  }
+                ]}
               >
                 <Input placeholder="Primer apellido" />
               </Form.Item>
@@ -680,6 +797,12 @@ const Students: React.FC = () => {
               <Form.Item
                 label="Segundo Apellido"
                 name="segundoApellido"
+                rules={[
+                  {
+                    pattern: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/,
+                    message: 'El apellido solo puede contener letras y espacios!'
+                  }
+                ]}
               >
                 <Input placeholder="Segundo apellido (opcional)" />
               </Form.Item>
@@ -698,10 +821,10 @@ const Students: React.FC = () => {
                   loading={loadingGrados}
                   showSearch
                   optionFilterProp="children"
-                  onChange={(_value, option: any) => {
+                  onChange={(_value, option) => {
                     // When grado is changed, update the gradoNombre field
                     form.setFieldsValue({ 
-                      gradoNombre: option.children 
+                      gradoNombre: Array.isArray(option) ? option[0]?.children : option?.children
                     });
                   }}
                 >
@@ -718,6 +841,16 @@ const Students: React.FC = () => {
               <Form.Item
                 label="Sección"
                 name="seccion"
+                rules={[
+                  {
+                    pattern: /^[a-zA-Z0-9]*$/,
+                    message: 'La sección solo puede contener letras y números!'
+                  },
+                  {
+                    max: 10,
+                    message: 'La sección no puede tener más de 10 caracteres!'
+                  }
+                ]}
               >
                 <Input placeholder="Ingrese la sección" />
               </Form.Item>
@@ -729,11 +862,26 @@ const Students: React.FC = () => {
               <Form.Item
                 label="Dirección"
                 name="direccion"
+                rules={[
+                  {
+                    max: 255,
+                    message: 'La dirección no puede tener más de 255 caracteres!'
+                  },
+                  {
+                    validator: (_, value) => {
+                      if (value && value.trim().length === 0) {
+                        return Promise.reject(new Error('La dirección no puede contener solo espacios!'));
+                      }
+                      return Promise.resolve();
+                    }
+                  }
+                ]}
               >
                 <Input.TextArea 
                   placeholder="Ingrese la dirección del estudiante (opcional)" 
                   rows={2}
                   maxLength={255}
+                  showCount
                 />
               </Form.Item>
             </Col>
@@ -744,11 +892,26 @@ const Students: React.FC = () => {
               <Form.Item
                 label="Observaciones"
                 name="observaciones"
+                rules={[
+                  {
+                    max: 500,
+                    message: 'Las observaciones no pueden tener más de 500 caracteres!'
+                  },
+                  {
+                    validator: (_, value) => {
+                      if (value && value.trim().length === 0) {
+                        return Promise.reject(new Error('Las observaciones no pueden contener solo espacios!'));
+                      }
+                      return Promise.resolve();
+                    }
+                  }
+                ]}
               >
                 <Input.TextArea 
                   placeholder="Ingrese observaciones sobre el estudiante (opcional)" 
                   rows={4}
                   maxLength={500}
+                  showCount
                 />
               </Form.Item>
             </Col>

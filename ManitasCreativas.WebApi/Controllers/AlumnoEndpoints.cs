@@ -47,6 +47,13 @@ public static class AlumnoEndpoints
             return Results.Ok(alumno);
         });
 
+        // Endpoint for validating if a codigo is unique
+        app.MapGet("/alumnos/validate-codigo/{codigo}", async (string codigo, int? excludeAlumnoId, IAlumnoService alumnoService) =>
+        {
+            var isUnique = await alumnoService.IsCodigoUniqueAsync(codigo, excludeAlumnoId);
+            return Results.Ok(new { isUnique });
+        });
+
         // Endpoint for querying alumnos by names
         app.MapGet("/alumnos/search", async (string nombre, string apellido, IAlumnoService alumnoService) =>
         {
