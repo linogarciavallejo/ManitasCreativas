@@ -39,10 +39,10 @@ const Rubros: React.FC = () => {
   const [loadingNivelesEducativos, setLoadingNivelesEducativos] = useState<boolean>(false);
   const [grados, setGrados] = useState<Grado[]>([]);
   const [loadingGrados, setLoadingGrados] = useState<boolean>(false);
-  const [searchText, setSearchText] = useState<string>('');
-  const [selectedNivelEducativo, setSelectedNivelEducativo] = useState<number | null>(null);
+  const [searchText, setSearchText] = useState<string>('');  const [selectedNivelEducativo, setSelectedNivelEducativo] = useState<number | null>(null);
   const [montoMin, setMontoMin] = useState<number | null>(null);
   const [montoMax, setMontoMax] = useState<number | null>(null);
+  const [isFormValid, setIsFormValid] = useState<boolean>(false);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -156,12 +156,32 @@ const Rubros: React.FC = () => {
       setLoadingGrados(false);
     }
   };
-
   // Helper function to get nivel educativo name by id
   const getNivelEducativoName = (id: number | undefined): string => {
     if (!id) return '-';
     const nivel = nivelesEducativos.find(nivel => nivel.id === id);
     return nivel ? nivel.nombre : `ID: ${id}`;
+  };
+  // Function to validate required form fields
+  const validateForm = () => {
+    const descripcion = form.getFieldValue('descripcion');
+    const tipo = form.getFieldValue('tipo');
+    const montoPreestablecido = form.getFieldValue('montoPreestablecido');
+    const nivelEducativoId = form.getFieldValue('nivelEducativoId');
+    
+    const isValid = Boolean(
+      descripcion && 
+      descripcion.trim() !== '' && 
+      tipo !== undefined && 
+      tipo !== null && 
+      montoPreestablecido !== undefined && 
+      montoPreestablecido !== null && 
+      montoPreestablecido > 0 &&
+      nivelEducativoId !== undefined && 
+      nivelEducativoId !== null
+    );
+    
+    setIsFormValid(isValid);
   };
 
   // Columns for the table
@@ -325,8 +345,7 @@ const Rubros: React.FC = () => {
     
     console.log('Form values being set:', formValues);
     console.log('EsPagoDeTransporte in form values:', formValues.esPagoDeTransporte);
-    
-    form.setFieldsValue(formValues);
+      form.setFieldsValue(formValues);
     
     // Fetch grados if a nivel educativo is specified
     if (record.nivelEducativoId) {
@@ -334,6 +353,8 @@ const Rubros: React.FC = () => {
     }
     
     setModalVisible(true);
+    // Validate form after setting values
+    setTimeout(validateForm, 0);
   };
 
   const handleDelete = async (id: number) => {
@@ -359,12 +380,13 @@ const Rubros: React.FC = () => {
       setLoading(false);
     }
   };
-
   const handleAdd = () => {
     setEditingId(null);
     form.resetFields();
     form.setFieldsValue({ activo: true });
     setModalVisible(true);
+    // Validate form after resetting
+    setTimeout(validateForm, 0);
   };
   const handleSave = async () => {
     try {
@@ -394,27 +416,26 @@ const Rubros: React.FC = () => {
         
         // Refresh the data to get the updated version
         await fetchRubros();
-        message.success('Rubro actualizado con éxito');
-      }
+        message.success('Rubro actualizado con éxito');      }
 
       setModalVisible(false);
+      setIsFormValid(false);
     } catch (error) {
       console.error('Error al guardar:', error);
       message.error('Error al guardar el rubro');
     } finally {
       setLoading(false);
-    }
-  };
+    }  };
 
   // Conditional fields based on selected tipo
   const renderConditionalFields = () => {
     const tipoValue = form.getFieldValue('tipo');
     
     return (
-      <>
-        <Form.Item
+      <>        <Form.Item
           label="Nivel Educativo"
           name="nivelEducativoId"
+          rules={[{ required: true, message: 'Por favor seleccione el nivel educativo!' }]}
         >
           <Select 
             placeholder="Seleccione el nivel educativo"
@@ -599,9 +620,14 @@ const Rubros: React.FC = () => {
       <Modal
         title={editingId === null ? 'Crear Nuevo Rubro' : 'Editar Rubro'}
         open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        footer={[
-          <Button key="back" onClick={() => setModalVisible(false)}>
+        onCancel={() => {
+          setModalVisible(false);
+          setIsFormValid(false);
+        }}        footer={[
+          <Button key="back" onClick={() => {
+            setModalVisible(false);
+            setIsFormValid(false);
+          }}>
             Cancelar
           </Button>,
           <Button
@@ -609,17 +635,18 @@ const Rubros: React.FC = () => {
             type="primary"
             loading={loading}
             onClick={handleSave}
+            disabled={!isFormValid}
           >
             Guardar
           </Button>,
         ]}
         width={700}
-      >
-        <Form
+      >        <Form
           form={form}
           layout="vertical"
           name="rubroForm"
           initialValues={{ activo: true }}
+          onValuesChange={validateForm}
         >
           <Form.Item
             label="Descripción"
