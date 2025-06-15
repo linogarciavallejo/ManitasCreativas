@@ -110,9 +110,25 @@ const PaymentReport: React.FC = () => {
       setError('No se pudieron cargar los grados. Por favor, inténtelo de nuevo.');
     }
   };
-
   // Generate year options for the select (current year and 3 years back)
   const yearOptions = Array.from({ length: 4 }, (_, i) => currentYear - i);
+  // Handle grade selection change - clear existing data
+  const handleGradoChange = (gradoId: number | null) => {
+    setSelectedGradoId(gradoId);
+    // Clear existing report data when grade changes
+    setReportData(null);
+    // Clear any existing errors
+    setError(null);
+  };
+
+  // Handle year selection change - clear existing data
+  const handleYearChange = (year: number) => {
+    setSelectedYear(year);
+    // Clear existing report data when year changes
+    setReportData(null);
+    // Clear any existing errors
+    setError(null);
+  };
 
   // This function modifies the raw data from the API to ensure 
   // all payment objects have the expected fields, including notas
@@ -642,12 +658,11 @@ const PaymentReport: React.FC = () => {
       <Card className="payment-report-filters">
         <Row gutter={[16, 16]}>
           <Col xs={24} md={12} lg={6}>
-            <Typography.Text strong>Ciclo Escolar</Typography.Text>
-            <Select
+            <Typography.Text strong>Ciclo Escolar</Typography.Text>            <Select
               placeholder="Seleccione el año"
               style={{ width: '100%', marginTop: 8 }}
               value={selectedYear}
-              onChange={value => setSelectedYear(value)}
+              onChange={handleYearChange}
             >
               {yearOptions.map(year => (
                 <Option key={year} value={year}>{year}</Option>
@@ -656,12 +671,11 @@ const PaymentReport: React.FC = () => {
           </Col>
 
           <Col xs={24} md={12} lg={6}>
-            <Typography.Text strong>Grado</Typography.Text>
-            <Select
+            <Typography.Text strong>Grado</Typography.Text>            <Select
               placeholder="Seleccione el grado"
               style={{ width: '100%', marginTop: 8 }}
               value={selectedGradoId}
-              onChange={value => setSelectedGradoId(value)}
+              onChange={handleGradoChange}
               allowClear
             >
               {grados.map(grado => (
