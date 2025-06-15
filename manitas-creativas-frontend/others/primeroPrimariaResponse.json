@@ -1,0 +1,518 @@
+{
+    "secciones": [
+        {
+            "seccion": "A",
+            "alumnos": [
+                {
+                    "numeroOrdinal": 1,
+                    "alumnoId": 6,
+                    "nombreCompleto": "Garcia Vallejo, Lino Antonio",
+                    "notas": "Es cuñado del profe Ervin. ",
+                    "nit": "1837821, 16379985, 838383838",
+                    "pagosPorRubro": {
+                        "12": {
+                            "0": {
+                                "id": 24,
+                                "monto": 25,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "",
+                                "esPagoDeCarnet": true,
+                                "estadoCarnet": "ENTREGADO",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "9": {
+                            "0": {
+                                "id": 8,
+                                "monto": 150,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "bla bla bla bla",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "10": {
+                            "0": {
+                                "id": 18,
+                                "monto": 500,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "6": {
+                            "1": {
+                                "id": 9,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 1,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "2": {
+                                "id": 10,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 2,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "3": {
+                                "id": 11,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 3,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "4": {
+                                "id": 12,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 4,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "5": {
+                                "id": 13,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 5,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "6": {
+                                "id": 42,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 6,
+                                "notas": "",
+                                "esPagoDeCarnet": false,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        }
+                    }
+                },
+                {
+                    "numeroOrdinal": 2,
+                    "alumnoId": 9,
+                    "nombreCompleto": "Garcia Zam, Doctora Bellota",
+                    "notas": "",
+                    "nit": "",
+                    "pagosPorRubro": {
+                        "12": {
+                            "0": {
+                                "id": 25,
+                                "monto": 25,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "",
+                                "esPagoDeCarnet": true,
+                                "estadoCarnet": "ENTREGADO",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "9": {
+                            "0": {
+                                "id": 20,
+                                "monto": 150,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "10": {
+                            "0": {
+                                "id": 43,
+                                "monto": 500,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "",
+                                "esPagoDeCarnet": false,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "6": {
+                            "1": {
+                                "id": 23,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 1,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "2": {
+                                "id": 27,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 2,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "3": {
+                                "id": 28,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 3,
+                                "notas": "",
+                                "esPagoDeCarnet": false,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "4": {
+                                "id": 29,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 4,
+                                "notas": "",
+                                "esPagoDeCarnet": false,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "seccion": "B",
+            "alumnos": [
+                {
+                    "numeroOrdinal": 1,
+                    "alumnoId": 12,
+                    "nombreCompleto": "Perez Ramirez, Luis",
+                    "notas": "",
+                    "nit": "",
+                    "pagosPorRubro": {
+                        "12": {
+                            "0": {
+                                "id": 51,
+                                "monto": 25,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "",
+                                "esPagoDeCarnet": true,
+                                "estadoCarnet": "PAGADO",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "9": {
+                            "0": {
+                                "id": 50,
+                                "monto": 150,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "",
+                                "esPagoDeCarnet": false,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "10": {
+                            "0": {
+                                "id": 49,
+                                "monto": 500,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "",
+                                "esPagoDeCarnet": false,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "6": {
+                            "1": {
+                                "id": 55,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 1,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "2": {
+                                "id": 56,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 2,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "3": {
+                                "id": 57,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 3,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "4": {
+                                "id": 58,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 4,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "5": {
+                                "id": 59,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 5,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        }
+                    }
+                },
+                {
+                    "numeroOrdinal": 2,
+                    "alumnoId": 10,
+                    "nombreCompleto": "Zamini Alpirez, Maria del Rosario",
+                    "notas": "",
+                    "nit": "",
+                    "pagosPorRubro": {
+                        "12": {
+                            "0": {
+                                "id": 38,
+                                "monto": 25,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "",
+                                "esPagoDeCarnet": true,
+                                "estadoCarnet": "PAGADO",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "9": {
+                            "0": {
+                                "id": 47,
+                                "monto": 150,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "notas",
+                                "esPagoDeCarnet": false,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "10": {
+                            "0": {
+                                "id": 37,
+                                "monto": 500,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "",
+                                "esPagoDeCarnet": false,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "6": {
+                            "1": {
+                                "id": 39,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 1,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "2": {
+                                "id": 45,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 2,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "3": {
+                                "id": 46,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 3,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "seccion": "C",
+            "alumnos": [
+                {
+                    "numeroOrdinal": 1,
+                    "alumnoId": 13,
+                    "nombreCompleto": "Maldonado Escobar, Jorge",
+                    "notas": "",
+                    "nit": "",
+                    "pagosPorRubro": {
+                        "12": {
+                            "0": {
+                                "id": 54,
+                                "monto": 25,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "",
+                                "esPagoDeCarnet": true,
+                                "estadoCarnet": "PAGADO",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "9": {
+                            "0": {
+                                "id": 53,
+                                "monto": 150,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "",
+                                "esPagoDeCarnet": false,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "10": {
+                            "0": {
+                                "id": 52,
+                                "monto": 500,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "",
+                                "esPagoDeCarnet": false,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "6": {
+                            "1": {
+                                "id": 60,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 1,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "2": {
+                                "id": 61,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 2,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "3": {
+                                "id": 62,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 3,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "4": {
+                                "id": 63,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 4,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "5": {
+                                "id": 64,
+                                "monto": 350,
+                                "estado": "",
+                                "mesColegiatura": 5,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        }
+                    }
+                },
+                {
+                    "numeroOrdinal": 2,
+                    "alumnoId": 14,
+                    "nombreCompleto": "Vagolini , Antonio",
+                    "notas": "",
+                    "nit": "",
+                    "pagosPorRubro": {}
+                }
+            ]
+        }
+    ],
+    "rubros": [
+        {
+            "id": 12,
+            "descripcion": "Carnet",
+            "ordenVisualizacionGrid": 1,
+            "esColegiatura": false
+        },
+        {
+            "id": 9,
+            "descripcion": "Cuota Anual",
+            "ordenVisualizacionGrid": 2,
+            "esColegiatura": false
+        },
+        {
+            "id": 10,
+            "descripcion": "Inscripción",
+            "ordenVisualizacionGrid": 3,
+            "esColegiatura": false
+        },
+        {
+            "id": 6,
+            "descripcion": "Colegiatura",
+            "ordenVisualizacionGrid": 4,
+            "esColegiatura": true
+        }
+    ]
+}

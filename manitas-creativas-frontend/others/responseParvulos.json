@@ -1,0 +1,52 @@
+{
+    "secciones": [
+        {
+            "seccion": "A",
+            "alumnos": [
+                {
+                    "numeroOrdinal": 1,
+                    "alumnoId": 7,
+                    "nombreCompleto": "Chomin , Avelino",
+                    "notas": "",
+                    "nit": "32323223",
+                    "pagosPorRubro": {
+                        "9": {
+                            "0": {
+                                "id": 40,
+                                "monto": 150,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "",
+                                "esPagoDeCarnet": false,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        }
+                    }
+                },
+                {
+                    "numeroOrdinal": 2,
+                    "alumnoId": 11,
+                    "nombreCompleto": "Garcia Zam, Gata Misha",
+                    "notas": "La gata + hermosa del mundo mundial",
+                    "nit": "",
+                    "pagosPorRubro": {}
+                }
+            ]
+        }
+    ],
+    "rubros": [
+        {
+            "id": 12,
+            "descripcion": "Carnet",
+            "ordenVisualizacionGrid": 1,
+            "esColegiatura": false
+        },
+        {
+            "id": 9,
+            "descripcion": "Cuota Anual",
+            "ordenVisualizacionGrid": 2,
+            "esColegiatura": false
+        }
+    ]
+}

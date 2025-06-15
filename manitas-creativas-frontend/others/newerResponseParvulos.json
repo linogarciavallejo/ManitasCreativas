@@ -1,0 +1,158 @@
+{
+    "secciones": [
+        {
+            "seccion": "A",
+            "alumnos": [
+                {
+                    "numeroOrdinal": 1,
+                    "alumnoId": 7,
+                    "nombreCompleto": "Chomin , Avelino",
+                    "notas": "",
+                    "nit": "32323223",
+                    "pagosPorRubro": {
+                        "9": {
+                            "0": {
+                                "id": 40,
+                                "monto": 150,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "",
+                                "esPagoDeCarnet": false,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "5": {
+                            "1": {
+                                "id": 14,
+                                "monto": 200,
+                                "estado": "",
+                                "mesColegiatura": 1,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "2": {
+                                "id": 15,
+                                "monto": 200,
+                                "estado": "",
+                                "mesColegiatura": 2,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "3": {
+                                "id": 16,
+                                "monto": 200,
+                                "estado": "",
+                                "mesColegiatura": 3,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "4": {
+                                "id": 17,
+                                "monto": 200,
+                                "estado": "",
+                                "mesColegiatura": 4,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            },
+                            "5": {
+                                "id": 44,
+                                "monto": 150,
+                                "estado": "",
+                                "mesColegiatura": 5,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "8": {
+                            "0": {
+                                "id": 7,
+                                "monto": 500,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "",
+                                "esPagoDeCarnet": null,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        },
+                        "7": {
+                            "0": {
+                                "id": 41,
+                                "monto": 550,
+                                "estado": "",
+                                "mesColegiatura": null,
+                                "notas": "",
+                                "esPagoDeCarnet": false,
+                                "estadoCarnet": "",
+                                "esPagoDeTransporte": false
+                            }
+                        }
+                    }
+                },
+                {
+                    "numeroOrdinal": 2,
+                    "alumnoId": 11,
+                    "nombreCompleto": "Garcia Zam, Gata Misha",
+                    "notas": "La gata + hermosa del mundo mundial",
+                    "nit": "",
+                    "pagosPorRubro": {}
+                }
+            ]
+        }
+    ],
+    "rubros": [
+        {
+            "id": 12,
+            "descripcion": "Carnet",
+            "ordenVisualizacionGrid": 1,
+            "esColegiatura": false
+        },
+        {
+            "id": 9,
+            "descripcion": "Cuota Anual",
+            "ordenVisualizacionGrid": 2,
+            "esColegiatura": false
+        },
+        {
+            "id": 5,
+            "descripcion": "Colegiatura",
+            "ordenVisualizacionGrid": 3,
+            "esColegiatura": true
+        },
+        {
+            "id": 8,
+            "descripcion": "Inscripción",
+            "ordenVisualizacionGrid": 4,
+            "esColegiatura": false
+        },
+        {
+            "id": 13,
+            "descripcion": "Servicio de Bus - Ruta Las Victorias",
+            "ordenVisualizacionGrid": 5,
+            "esColegiatura": false
+        },
+        {
+            "id": 11,
+            "descripcion": "Servicio de Bus - Ruta Pueblo",
+            "ordenVisualizacionGrid": 6,
+            "esColegiatura": false
+        },
+        {
+            "id": 7,
+            "descripcion": "Uniforme de Diario",
+            "ordenVisualizacionGrid": 7,
+            "esColegiatura": false
+        }
+    ]
+}

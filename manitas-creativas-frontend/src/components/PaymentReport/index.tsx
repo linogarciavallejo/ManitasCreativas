@@ -350,41 +350,61 @@ const PaymentReport: React.FC = () => {
         hidden: true, // Hide this column
         render: (_: unknown, record: PagoReportStudent) => getCarnetValue(record),
       },
-    ];    // Dynamic columns based on rubros
-    const dynamicColumns = [];
+    ];    // Dynamic columns based on rubros ordered by ordenVisualizacionGrid
     
-    for (const rubro of reportData.rubros) {
-      if (rubro.esColegiatura) {
-        // For colegiatura rubros, create grouped columns with bimester structure
-        const colegiaturaChildren = [];
+    // Sort all rubros by ordenVisualizacionGrid first
+    const sortedRubros = [...reportData.rubros].sort((a, b) => a.ordenVisualizacionGrid - b.ordenVisualizacionGrid);
+    
+    // Group sorted rubros by type
+    const colegiaturaRubros = sortedRubros.filter(r => r.esColegiatura);
+    const nonColegiaturaRubros = sortedRubros.filter(r => !r.esColegiatura);
+    
+    // Create a list of ordered column configs (without adding them yet)
+    const orderedColumnConfigs = [];
+    
+    // Add colegiatura column config if there are any colegiatura rubros
+    if (colegiaturaRubros.length > 0) {
+      const colegiaturaChildren = [];
+      
+      // Create monthly columns grouped by bimester
+      for (let month = 1; month <= 10; month++) {
+        const monthName = MONTH_NAMES[month - 1];
+        const isBimesterEnd = month % 2 === 0;
         
-        // Create monthly columns grouped by bimester
-        for (let month = 1; month <= 10; month++) {
-          const monthName = MONTH_NAMES[month - 1];
-          const isBimesterEnd = month % 2 === 0;
-          
-          colegiaturaChildren.push({
-            title: monthName,
-            key: `rubro-${rubro.id}-month-${month}`,
-            width: 120,
-            className: `payment-column${isBimesterEnd ? ' bimester-end' : ''}`,
-            render: (_: unknown, record: PagoReportStudent) => {
-              const payment = record.pagosPorRubro[rubro.id]?.[month];
-              return renderPaymentCell(payment);
-            },
-          });
-        }
-        
-        // Add the grouped column with children
-        dynamicColumns.push({
-          title: rubro.descripcion,
-          key: `rubro-${rubro.id}`,
+        colegiaturaChildren.push({
+          title: monthName,
+          key: `colegiatura-month-${month}`,
+          width: 120,
+          className: `payment-column${isBimesterEnd ? ' bimester-end' : ''}`,
+          render: (_: unknown, record: PagoReportStudent) => {
+            // Find payment from any of the colegiatura rubros for this month
+            let payment = undefined;
+            for (const rubro of colegiaturaRubros) {
+              payment = record.pagosPorRubro[rubro.id]?.[month];
+              if (payment) break; // Use the first payment found
+            }
+            return renderPaymentCell(payment);
+          },
+        });
+      }
+      
+      // Add colegiatura column config with its order
+      orderedColumnConfigs.push({
+        order: Math.min(...colegiaturaRubros.map(r => r.ordenVisualizacionGrid)),
+        column: {
+          title: 'Colegiatura',
+          key: 'colegiatura-group',
           className: 'colegiatura-header',
           children: colegiaturaChildren,
-        });
-      } else {
-        // For non-colegiatura rubros, create a single column
-        dynamicColumns.push({
+        }
+      });
+    }
+    
+    // Add non-colegiatura rubros as individual columns
+    for (const rubro of nonColegiaturaRubros) {
+      orderedColumnConfigs.push({
+        order: rubro.ordenVisualizacionGrid,
+        column: {
           title: rubro.descripcion,
           key: `rubro-${rubro.id}`,
           width: 120,
@@ -393,12 +413,15 @@ const PaymentReport: React.FC = () => {
             const payment = record.pagosPorRubro[rubro.id]?.[0];
             return renderPaymentCell(payment);
           },
-        });
-      }
+        }
+      });
     }
+      // Sort column configs by order and extract the columns
+    orderedColumnConfigs.sort((a, b) => a.order - b.order);
+    const orderedColumns = orderedColumnConfigs.map(config => config.column);
 
     // Filter out hidden columns
-    return [...fixedColumns, ...dynamicColumns].filter(column => !('hidden' in column && column.hidden));
+    return [...fixedColumns, ...orderedColumns].filter(column => !('hidden' in column && column.hidden));
   };
   // Generate table data source for a specific section
   const generateDataSource = (seccion: PagoReportSeccion) => {
