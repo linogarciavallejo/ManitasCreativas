@@ -121,56 +121,160 @@ const MonthlyPaymentReport: React.FC = () => {
       return;
     }
 
-    console.log('Generating pivot table with', payments.length, 'payments');
+    console.log('Generating pivot table with', payments.length, 'payments');    // Transform data for PivotTable.js
+    const pivotData = payments.map(payment => {
+      // Format week range with Spanish month names
+      let weekRange = payment.weekRange;
+      if (weekRange) {
+        // Replace English month names with Spanish abbreviations
+        weekRange = weekRange
+          .replace(/January/g, 'Ene').replace(/Jan/g, 'Ene')
+          .replace(/February/g, 'Feb').replace(/Feb/g, 'Feb')
+          .replace(/March/g, 'Mar').replace(/Mar/g, 'Mar')
+          .replace(/April/g, 'Abr').replace(/Apr/g, 'Abr')
+          .replace(/May/g, 'May')
+          .replace(/June/g, 'Jun').replace(/Jun/g, 'Jun')
+          .replace(/July/g, 'Jul').replace(/Jul/g, 'Jul')
+          .replace(/August/g, 'Ago').replace(/Aug/g, 'Ago')
+          .replace(/September/g, 'Sep').replace(/Sep/g, 'Sep')
+          .replace(/October/g, 'Oct').replace(/Oct/g, 'Oct')
+          .replace(/November/g, 'Nov').replace(/Nov/g, 'Nov')
+          .replace(/December/g, 'Dic').replace(/Dec/g, 'Dic');
+      }
 
-    // Transform data for PivotTable.js
-    const pivotData = payments.map(payment => ({
-      'ID': payment.id,
-      'Monto': payment.monto,
-      'Fecha': MonthlyPaymentReportService.formatDate(payment.fecha),
-      'Medio de Pago': payment.medioPago,
-      'Rubro': payment.rubroDescripcion,
-      'Tipo Rubro': payment.tipoRubro,
-      'Es Colegiatura': payment.esColegiatura ? 'Sí' : 'No',
-      'Alumno': payment.alumnoNombre,
-      'Grado': payment.gradoNombre,
-      'Sección': payment.seccion,
-      'Nivel Educativo': payment.nivelEducativo,
-      'Estado': payment.paymentCategory === 'Active' ? 'Activo' : 'Anulado',
-      'Semana': payment.weekRange,
-      'Día de la Semana': payment.dayOfWeek,
-      'Día del Mes': payment.dayOfMonth,
-      'Motivo Anulación': payment.motivoAnulacion || '',
-      'Usuario Anulación': payment.usuarioAnulacionNombre || '',
-      'Mes Colegiatura': payment.mesColegiatura || '',
-      'Año Colegiatura': payment.anioColegiatura || '',
-      'Notas': payment.notas || ''
-    }));
+      return {
+        'ID': payment.id,
+        'Monto': payment.monto,
+        'Fecha': MonthlyPaymentReportService.formatDate(payment.fecha),
+        'Medio de Pago': payment.medioPago,
+        'Rubro': payment.rubroDescripcion,
+        'Tipo Rubro': payment.tipoRubro,
+        'Es Colegiatura': payment.esColegiatura ? 'Sí' : 'No',
+        'Alumno': payment.alumnoNombre,
+        'Grado': payment.gradoNombre,
+        'Sección': payment.seccion,
+        'Nivel Educativo': payment.nivelEducativo,
+        'Estado': payment.paymentCategory === 'Active' ? 'Activo' : 'Anulado',
+        'Semana': weekRange,
+        'Día de la Semana': payment.dayOfWeek,
+        'Día del Mes': payment.dayOfMonth,
+        'Motivo Anulación': payment.motivoAnulacion || '',
+        'Usuario Anulación': payment.usuarioAnulacionNombre || '',
+        'Mes Colegiatura': payment.mesColegiatura || '',
+        'Año Colegiatura': payment.anioColegiatura || '',
+        'Notas': payment.notas || ''
+      };
+    });
 
     console.log('Transformed pivot data sample:', pivotData.slice(0, 2));
 
     // Clear existing content
     const $container = $(pivotContainerRef.current);
     $container.empty();
-      try {
+      try {      // Create custom aggregators with Spanish names
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pivotUtils = (window as any).$.pivotUtilities;
+      
+      const spanishAggregators = {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'Suma': function(...args: any[]) { return pivotUtils.aggregators.Sum.apply(this, args); },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'Contar': function(...args: any[]) { return pivotUtils.aggregators.Count.apply(this, args); },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'Promedio': function(...args: any[]) { return pivotUtils.aggregators.Average.apply(this, args); },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'Mínimo': function(...args: any[]) { return pivotUtils.aggregators.Minimum.apply(this, args); },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'Máximo': function(...args: any[]) { return pivotUtils.aggregators.Maximum.apply(this, args); },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'Contar Valores Únicos': function(...args: any[]) { return pivotUtils.aggregators['Count Unique Values'].apply(this, args); }
+      };
+
+      // Create custom renderers with Spanish names
+      const spanishRenderers = {
+        'Tabla': pivotUtils.renderers.Table,
+        'Tabla con Gráfico de Barras': pivotUtils.renderers['Table Barchart'],
+        'Mapa de Calor': pivotUtils.renderers.Heatmap,
+        'Mapa de Calor por Filas': pivotUtils.renderers['Row Heatmap'],
+        'Mapa de Calor por Columnas': pivotUtils.renderers['Col Heatmap']
+      };
+
       // Use jQuery's pivotUI directly with type assertion
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ($container as any).pivotUI(pivotData, {
         rows: ['Estado'],
         cols: ['Semana'],
-        aggregatorName: 'Sum',
+        aggregatorName: 'Suma',
         vals: ['Monto'],
-        rendererName: 'Table',
+        rendererName: 'Tabla',
+        
+        // Custom Spanish aggregators and renderers
+        aggregators: spanishAggregators,
+        renderers: spanishRenderers,
         
         // Hide ID from the UI
         hiddenAttributes: ['ID'],
         
-        // Handle configuration changes
+        // Spanish month names for date formatting
+        monthNames: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
+                     'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+          // Handle configuration changes
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onRefresh: function(config: any) {
           console.log('Pivot table configuration changed:', config);
+          
+          // Translate "Totals" to "Totales" after render
+          setTimeout(() => {
+            const container = pivotContainerRef.current;
+            if (container) {
+              // Find all text nodes containing "Totals" and replace with "Totales"
+              const walker = document.createTreeWalker(
+                container,
+                NodeFilter.SHOW_TEXT,
+                null
+              );
+                const textNodes = [];
+              let node = walker.nextNode();
+              while (node) {
+                textNodes.push(node);
+                node = walker.nextNode();
+              }
+              
+              textNodes.forEach(textNode => {
+                if (textNode.textContent && textNode.textContent.includes('Totals')) {
+                  textNode.textContent = textNode.textContent.replace(/Totals/g, 'Totales');
+                }
+              });
+            }
+          }, 100);
         }
       }, true);
+
+      // Translate "Totals" to "Totales" after initial render
+      setTimeout(() => {
+        const container = pivotContainerRef.current;
+        if (container) {
+          // Find all text nodes containing "Totals" and replace with "Totales"
+          const walker = document.createTreeWalker(
+            container,
+            NodeFilter.SHOW_TEXT,
+            null
+          );
+          
+          const textNodes = [];
+          let node = walker.nextNode();
+          while (node) {
+            textNodes.push(node);
+            node = walker.nextNode();
+          }
+          
+          textNodes.forEach(textNode => {
+            if (textNode.textContent && textNode.textContent.includes('Totals')) {
+              textNode.textContent = textNode.textContent.replace(/Totals/g, 'Totales');
+            }
+          });
+        }
+      }, 200);
 
       console.log('PivotTable.js initialized successfully');
     } catch (error) {

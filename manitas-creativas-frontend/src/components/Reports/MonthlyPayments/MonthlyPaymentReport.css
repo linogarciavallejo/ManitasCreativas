@@ -215,3 +215,29 @@
 .monthly-payment-report .ant-card-small > .ant-card-body {
   padding: 16px;
 }
+
+/* Spanish translations for PivotTable.js interface */
+.pivot-container .pvtTotal,
+.pivot-container .pvtGrandTotal {
+  font-weight: 600;
+}
+
+/* Replace "Totals" with "Totales" using CSS */
+.pivot-container .pvtTable tbody tr td:contains("Totals"):not(.pvtVal)::before {
+  content: "Totales";
+}
+
+.pivot-container .pvtTable tbody tr td:contains("Totals"):not(.pvtVal) {
+  font-size: 0;
+}
+
+.pivot-container .pvtTable tbody tr td:contains("Totals"):not(.pvtVal)::after {
+  font-size: 12px;
+}
+
+/* Style for Spanish month abbreviations */
+.pivot-container .pvtAxisLabel,
+.pivot-container .pvtColLabel,
+.pivot-container .pvtRowLabel {
+  font-weight: 500;
+}
