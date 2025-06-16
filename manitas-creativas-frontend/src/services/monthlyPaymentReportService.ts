@@ -1,7 +1,5 @@
-import axios from 'axios';
+import { makeApiRequest } from './apiHelper';
 import { MonthlyPaymentReportFilter, MonthlyPaymentReportResponse } from '../types/monthlyPaymentReport';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7144';
 
 export class MonthlyPaymentReportService {
   static async getMonthlyPaymentReport(filter: MonthlyPaymentReportFilter): Promise<MonthlyPaymentReportResponse> {
@@ -21,10 +19,10 @@ export class MonthlyPaymentReportService {
       
       if (filter.rubroId) {
         params.append('rubroId', filter.rubroId.toString());
-      }
-
-      const response = await axios.get(`${API_BASE_URL}/pagos/monthly-report?${params.toString()}`);
-      return response.data;
+      }      return await makeApiRequest<MonthlyPaymentReportResponse>(
+        `/pagos/monthly-report?${params.toString()}`,
+        'GET'
+      );
     } catch (error) {
       console.error('Error fetching monthly payment report:', error);
       throw error;
