@@ -1,0 +1,243 @@
+.monthly-payment-report {
+  padding: 20px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.monthly-payment-report .ant-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.monthly-payment-report .ant-statistic-title {
+  font-weight: 600;
+  color: #666;
+}
+
+.monthly-payment-report .ant-statistic-content {
+  font-size: 24px !important;
+  font-weight: 700;
+}
+
+.pivot-container {
+  min-height: 500px;
+  background: white;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+/* PivotTable.js styling customizations */
+.pivot-container table.pvtTable {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 12px;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.pivot-container .pvtTable thead tr th,
+.pivot-container .pvtTable tbody tr th {
+  background-color: #fafafa;
+  border: 1px solid #d9d9d9;
+  padding: 8px;
+  text-align: center;
+  font-weight: 600;
+  color: #262626;
+}
+
+.pivot-container .pvtTable tbody tr td {
+  border: 1px solid #d9d9d9;
+  padding: 6px 8px;
+  text-align: right;
+}
+
+.pivot-container .pvtTable .pvtRowLabel,
+.pivot-container .pvtTable .pvtColLabel {
+  background-color: #f0f0f0;
+  font-weight: 600;
+  text-align: left;
+}
+
+.pivot-container .pvtTable .pvtGrandTotal {
+  background-color: #e6f7ff;
+  font-weight: 700;
+  color: #1890ff;
+}
+
+.pivot-container .pvtTable .pvtTotal {
+  background-color: #f6ffed;
+  font-weight: 600;
+  color: #52c41a;
+}
+
+/* Drag and drop area styling */
+.pivot-container .pvtUi {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-height: 400px;
+}
+
+.pivot-container .pvtAxisContainer {
+  border: 1px solid #d9d9d9;
+  background-color: #fafafa;
+  margin: 4px;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.pivot-container .pvtVals {
+  background-color: #e6f7ff !important;
+  border: 2px solid #1890ff !important;
+}
+
+.pivot-container .pvtRows {
+  background-color: #f6ffed !important;
+  border: 2px solid #52c41a !important;
+}
+
+.pivot-container .pvtCols {
+  background-color: #fff7e6 !important;
+  border: 2px solid #fa8c16 !important;
+}
+
+.pivot-container .pvtUnused {
+  background-color: #f5f5f5 !important;
+  border: 2px solid #d9d9d9 !important;
+  min-height: 100px;
+}
+
+.pivot-container .pvtFilterBox {
+  background-color: #f5f5f5;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 8px;
+  margin: 4px;
+  font-size: 12px;
+}
+
+.pivot-container .pvtFilterBox h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.pivot-container .pvtFilter {
+  background-color: white;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin: 2px;
+  cursor: move;
+  font-size: 12px;
+  display: inline-block;
+  transition: all 0.2s;
+}
+
+.pivot-container .pvtFilter:hover {
+  background-color: #e6f7ff;
+  border-color: #1890ff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.pivot-container .pvtTriangle {
+  cursor: pointer;
+  color: #1890ff;
+}
+
+.pivot-container .pvtDropZone {
+  background-color: #f9f9f9;
+  border: 2px dashed #d9d9d9;
+  border-radius: 4px;
+  padding: 8px;
+  margin: 4px 0;
+  min-height: 30px;
+  text-align: center;
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+.pivot-container .pvtDropZone.pvtDropTarget {
+  background-color: #e6f7ff;
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+/* Renderer and aggregator dropdowns */
+.pivot-container select {
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  background-color: white;
+  margin: 4px;
+}
+
+.pivot-container select:focus {
+  border-color: #1890ff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .monthly-payment-report {
+    padding: 10px;
+  }
+  
+  .pivot-container {
+    overflow-x: auto;
+  }
+  
+  .pivot-container .pvtTable {
+    font-size: 10px;
+  }
+  
+  .pivot-container .pvtFilterBox {
+    margin: 2px;
+    padding: 4px;
+  }
+}
+
+/* Loading state */
+.monthly-payment-report .ant-spin-container {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Summary cards layout */
+.monthly-payment-report .ant-row {
+  margin-bottom: 16px;
+}
+
+.monthly-payment-report .ant-card-small > .ant-card-body {
+  padding: 16px;
+}
+
+/* Spanish translations for PivotTable.js interface */
+.pivot-container .pvtTotal,
+.pivot-container .pvtGrandTotal {
+  font-weight: 600;
+}
+
+/* Replace "Totals" with "Totales" using CSS */
+.pivot-container .pvtTable tbody tr td:contains("Totals"):not(.pvtVal)::before {
+  content: "Totales";
+}
+
+.pivot-container .pvtTable tbody tr td:contains("Totals"):not(.pvtVal) {
+  font-size: 0;
+}
+
+.pivot-container .pvtTable tbody tr td:contains("Totals"):not(.pvtVal)::after {
+  font-size: 12px;
+}
+
+/* Style for Spanish month abbreviations */
+.pivot-container .pvtAxisLabel,
+.pivot-container .pvtColLabel,
+.pivot-container .pvtRowLabel {
+  font-weight: 500;
+}

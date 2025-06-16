@@ -13,6 +13,8 @@ import {
   CreditCardOutlined,
   UserOutlined,
   LogoutOutlined,
+  BarChartOutlined,
+  PieChartOutlined,
 } from "@ant-design/icons";
 import { Button, Layout, Menu, theme } from "antd";
 import { Link, Outlet, useNavigate } from "react-router-dom";
@@ -28,7 +30,7 @@ const Main: React.FC = () => {
   } = theme.useToken();
   const handleSignOut = () => {
     signOut();
-    navigate('/'); // Redirect to login page after signing out
+    navigate("/"); // Redirect to login page after signing out
   };
   return (
     <Layout style={{ minHeight: "100vh", width: "100%" }}>
@@ -75,8 +77,7 @@ const Main: React.FC = () => {
               key: "5",
               icon: <FileTextOutlined />,
               label: <Link to="payment-report">Control de Pagos</Link>,
-            },
-            {
+            },            {
               key: "6",
               icon: <FileTextOutlined />,
               label: (
@@ -86,6 +87,15 @@ const Main: React.FC = () => {
               ),
             },
             {
+              key: "6.1",
+              icon: <BarChartOutlined />,
+              label: <Link to="reports">Centro de Reportes</Link>,
+            },
+            {
+              key: "6.2",
+              icon: <PieChartOutlined />,
+              label: <Link to="monthly-payments-report">Reporte Mensual de Pagos</Link>,
+            },            {
               key: "7",
               icon: <BankOutlined />,
               label: <Link to="statement">Estado de Cuenta</Link>,
@@ -124,11 +134,14 @@ const Main: React.FC = () => {
                     opacity: 0.6,
                   }}
                 ></div>
-              ),            },            {
+              ),
+            },
+            {
               key: "10",
               icon: <UserOutlined />,
               label: <Link to="users">Usuarios</Link>,
-            },            {
+            },
+            {
               key: "11",
               icon: <LogoutOutlined />,
               label: "Salir",
@@ -139,7 +152,6 @@ const Main: React.FC = () => {
             //   icon: <FileTextOutlined />,
             //   label: <Link to="settings">Configuración</Link>,
             // },
-
           ]}
         />
       </Sider>

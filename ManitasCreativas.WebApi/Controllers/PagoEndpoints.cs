@@ -178,6 +178,41 @@ public static class PagoEndpoints
                 }
             }
         );
+
+        // Endpoint for monthly payment report
+        app.MapGet(
+            "/pagos/monthly-report",
+            async (
+                int cicloEscolar,
+                int month,
+                int year,
+                int? gradoId,
+                string? seccion,
+                int? rubroId,
+                IPagoService pagoService
+            ) =>
+            {
+                try
+                {
+                    var filter = new MonthlyPaymentReportFilterDto
+                    {
+                        CicloEscolar = cicloEscolar,
+                        Month = month,
+                        Year = year,
+                        GradoId = gradoId,
+                        Seccion = seccion,
+                        RubroId = rubroId
+                    };
+                    
+                    var report = await pagoService.GetMonthlyPaymentReportAsync(filter);
+                    return Results.Ok(report);
+                }
+                catch (Exception ex)
+                {
+                    return Results.BadRequest(ex.Message);
+                }
+            }
+        );
     }
 }
 
