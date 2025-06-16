@@ -771,4 +771,165 @@ public class PagoService : IPagoService
         
         return allSuccessful;
     }
+
+    public async Task<MonthlyPaymentReportResponseDto> GetMonthlyPaymentReportAsync(MonthlyPaymentReportFilterDto filter)
+    {
+        var response = new MonthlyPaymentReportResponseDto
+        {
+            Filter = filter,
+            ReportTitle = "Monthly Payments Report",
+            ReportPeriod = $"{GetMonthName(filter.Month)} {filter.Year}"
+        };
+
+        // Get all payments for the specified month/year and school cycle
+        var pagos = await _pagoRepository.GetAllAsync();
+        
+        var filteredPagos = pagos
+            .Where(p => p.CicloEscolar == filter.CicloEscolar &&
+                       p.Fecha.Month == filter.Month &&
+                       p.Fecha.Year == filter.Year);
+
+        // Apply optional filters
+        if (filter.GradoId.HasValue)
+        {
+            filteredPagos = filteredPagos.Where(p => p.Alumno.GradoId == filter.GradoId.Value);
+        }
+
+        if (!string.IsNullOrEmpty(filter.Seccion))
+        {
+            filteredPagos = filteredPagos.Where(p => p.Alumno.Seccion == filter.Seccion);
+        }
+
+        if (filter.RubroId.HasValue)
+        {
+            filteredPagos = filteredPagos.Where(p => p.RubroId == filter.RubroId.Value);
+        }
+
+        var pagosList = filteredPagos.ToList();
+
+        // Convert to MonthlyPaymentItemDto
+        response.Payments = pagosList.Select(p => new MonthlyPaymentItemDto
+        {
+            Id = p.Id,
+            Monto = p.Monto,
+            Fecha = p.Fecha,
+            CicloEscolar = p.CicloEscolar,
+            MedioPago = p.MedioPago.ToString(),
+            RubroDescripcion = p.Rubro?.Descripcion ?? "Unknown",
+            TipoRubro = p.Rubro?.Tipo.ToString() ?? "Unknown",
+            EsColegiatura = p.Rubro?.EsColegiatura ?? false,
+            MesColegiatura = p.MesColegiatura,
+            AnioColegiatura = p.AnioColegiatura,
+            Notas = p.Notas ?? string.Empty,
+            
+            // Student information
+            AlumnoId = p.AlumnoId,
+            AlumnoNombre = $"{p.Alumno?.PrimerNombre} {p.Alumno?.SegundoNombre} {p.Alumno?.PrimerApellido} {p.Alumno?.SegundoApellido}".Trim(),
+            GradoNombre = p.Alumno?.Grado?.Nombre ?? "Unknown",
+            Seccion = p.Alumno?.Seccion ?? "Sin Sección",
+            NivelEducativo = p.Alumno?.Grado?.NivelEducativo?.Nombre ?? "Unknown",
+            
+            // Payment status
+            EsAnulado = p.EsAnulado,
+            MotivoAnulacion = p.MotivoAnulacion,
+            FechaAnulacion = p.FechaAnulacion,
+            UsuarioAnulacionNombre = p.UsuarioAnulacionId.HasValue ? 
+                GetUsuarioNombre(p.UsuarioAnulacionId.Value).Result : string.Empty,
+            
+            // Week and day information
+            WeekOfMonth = GetWeekOfMonth(p.Fecha),
+            WeekRange = GetWeekRange(p.Fecha),
+            DayOfWeek = p.Fecha.DayOfWeek.ToString(),
+            DayOfMonth = p.Fecha.Day,
+            
+            // Payment category for drill-down
+            PaymentCategory = p.EsAnulado ? "Voided" : "Active"
+        }).ToList();
+
+        // Calculate summary statistics
+        response.Summary = CalculateMonthlyPaymentSummary(response.Payments);
+
+        return response;
+    }
+
+    private async Task<string> GetUsuarioNombre(int usuarioId)
+    {
+        var usuario = await _usuarioRepository.GetByIdAsync(usuarioId);
+        return usuario != null ? $"{usuario.Nombres} {usuario.Apellidos}".Trim() : "Unknown";
+    }
+
+    private MonthlyPaymentSummaryDto CalculateMonthlyPaymentSummary(List<MonthlyPaymentItemDto> payments)
+    {
+        var activePayments = payments.Where(p => !p.EsAnulado).ToList();
+        var voidedPayments = payments.Where(p => p.EsAnulado).ToList();
+
+        return new MonthlyPaymentSummaryDto
+        {
+            TotalAmount = payments.Sum(p => p.Monto),
+            ActivePaymentsAmount = activePayments.Sum(p => p.Monto),
+            VoidedPaymentsAmount = voidedPayments.Sum(p => p.Monto),
+            TotalPayments = payments.Count,
+            ActivePayments = activePayments.Count,
+            VoidedPayments = voidedPayments.Count,
+            
+            AmountByGrado = payments.GroupBy(p => p.GradoNombre)
+                .ToDictionary(g => g.Key, g => g.Sum(p => p.Monto)),
+            
+            AmountByRubro = payments.GroupBy(p => p.RubroDescripcion)
+                .ToDictionary(g => g.Key, g => g.Sum(p => p.Monto)),
+            
+            AmountByWeek = payments.GroupBy(p => p.WeekRange)
+                .ToDictionary(g => g.Key, g => g.Sum(p => p.Monto)),
+            
+            PaymentCountByGrado = payments.GroupBy(p => p.GradoNombre)
+                .ToDictionary(g => g.Key, g => g.Count()),
+            
+            PaymentCountByRubro = payments.GroupBy(p => p.RubroDescripcion)
+                .ToDictionary(g => g.Key, g => g.Count()),
+            
+            PaymentCountByWeek = payments.GroupBy(p => p.WeekRange)
+                .ToDictionary(g => g.Key, g => g.Count())
+        };
+    }
+
+    private int GetWeekOfMonth(DateTime date)
+    {
+        var firstDayOfMonth = new DateTime(date.Year, date.Month, 1);
+        var firstWeek = firstDayOfMonth.DayOfWeek == DayOfWeek.Sunday ? 1 : 0;
+        return (date.Day + (int)firstDayOfMonth.DayOfWeek - 1) / 7 + firstWeek + 1;
+    }
+
+    private string GetWeekRange(DateTime date)
+    {
+        var weekOfMonth = GetWeekOfMonth(date);
+        var firstDayOfMonth = new DateTime(date.Year, date.Month, 1);
+        var daysInMonth = DateTime.DaysInMonth(date.Year, date.Month);
+        
+        // Calculate the start and end of the week
+        var startOfWeek = Math.Max(1, (weekOfMonth - 1) * 7 - (int)firstDayOfMonth.DayOfWeek + 1);
+        var endOfWeek = Math.Min(daysInMonth, startOfWeek + 6);
+        
+        var monthName = GetMonthName(date.Month);
+        return $"{monthName} {startOfWeek}-{endOfWeek}, {date.Year}";
+    }
+
+    private string GetMonthName(int month)
+    {
+        return month switch
+        {
+            1 => "January",
+            2 => "February",
+            3 => "March",
+            4 => "April",
+            5 => "May",
+            6 => "June",
+            7 => "July",
+            8 => "August",
+            9 => "September",
+            10 => "October",
+            11 => "November",
+            12 => "December",
+            _ => "Unknown"
+        };
+    }
 }
