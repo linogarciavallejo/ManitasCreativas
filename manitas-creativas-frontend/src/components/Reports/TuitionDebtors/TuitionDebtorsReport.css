@@ -242,6 +242,18 @@
   vertical-align: top;
 }
 
+/* Right-align currency columns */
+.debtors-table td:nth-child(4), /* Deuda Total column */
+.debtors-table th:nth-child(4) {
+  text-align: right;
+}
+
+/* Additional styling for currency values */
+.currency-value {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}
+
 .debtors-table tr:hover {
   background-color: #f8f9fa;
 }

@@ -984,10 +984,17 @@ public class PagoService : IPagoService
                     .OrderByDescending(p => p.Fecha)
                     .FirstOrDefault()?.Fecha ?? DateTime.MinValue;
 
-                var isCurrentMonthOverdue = IsCurrentMonthTuitionOverdue(asOfDate, tuitionPayments, alumno.Id);                debtors.Add(new TuitionDebtorDto
+                var isCurrentMonthOverdue = IsCurrentMonthTuitionOverdue(asOfDate, tuitionPayments, alumno.Id);                // Format the full name as requested: "Primer Apellido Segundo Apellido, Primer Nombre Segundo Nombre"
+                string nombreCompleto = string.Format("{0} {1}, {2} {3}",
+                    alumno.PrimerApellido,
+                    alumno.SegundoApellido ?? string.Empty,
+                    alumno.PrimerNombre,
+                    alumno.SegundoNombre ?? string.Empty).Trim();
+                
+                debtors.Add(new TuitionDebtorDto
                 {
                     AlumnoId = alumno.Id,
-                    NombreCompleto = $"{alumno.PrimerNombre} {alumno.PrimerApellido}",
+                    NombreCompleto = nombreCompleto,
                     NivelEducativo = alumno.Grado.NivelEducativo?.Nombre ?? "N/A",
                     Grado = alumno.Grado.Nombre,
                     Seccion = alumno.Seccion ?? "N/A",

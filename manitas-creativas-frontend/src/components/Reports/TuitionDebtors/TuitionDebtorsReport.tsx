@@ -345,7 +345,7 @@ const TuitionDebtorsReport: React.FC = () => {
                           {debtor.monthsBehind >= 2 && <span className="red-flag">🚩 </span>}
                           {debtor.monthsBehind}
                         </td>
-                        <td>{formatCurrency(debtor.totalDebt)}</td>
+                        <td className="currency-value">{formatCurrency(debtor.totalDebt)}</td>
                         <td>
                           <span className={`status-badge ${getDelinquencyClass(debtor.monthsBehind, debtor.isCurrentMonthOverdue)}`}>
                             {getDelinquencyLabel(debtor.monthsBehind, debtor.isCurrentMonthOverdue)}
