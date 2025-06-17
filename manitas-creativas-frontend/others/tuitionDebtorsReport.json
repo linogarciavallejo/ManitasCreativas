@@ -1,254 +1,10 @@
 {
-    "reportDate": "2025-06-17T11:12:50.8359857-06:00",
+    "reportDate": "2025-06-17T17:17:18.8435589-06:00",
     "asOfDate": "2025-06-30T00:00:00",
     "totalStudents": 9,
-    "studentsInDebt": 9,
-    "totalDebtAmount": 18200,
+    "studentsInDebt": 7,
+    "totalDebtAmount": 5600,
     "debtors": [
-        {
-            "alumnoId": 8,
-            "nombreCompleto": "Capillo Zam",
-            "nivelEducativo": " Preprimaria",
-            "grado": "Parvulos 2",
-            "seccion": "A",
-            "sede": "Nueva Sede",
-            "unpaidTuitions": [
-                {
-                    "year": 2025,
-                    "month": 1,
-                    "monthName": "Enero",
-                    "amount": 150,
-                    "dueDate": "2025-01-05T00:00:00",
-                    "daysPastDue": 176,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 1,
-                    "monthName": "Enero",
-                    "amount": 350,
-                    "dueDate": "2025-01-05T00:00:00",
-                    "daysPastDue": 176,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 2,
-                    "monthName": "Febrero",
-                    "amount": 150,
-                    "dueDate": "2025-02-05T00:00:00",
-                    "daysPastDue": 145,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 2,
-                    "monthName": "Febrero",
-                    "amount": 350,
-                    "dueDate": "2025-02-05T00:00:00",
-                    "daysPastDue": 145,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 3,
-                    "monthName": "Marzo",
-                    "amount": 150,
-                    "dueDate": "2025-03-05T00:00:00",
-                    "daysPastDue": 117,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 3,
-                    "monthName": "Marzo",
-                    "amount": 350,
-                    "dueDate": "2025-03-05T00:00:00",
-                    "daysPastDue": 117,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 4,
-                    "monthName": "Abril",
-                    "amount": 150,
-                    "dueDate": "2025-04-05T00:00:00",
-                    "daysPastDue": 86,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 4,
-                    "monthName": "Abril",
-                    "amount": 350,
-                    "dueDate": "2025-04-05T00:00:00",
-                    "daysPastDue": 86,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 5,
-                    "monthName": "Mayo",
-                    "amount": 150,
-                    "dueDate": "2025-05-05T00:00:00",
-                    "daysPastDue": 56,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 5,
-                    "monthName": "Mayo",
-                    "amount": 350,
-                    "dueDate": "2025-05-05T00:00:00",
-                    "daysPastDue": 56,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 6,
-                    "monthName": "Junio",
-                    "amount": 150,
-                    "dueDate": "2025-06-05T00:00:00",
-                    "daysPastDue": 25,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 6,
-                    "monthName": "Junio",
-                    "amount": 350,
-                    "dueDate": "2025-06-05T00:00:00",
-                    "daysPastDue": 25,
-                    "rubroNombre": "Colegiatura"
-                }
-            ],
-            "totalDebt": 3000,
-            "monthsBehind": 6,
-            "lastPaymentDate": "0001-01-01T00:00:00",
-            "isCurrentMonthOverdue": true
-        },
-        {
-            "alumnoId": 11,
-            "nombreCompleto": "Gata Garcia",
-            "nivelEducativo": " Preprimaria",
-            "grado": "Parvulos 1",
-            "seccion": "A",
-            "sede": "Nueva Sede",
-            "unpaidTuitions": [
-                {
-                    "year": 2025,
-                    "month": 1,
-                    "monthName": "Enero",
-                    "amount": 150,
-                    "dueDate": "2025-01-05T00:00:00",
-                    "daysPastDue": 176,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 1,
-                    "monthName": "Enero",
-                    "amount": 350,
-                    "dueDate": "2025-01-05T00:00:00",
-                    "daysPastDue": 176,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 2,
-                    "monthName": "Febrero",
-                    "amount": 150,
-                    "dueDate": "2025-02-05T00:00:00",
-                    "daysPastDue": 145,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 2,
-                    "monthName": "Febrero",
-                    "amount": 350,
-                    "dueDate": "2025-02-05T00:00:00",
-                    "daysPastDue": 145,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 3,
-                    "monthName": "Marzo",
-                    "amount": 150,
-                    "dueDate": "2025-03-05T00:00:00",
-                    "daysPastDue": 117,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 3,
-                    "monthName": "Marzo",
-                    "amount": 350,
-                    "dueDate": "2025-03-05T00:00:00",
-                    "daysPastDue": 117,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 4,
-                    "monthName": "Abril",
-                    "amount": 150,
-                    "dueDate": "2025-04-05T00:00:00",
-                    "daysPastDue": 86,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 4,
-                    "monthName": "Abril",
-                    "amount": 350,
-                    "dueDate": "2025-04-05T00:00:00",
-                    "daysPastDue": 86,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 5,
-                    "monthName": "Mayo",
-                    "amount": 150,
-                    "dueDate": "2025-05-05T00:00:00",
-                    "daysPastDue": 56,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 5,
-                    "monthName": "Mayo",
-                    "amount": 350,
-                    "dueDate": "2025-05-05T00:00:00",
-                    "daysPastDue": 56,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 6,
-                    "monthName": "Junio",
-                    "amount": 150,
-                    "dueDate": "2025-06-05T00:00:00",
-                    "daysPastDue": 25,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 6,
-                    "monthName": "Junio",
-                    "amount": 350,
-                    "dueDate": "2025-06-05T00:00:00",
-                    "daysPastDue": 25,
-                    "rubroNombre": "Colegiatura"
-                }
-            ],
-            "totalDebt": 3000,
-            "monthsBehind": 6,
-            "lastPaymentDate": "0001-01-01T00:00:00",
-            "isCurrentMonthOverdue": true
-        },
         {
             "alumnoId": 14,
             "nombreCompleto": "Antonio Vagolini",
@@ -261,27 +17,9 @@
                     "year": 2025,
                     "month": 1,
                     "monthName": "Enero",
-                    "amount": 150,
-                    "dueDate": "2025-01-05T00:00:00",
-                    "daysPastDue": 176,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 1,
-                    "monthName": "Enero",
                     "amount": 350,
                     "dueDate": "2025-01-05T00:00:00",
                     "daysPastDue": 176,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 2,
-                    "monthName": "Febrero",
-                    "amount": 150,
-                    "dueDate": "2025-02-05T00:00:00",
-                    "daysPastDue": 145,
                     "rubroNombre": "Colegiatura"
                 },
                 {
@@ -297,27 +35,9 @@
                     "year": 2025,
                     "month": 3,
                     "monthName": "Marzo",
-                    "amount": 150,
-                    "dueDate": "2025-03-05T00:00:00",
-                    "daysPastDue": 117,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 3,
-                    "monthName": "Marzo",
                     "amount": 350,
                     "dueDate": "2025-03-05T00:00:00",
                     "daysPastDue": 117,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 4,
-                    "monthName": "Abril",
-                    "amount": 150,
-                    "dueDate": "2025-04-05T00:00:00",
-                    "daysPastDue": 86,
                     "rubroNombre": "Colegiatura"
                 },
                 {
@@ -333,27 +53,9 @@
                     "year": 2025,
                     "month": 5,
                     "monthName": "Mayo",
-                    "amount": 150,
-                    "dueDate": "2025-05-05T00:00:00",
-                    "daysPastDue": 56,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 5,
-                    "monthName": "Mayo",
                     "amount": 350,
                     "dueDate": "2025-05-05T00:00:00",
                     "daysPastDue": 56,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 6,
-                    "monthName": "Junio",
-                    "amount": 150,
-                    "dueDate": "2025-06-05T00:00:00",
-                    "daysPastDue": 25,
                     "rubroNombre": "Colegiatura"
                 },
                 {
@@ -366,7 +68,7 @@
                     "rubroNombre": "Colegiatura"
                 }
             ],
-            "totalDebt": 3000,
+            "totalDebt": 2100,
             "monthsBehind": 6,
             "lastPaymentDate": "0001-01-01T00:00:00",
             "isCurrentMonthOverdue": true
@@ -381,166 +83,17 @@
             "unpaidTuitions": [
                 {
                     "year": 2025,
-                    "month": 1,
-                    "monthName": "Enero",
-                    "amount": 350,
-                    "dueDate": "2025-01-05T00:00:00",
-                    "daysPastDue": 176,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 2,
-                    "monthName": "Febrero",
-                    "amount": 350,
-                    "dueDate": "2025-02-05T00:00:00",
-                    "daysPastDue": 145,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 3,
-                    "monthName": "Marzo",
-                    "amount": 350,
-                    "dueDate": "2025-03-05T00:00:00",
-                    "daysPastDue": 117,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 4,
-                    "monthName": "Abril",
-                    "amount": 350,
-                    "dueDate": "2025-04-05T00:00:00",
-                    "daysPastDue": 86,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 5,
-                    "monthName": "Mayo",
-                    "amount": 350,
-                    "dueDate": "2025-05-05T00:00:00",
-                    "daysPastDue": 56,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
                     "month": 6,
                     "monthName": "Junio",
                     "amount": 150,
                     "dueDate": "2025-06-05T00:00:00",
                     "daysPastDue": 25,
                     "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 6,
-                    "monthName": "Junio",
-                    "amount": 350,
-                    "dueDate": "2025-06-05T00:00:00",
-                    "daysPastDue": 25,
-                    "rubroNombre": "Colegiatura"
                 }
             ],
-            "totalDebt": 2250,
-            "monthsBehind": 6,
+            "totalDebt": 150,
+            "monthsBehind": 1,
             "lastPaymentDate": "2025-06-13T00:21:22.496Z",
-            "isCurrentMonthOverdue": true
-        },
-        {
-            "alumnoId": 10,
-            "nombreCompleto": "Maria Zamini",
-            "nivelEducativo": "Primaria",
-            "grado": "Primero Primaria",
-            "seccion": "B",
-            "sede": "Nueva Sede",
-            "unpaidTuitions": [
-                {
-                    "year": 2025,
-                    "month": 1,
-                    "monthName": "Enero",
-                    "amount": 150,
-                    "dueDate": "2025-01-05T00:00:00",
-                    "daysPastDue": 176,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 2,
-                    "monthName": "Febrero",
-                    "amount": 150,
-                    "dueDate": "2025-02-05T00:00:00",
-                    "daysPastDue": 145,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 3,
-                    "monthName": "Marzo",
-                    "amount": 150,
-                    "dueDate": "2025-03-05T00:00:00",
-                    "daysPastDue": 117,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 4,
-                    "monthName": "Abril",
-                    "amount": 150,
-                    "dueDate": "2025-04-05T00:00:00",
-                    "daysPastDue": 86,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 4,
-                    "monthName": "Abril",
-                    "amount": 350,
-                    "dueDate": "2025-04-05T00:00:00",
-                    "daysPastDue": 86,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 5,
-                    "monthName": "Mayo",
-                    "amount": 150,
-                    "dueDate": "2025-05-05T00:00:00",
-                    "daysPastDue": 56,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 5,
-                    "monthName": "Mayo",
-                    "amount": 350,
-                    "dueDate": "2025-05-05T00:00:00",
-                    "daysPastDue": 56,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 6,
-                    "monthName": "Junio",
-                    "amount": 150,
-                    "dueDate": "2025-06-05T00:00:00",
-                    "daysPastDue": 25,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 6,
-                    "monthName": "Junio",
-                    "amount": 350,
-                    "dueDate": "2025-06-05T00:00:00",
-                    "daysPastDue": 25,
-                    "rubroNombre": "Colegiatura"
-                }
-            ],
-            "totalDebt": 1950,
-            "monthsBehind": 6,
-            "lastPaymentDate": "2025-03-01T06:00:00Z",
             "isCurrentMonthOverdue": true
         },
         {
@@ -553,65 +106,11 @@
             "unpaidTuitions": [
                 {
                     "year": 2025,
-                    "month": 1,
-                    "monthName": "Enero",
-                    "amount": 150,
-                    "dueDate": "2025-01-05T00:00:00",
-                    "daysPastDue": 176,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 2,
-                    "monthName": "Febrero",
-                    "amount": 150,
-                    "dueDate": "2025-02-05T00:00:00",
-                    "daysPastDue": 145,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 3,
-                    "monthName": "Marzo",
-                    "amount": 150,
-                    "dueDate": "2025-03-05T00:00:00",
-                    "daysPastDue": 117,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 4,
-                    "monthName": "Abril",
-                    "amount": 150,
-                    "dueDate": "2025-04-05T00:00:00",
-                    "daysPastDue": 86,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 5,
-                    "monthName": "Mayo",
-                    "amount": 150,
-                    "dueDate": "2025-05-05T00:00:00",
-                    "daysPastDue": 56,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
                     "month": 5,
                     "monthName": "Mayo",
                     "amount": 350,
                     "dueDate": "2025-05-05T00:00:00",
                     "daysPastDue": 56,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 6,
-                    "monthName": "Junio",
-                    "amount": 150,
-                    "dueDate": "2025-06-05T00:00:00",
-                    "daysPastDue": 25,
                     "rubroNombre": "Colegiatura"
                 },
                 {
@@ -624,170 +123,16 @@
                     "rubroNombre": "Colegiatura"
                 }
             ],
-            "totalDebt": 1600,
-            "monthsBehind": 6,
+            "totalDebt": 700,
+            "monthsBehind": 2,
             "lastPaymentDate": "2025-04-04T06:00:00Z",
             "isCurrentMonthOverdue": true
         },
         {
-            "alumnoId": 12,
-            "nombreCompleto": "Luis Perez",
-            "nivelEducativo": "Primaria",
-            "grado": "Primero Primaria",
-            "seccion": "B",
-            "sede": "Nueva Sede",
-            "unpaidTuitions": [
-                {
-                    "year": 2025,
-                    "month": 1,
-                    "monthName": "Enero",
-                    "amount": 150,
-                    "dueDate": "2025-01-05T00:00:00",
-                    "daysPastDue": 176,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 2,
-                    "monthName": "Febrero",
-                    "amount": 150,
-                    "dueDate": "2025-02-05T00:00:00",
-                    "daysPastDue": 145,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 3,
-                    "monthName": "Marzo",
-                    "amount": 150,
-                    "dueDate": "2025-03-05T00:00:00",
-                    "daysPastDue": 117,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 4,
-                    "monthName": "Abril",
-                    "amount": 150,
-                    "dueDate": "2025-04-05T00:00:00",
-                    "daysPastDue": 86,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 5,
-                    "monthName": "Mayo",
-                    "amount": 150,
-                    "dueDate": "2025-05-05T00:00:00",
-                    "daysPastDue": 56,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 6,
-                    "monthName": "Junio",
-                    "amount": 150,
-                    "dueDate": "2025-06-05T00:00:00",
-                    "daysPastDue": 25,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 6,
-                    "monthName": "Junio",
-                    "amount": 350,
-                    "dueDate": "2025-06-05T00:00:00",
-                    "daysPastDue": 25,
-                    "rubroNombre": "Colegiatura"
-                }
-            ],
-            "totalDebt": 1250,
-            "monthsBehind": 6,
-            "lastPaymentDate": "2025-05-31T06:00:00Z",
-            "isCurrentMonthOverdue": true
-        },
-        {
-            "alumnoId": 13,
-            "nombreCompleto": "Jorge Maldonado",
-            "nivelEducativo": "Primaria",
-            "grado": "Primero Primaria",
-            "seccion": "C",
-            "sede": "Nueva Sede",
-            "unpaidTuitions": [
-                {
-                    "year": 2025,
-                    "month": 1,
-                    "monthName": "Enero",
-                    "amount": 150,
-                    "dueDate": "2025-01-05T00:00:00",
-                    "daysPastDue": 176,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 2,
-                    "monthName": "Febrero",
-                    "amount": 150,
-                    "dueDate": "2025-02-05T00:00:00",
-                    "daysPastDue": 145,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 3,
-                    "monthName": "Marzo",
-                    "amount": 150,
-                    "dueDate": "2025-03-05T00:00:00",
-                    "daysPastDue": 117,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 4,
-                    "monthName": "Abril",
-                    "amount": 150,
-                    "dueDate": "2025-04-05T00:00:00",
-                    "daysPastDue": 86,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 5,
-                    "monthName": "Mayo",
-                    "amount": 150,
-                    "dueDate": "2025-05-05T00:00:00",
-                    "daysPastDue": 56,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 6,
-                    "monthName": "Junio",
-                    "amount": 150,
-                    "dueDate": "2025-06-05T00:00:00",
-                    "daysPastDue": 25,
-                    "rubroNombre": "Colegiatura"
-                },
-                {
-                    "year": 2025,
-                    "month": 6,
-                    "monthName": "Junio",
-                    "amount": 350,
-                    "dueDate": "2025-06-05T00:00:00",
-                    "daysPastDue": 25,
-                    "rubroNombre": "Colegiatura"
-                }
-            ],
-            "totalDebt": 1250,
-            "monthsBehind": 6,
-            "lastPaymentDate": "2025-05-31T06:00:00Z",
-            "isCurrentMonthOverdue": true
-        },
-        {
-            "alumnoId": 6,
-            "nombreCompleto": "Lino Garcia",
-            "nivelEducativo": "Primaria",
-            "grado": "Primero Primaria",
+            "alumnoId": 11,
+            "nombreCompleto": "Gata Garcia",
+            "nivelEducativo": " Preprimaria",
+            "grado": "Parvulos 1",
             "seccion": "A",
             "sede": "Nueva Sede",
             "unpaidTuitions": [
@@ -848,23 +193,109 @@
             ],
             "totalDebt": 900,
             "monthsBehind": 6,
-            "lastPaymentDate": "2025-06-02T03:53:30.21Z",
-            "isCurrentMonthOverdue": false
+            "lastPaymentDate": "0001-01-01T00:00:00",
+            "isCurrentMonthOverdue": true
+        },
+        {
+            "alumnoId": 13,
+            "nombreCompleto": "Jorge Maldonado",
+            "nivelEducativo": "Primaria",
+            "grado": "Primero Primaria",
+            "seccion": "C",
+            "sede": "Nueva Sede",
+            "unpaidTuitions": [
+                {
+                    "year": 2025,
+                    "month": 6,
+                    "monthName": "Junio",
+                    "amount": 350,
+                    "dueDate": "2025-06-05T00:00:00",
+                    "daysPastDue": 25,
+                    "rubroNombre": "Colegiatura"
+                }
+            ],
+            "totalDebt": 350,
+            "monthsBehind": 1,
+            "lastPaymentDate": "2025-05-31T06:00:00Z",
+            "isCurrentMonthOverdue": true
+        },
+        {
+            "alumnoId": 12,
+            "nombreCompleto": "Luis Perez",
+            "nivelEducativo": "Primaria",
+            "grado": "Primero Primaria",
+            "seccion": "B",
+            "sede": "Nueva Sede",
+            "unpaidTuitions": [
+                {
+                    "year": 2025,
+                    "month": 6,
+                    "monthName": "Junio",
+                    "amount": 350,
+                    "dueDate": "2025-06-05T00:00:00",
+                    "daysPastDue": 25,
+                    "rubroNombre": "Colegiatura"
+                }
+            ],
+            "totalDebt": 350,
+            "monthsBehind": 1,
+            "lastPaymentDate": "2025-05-31T06:00:00Z",
+            "isCurrentMonthOverdue": true
+        },
+        {
+            "alumnoId": 10,
+            "nombreCompleto": "Maria Zamini",
+            "nivelEducativo": "Primaria",
+            "grado": "Primero Primaria",
+            "seccion": "B",
+            "sede": "Nueva Sede",
+            "unpaidTuitions": [
+                {
+                    "year": 2025,
+                    "month": 4,
+                    "monthName": "Abril",
+                    "amount": 350,
+                    "dueDate": "2025-04-05T00:00:00",
+                    "daysPastDue": 86,
+                    "rubroNombre": "Colegiatura"
+                },
+                {
+                    "year": 2025,
+                    "month": 5,
+                    "monthName": "Mayo",
+                    "amount": 350,
+                    "dueDate": "2025-05-05T00:00:00",
+                    "daysPastDue": 56,
+                    "rubroNombre": "Colegiatura"
+                },
+                {
+                    "year": 2025,
+                    "month": 6,
+                    "monthName": "Junio",
+                    "amount": 350,
+                    "dueDate": "2025-06-05T00:00:00",
+                    "daysPastDue": 25,
+                    "rubroNombre": "Colegiatura"
+                }
+            ],
+            "totalDebt": 1050,
+            "monthsBehind": 3,
+            "lastPaymentDate": "2025-03-01T06:00:00Z",
+            "isCurrentMonthOverdue": true
         }
     ],
     "summary": {
-        "currentMonthDelinquent": 8,
-        "oneMonthBehind": 0,
-        "twoMonthsBehind": 0,
-        "threeOrMoreMonthsBehind": 9,
-        "averageDebtPerStudent": 2022.2222222222222222222222222,
+        "currentMonthDelinquent": 7,
+        "oneMonthBehind": 3,
+        "twoMonthsBehind": 1,
+        "threeOrMoreMonthsBehind": 3,
+        "averageDebtPerStudent": 800,
         "debtorsByGrade": {
-            "Primero Primaria": 6,
             "Parvulos 1": 2,
-            "Parvulos 2": 1
+            "Primero Primaria": 5
         },
         "debtorsBySede": {
-            "Nueva Sede": 9
+            "Nueva Sede": 7
         }
     }
 }

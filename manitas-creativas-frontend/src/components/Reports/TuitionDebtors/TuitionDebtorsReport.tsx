@@ -99,12 +99,30 @@ const TuitionDebtorsReport: React.FC = () => {
     if (monthsBehind >= 3) return `${monthsBehind} Meses Atrasados`;
     return 'Al Día';
   };
-
   const getDelinquencyClass = (monthsBehind: number, isCurrentOverdue: boolean) => {
     if (isCurrentOverdue || monthsBehind === 1) return 'delinquency-warning';
     if (monthsBehind === 2) return 'delinquency-danger';
     if (monthsBehind >= 3) return 'delinquency-critical';
     return '';
+  };
+
+  const getRowClass = (monthsBehind: number) => {
+    if (monthsBehind >= 2) return 'high-delinquency-row';
+    return '';
+  };
+
+  const getGradoSeccionHeader = () => {
+    if (filter.gradoId) {
+      return 'Sección';
+    }
+    return 'Grado/Sección';
+  };
+
+  const getGradoSeccionValue = (debtor: TuitionDebtor) => {
+    if (filter.gradoId) {
+      return debtor.seccion;
+    }
+    return `${debtor.grado} - ${debtor.seccion}`;
   };
 
   if (loading) {
@@ -304,14 +322,12 @@ const TuitionDebtorsReport: React.FC = () => {
 
           {/* Debtors Table */}
           <div className="debtors-section">
-            <h3>Estudiantes en Mora ({reportData.debtors.length})</h3>
-            <div className="debtors-table">
+            <h3>Estudiantes en Mora ({reportData.debtors.length})</h3>            <div className="debtors-table">
               <table>
                 <thead>
                   <tr>
                     <th>Estudiante</th>
-                    <th>Grado/Sección</th>
-                    <th>Sede</th>
+                    <th>{getGradoSeccionHeader()}</th>
                     <th>Meses Atrasados</th>
                     <th>Deuda Total</th>
                     <th>Estado</th>
@@ -322,11 +338,13 @@ const TuitionDebtorsReport: React.FC = () => {
                 <tbody>
                   {reportData.debtors.map((debtor: TuitionDebtor) => (
                     <React.Fragment key={debtor.alumnoId}>
-                      <tr className={getDelinquencyClass(debtor.monthsBehind, debtor.isCurrentMonthOverdue)}>
+                      <tr className={`${getDelinquencyClass(debtor.monthsBehind, debtor.isCurrentMonthOverdue)} ${getRowClass(debtor.monthsBehind)}`}>
                         <td>{debtor.nombreCompleto}</td>
-                        <td>{debtor.grado} - {debtor.seccion}</td>
-                        <td>{debtor.sede}</td>
-                        <td>{debtor.monthsBehind}</td>
+                        <td>{getGradoSeccionValue(debtor)}</td>
+                        <td>
+                          {debtor.monthsBehind >= 2 && <span className="red-flag">🚩 </span>}
+                          {debtor.monthsBehind}
+                        </td>
                         <td>{formatCurrency(debtor.totalDebt)}</td>
                         <td>
                           <span className={`status-badge ${getDelinquencyClass(debtor.monthsBehind, debtor.isCurrentMonthOverdue)}`}>
@@ -349,7 +367,7 @@ const TuitionDebtorsReport: React.FC = () => {
                       </tr>
                       {expandedDebtors[debtor.alumnoId] && (
                         <tr>
-                          <td colSpan={8}>
+                          <td colSpan={7}>
                             <div className="debtor-details">
                               <h5>Colegiaturas Pendientes:</h5>
                               <table className="unpaid-tuitions-table">

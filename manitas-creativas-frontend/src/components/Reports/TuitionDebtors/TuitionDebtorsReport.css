@@ -343,6 +343,47 @@
   font-weight: 600;
 }
 
+/* High Delinquency Row Styling */
+.high-delinquency-row {
+  background-color: #fff5f5 !important;
+  border-left: 4px solid #dc3545 !important;
+}
+
+.high-delinquency-row:hover {
+  background-color: #ffe6e6 !important;
+}
+
+/* Red Flag Icon */
+.red-flag {
+  color: #dc3545;
+  font-weight: bold;
+  font-size: 1.1em;
+  margin-right: 4px;
+}
+
+/* Make sure the flag is visible in table cells */
+.debtors-table td .red-flag {
+  display: inline;
+  vertical-align: middle;
+}
+
+/* Additional styling for emphasis on high delinquency */
+.high-delinquency-row .red-flag {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .tuition-debtors-report {

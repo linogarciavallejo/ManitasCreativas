@@ -1002,7 +1002,23 @@ public class PagoService : IPagoService
         }
 
         // Calculate summary
-        var summary = CalculateTuitionDebtorsSummary(debtors);
+        var summary = CalculateTuitionDebtorsSummary(debtors);        // Sort debtors based on filter criteria
+        List<TuitionDebtorDto> sortedDebtors;
+        if (filter.GradoId.HasValue)
+        {
+            // If specific grade is selected, sort by section then by name
+            sortedDebtors = debtors
+                .OrderBy(d => d.Seccion)
+                .ThenBy(d => d.NombreCompleto)
+                .ToList();
+        }
+        else
+        {
+            // If all grades (or no specific grade), sort by name
+            sortedDebtors = debtors
+                .OrderBy(d => d.NombreCompleto)
+                .ToList();
+        }
 
         return new TuitionDebtorsReportDto
         {
@@ -1011,7 +1027,7 @@ public class PagoService : IPagoService
             TotalStudents = activeAlumnos.Count,
             StudentsInDebt = debtors.Count,
             TotalDebtAmount = debtors.Sum(d => d.TotalDebt),
-            Debtors = debtors.OrderByDescending(d => d.TotalDebt).ToList(),
+            Debtors = sortedDebtors,
             Summary = summary
         };
     }
