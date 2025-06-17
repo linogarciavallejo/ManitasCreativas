@@ -213,6 +213,47 @@ public static class PagoEndpoints
                 }
             }
         );
+
+        // Tuition debtors report endpoint
+        app.MapGet(
+            "/pagos/tuition-debtors-report",
+            async (
+                int? year,
+                int? month,
+                int? sedeId,
+                int? nivelEducativoId,
+                int? gradoId,
+                string? seccion,
+                bool includeCurrentMonth,
+                int? minMonthsBehind,
+                decimal? minDebtAmount,
+                IPagoService pagoService
+            ) =>
+            {
+                try
+                {
+                    var filter = new TuitionDebtorsFilterDto
+                    {
+                        Year = year,
+                        Month = month,
+                        SedeId = sedeId,
+                        NivelEducativoId = nivelEducativoId,
+                        GradoId = gradoId,
+                        Seccion = seccion,
+                        IncludeCurrentMonth = includeCurrentMonth,
+                        MinMonthsBehind = minMonthsBehind,
+                        MinDebtAmount = minDebtAmount
+                    };
+                    
+                    var report = await pagoService.GetTuitionDebtorsReportAsync(filter);
+                    return Results.Ok(report);
+                }
+                catch (Exception ex)
+                {
+                    return Results.BadRequest(ex.Message);
+                }
+            }
+        );
     }
 }
 

@@ -932,4 +932,213 @@ public class PagoService : IPagoService
             _ => "Unknown"
         };
     }
+
+    public async Task<TuitionDebtorsReportDto> GetTuitionDebtorsReportAsync(TuitionDebtorsFilterDto filter)
+    {
+        var reportDate = DateTime.Now;
+        var asOfDate = filter.Year.HasValue && filter.Month.HasValue 
+            ? new DateTime(filter.Year.Value, filter.Month.Value, DateTime.DaysInMonth(filter.Year.Value, filter.Month.Value))
+            : reportDate;        // Get all active students
+        var alumnos = await _alumnoRepository.GetAllAsync();
+        var activeAlumnos = alumnos.Where(a => a.Estado == EstadoAlumno.Activo).ToList();
+
+        // Apply filters to students
+        if (filter.SedeId.HasValue)
+            activeAlumnos = activeAlumnos.Where(a => a.SedeId == filter.SedeId.Value).ToList();
+        if (filter.NivelEducativoId.HasValue)
+            activeAlumnos = activeAlumnos.Where(a => a.Grado.NivelEducativoId == filter.NivelEducativoId.Value).ToList();
+        if (filter.GradoId.HasValue)
+            activeAlumnos = activeAlumnos.Where(a => a.GradoId == filter.GradoId.Value).ToList();
+        if (!string.IsNullOrEmpty(filter.Seccion))
+            activeAlumnos = activeAlumnos.Where(a => a.Seccion == filter.Seccion).ToList();
+
+        // Get all tuition rubros (EsColegiatura = true)
+        var rubros = await _rubroRepository.GetAllAsync();
+        var tuitionRubros = rubros.Where(r => r.EsColegiatura).ToList();        // Get all payments for tuition rubros
+        var pagos = await _pagoRepository.GetAllAsync();
+        var tuitionPayments = pagos.Where(p => 
+            tuitionRubros.Any(r => r.Id == p.RubroId) && 
+            !p.EsAnulado &&
+            p.CicloEscolar == (filter.Year ?? reportDate.Year)
+        ).ToList();
+
+        var debtors = new List<TuitionDebtorDto>();
+
+        foreach (var alumno in activeAlumnos)
+        {
+            var unpaidTuitions = GetUnpaidTuitions(alumno, tuitionRubros, tuitionPayments, asOfDate, filter);
+              if (unpaidTuitions.Any())
+            {
+                var totalDebt = unpaidTuitions.Sum(ut => ut.Amount);
+                // Count unique months behind instead of total unpaid tuition records
+                var monthsBehind = unpaidTuitions.Select(ut => new { ut.Year, ut.Month }).Distinct().Count();
+                
+                // Apply filters
+                if (filter.MinMonthsBehind.HasValue && monthsBehind < filter.MinMonthsBehind.Value)
+                    continue;
+                if (filter.MinDebtAmount.HasValue && totalDebt < filter.MinDebtAmount.Value)
+                    continue;
+
+                var lastPaymentDate = tuitionPayments
+                    .Where(p => p.AlumnoId == alumno.Id)
+                    .OrderByDescending(p => p.Fecha)
+                    .FirstOrDefault()?.Fecha ?? DateTime.MinValue;
+
+                var isCurrentMonthOverdue = IsCurrentMonthTuitionOverdue(asOfDate, tuitionPayments, alumno.Id);                debtors.Add(new TuitionDebtorDto
+                {
+                    AlumnoId = alumno.Id,
+                    NombreCompleto = $"{alumno.PrimerNombre} {alumno.PrimerApellido}",
+                    NivelEducativo = alumno.Grado.NivelEducativo?.Nombre ?? "N/A",
+                    Grado = alumno.Grado.Nombre,
+                    Seccion = alumno.Seccion ?? "N/A",
+                    Sede = alumno.Sede.Nombre,
+                    UnpaidTuitions = unpaidTuitions,
+                    TotalDebt = totalDebt,
+                    MonthsBehind = monthsBehind,
+                    LastPaymentDate = lastPaymentDate,
+                    IsCurrentMonthOverdue = isCurrentMonthOverdue
+                });
+            }
+        }
+
+        // Calculate summary
+        var summary = CalculateTuitionDebtorsSummary(debtors);
+
+        return new TuitionDebtorsReportDto
+        {
+            ReportDate = reportDate,
+            AsOfDate = asOfDate,
+            TotalStudents = activeAlumnos.Count,
+            StudentsInDebt = debtors.Count,
+            TotalDebtAmount = debtors.Sum(d => d.TotalDebt),
+            Debtors = debtors.OrderByDescending(d => d.TotalDebt).ToList(),
+            Summary = summary
+        };
+    }
+
+    private List<UnpaidTuitionDto> GetUnpaidTuitions(
+        Alumno alumno, 
+        List<Rubro> tuitionRubros, 
+        List<Pago> tuitionPayments, 
+        DateTime asOfDate,
+        TuitionDebtorsFilterDto filter)
+    {
+        var unpaidTuitions = new List<UnpaidTuitionDto>();
+        var currentYear = asOfDate.Year;
+        var currentMonth = asOfDate.Month;        // Check each month from January to current month (or specified month)
+        var endMonth = filter.Month ?? currentMonth;
+        
+        // Filter tuition rubros to only those applicable to this student's grade/level
+        var applicableRubros = tuitionRubros.Where(r => 
+            // If rubro has no specific grade (gradoId is null), check nivel educativo
+            (r.GradoId == null && r.NivelEducativoId == alumno.Grado.NivelEducativoId) ||
+            // If rubro has specific grade, check exact grade match
+            (r.GradoId == alumno.GradoId)
+        ).ToList();
+        
+        for (int month = 1; month <= endMonth; month++)
+        {            foreach (var rubro in applicableRubros)
+            {
+                // Check if tuition for this month and rubro has been paid
+                // Use MesColegiatura and AnioColegiatura to match the payment to the specific month it covers
+                var hasPaid = tuitionPayments.Any(p => 
+                    p.AlumnoId == alumno.Id &&
+                    p.RubroId == rubro.Id &&
+                    p.CicloEscolar == currentYear &&
+                    p.EsColegiatura && // Ensure it's marked as a tuition payment
+                    p.MesColegiatura == month &&
+                    p.AnioColegiatura == currentYear);
+
+                if (!hasPaid)
+                {
+                    var dueDate = new DateTime(currentYear, month, 5); // Due by 5th of each month
+                    var daysPastDue = (asOfDate - dueDate).Days;
+
+                    // Only include if past due date and we're including current month or it's a past month
+                    if (daysPastDue > 0 || (filter.IncludeCurrentMonth && month == currentMonth))
+                    {                        unpaidTuitions.Add(new UnpaidTuitionDto
+                        {
+                            Year = currentYear,
+                            Month = month,
+                            MonthName = GetSpanishMonthName(month),
+                            Amount = rubro.MontoPreestablecido ?? 0m,
+                            DueDate = dueDate,
+                            DaysPastDue = Math.Max(0, daysPastDue),
+                            RubroNombre = rubro.Descripcion
+                        });
+                    }
+                }
+            }
+        }
+
+        return unpaidTuitions;
+    }    private bool IsCurrentMonthTuitionOverdue(DateTime asOfDate, List<Pago> tuitionPayments, int alumnoId)
+    {
+        var currentMonth = asOfDate.Month;
+        var currentYear = asOfDate.Year;
+        var dueDate = new DateTime(currentYear, currentMonth, 5);
+
+        // If we're past the due date for current month
+        if (asOfDate > dueDate)
+        {
+            // Get the alumno to check their grade/level
+            var alumno = _alumnoRepository.GetByIdAsync(alumnoId).Result;
+            if (alumno != null)
+            {
+                // Get applicable tuition rubros for this student
+                var rubros = _rubroRepository.GetAllAsync().Result;
+                var tuitionRubros = rubros.Where(r => r.EsColegiatura).ToList();
+                var applicableRubros = tuitionRubros.Where(r => 
+                    (r.GradoId == null && r.NivelEducativoId == alumno.Grado.NivelEducativoId) ||
+                    (r.GradoId == alumno.GradoId)
+                ).ToList();
+
+                // Check if current month tuition has been paid for any applicable rubro
+                return !applicableRubros.Any(rubro => tuitionPayments.Any(p => 
+                    p.AlumnoId == alumnoId &&
+                    p.RubroId == rubro.Id &&
+                    p.EsColegiatura &&
+                    p.MesColegiatura == currentMonth &&
+                    p.AnioColegiatura == currentYear));
+            }
+        }
+
+        return false;
+    }
+
+    private TuitionDebtorsSummaryDto CalculateTuitionDebtorsSummary(List<TuitionDebtorDto> debtors)
+    {
+        var summary = new TuitionDebtorsSummaryDto
+        {
+            CurrentMonthDelinquent = debtors.Count(d => d.IsCurrentMonthOverdue),
+            OneMonthBehind = debtors.Count(d => d.MonthsBehind == 1),
+            TwoMonthsBehind = debtors.Count(d => d.MonthsBehind == 2),
+            ThreeOrMoreMonthsBehind = debtors.Count(d => d.MonthsBehind >= 3),
+            AverageDebtPerStudent = debtors.Any() ? debtors.Average(d => d.TotalDebt) : 0,
+            DebtorsByGrade = debtors.GroupBy(d => d.Grado).ToDictionary(g => g.Key, g => g.Count()),
+            DebtorsBySede = debtors.GroupBy(d => d.Sede).ToDictionary(g => g.Key, g => g.Count())
+        };
+
+        return summary;
+    }
+
+    private string GetSpanishMonthName(int month)
+    {
+        return month switch
+        {
+            1 => "Enero",
+            2 => "Febrero",
+            3 => "Marzo",
+            4 => "Abril",
+            5 => "Mayo",
+            6 => "Junio",
+            7 => "Julio",
+            8 => "Agosto",
+            9 => "Septiembre",
+            10 => "Octubre",
+            11 => "Noviembre",
+            12 => "Diciembre",
+            _ => "Desconocido"
+        };
+    }
 }

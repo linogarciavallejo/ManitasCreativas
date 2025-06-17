@@ -17,6 +17,7 @@ const TransportPayments = React.lazy(() => import("../components/TransportPaymen
 const TransportPaymentsReport = React.lazy(() => import("../components/TransportPaymentsReport/index"));
 const MonthlyPaymentReport = React.lazy(() => import("../components/Reports/MonthlyPayments"));
 const ReportsMenu = React.lazy(() => import("../components/Reports/ReportsMenu"));
+const TuitionDebtorsReport = React.lazy(() => import("../components/Reports/TuitionDebtors"));
 
 const AppRoutes: React.FC = () => {
   //userStore();
@@ -42,6 +43,7 @@ const AppRoutes: React.FC = () => {
         <Route path="edit-payments" element={<EditPayments />} />        <Route path="transport-payments" element={<TransportPayments />} />        <Route path="transport-payments-report" element={<TransportPaymentsReport />} />
         <Route path="reports" element={<ReportsMenu />} />
         <Route path="monthly-payments-report" element={<MonthlyPaymentReport />} />
+        <Route path="tuition-debtors-report" element={<TuitionDebtorsReport />} />
       </Route>
     </Routes>
   );

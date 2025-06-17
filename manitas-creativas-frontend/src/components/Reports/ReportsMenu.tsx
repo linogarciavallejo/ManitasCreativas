@@ -22,6 +22,19 @@ const ReportsMenu: React.FC = () => {
       available: true
     },
     {
+      title: 'Reporte de Morosos de Colegiatura',
+      description: 'Identifica estudiantes con pagos de colegiatura en mora según política escolar (pago antes del día 5 de cada mes).',
+      features: [
+        'Identificación automática de morosos',
+        'Categorización por tiempo de atraso',
+        'Detalles de colegiaturas pendientes',
+        'Estadísticas de resumen por grado y sede',
+        'Datos estructurados para futura exportación PDF'
+      ],
+      route: '/main/tuition-debtors-report',
+      available: true
+    },
+    {
       title: 'Reporte de Pagos por Grado',
       description: 'Reporte detallado de pagos organizados por grado académico.',
       route: '/main/payment-report',

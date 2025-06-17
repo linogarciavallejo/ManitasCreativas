@@ -1,0 +1,395 @@
+.tuition-debtors-report {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.tuition-debtors-report h1 {
+  color: #2c3e50;
+  margin-bottom: 30px;
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+/* Filters Section */
+.filters-section {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  border: 1px solid #e9ecef;
+}
+
+.filters-section h3 {
+  margin-bottom: 20px;
+  color: #495057;
+  font-size: 1.2rem;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-group label {
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.filter-group select,
+.filter-group input {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.filter-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #545b62;
+  transform: translateY(-1px);
+}
+
+/* Loading State */
+.loading {
+  text-align: center;
+  padding: 50px;
+  font-size: 1.1rem;
+  color: #6c757d;
+}
+
+/* Error Message */
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 15px;
+  border-radius: 4px;
+  border: 1px solid #f5c6cb;
+  margin-bottom: 20px;
+}
+
+/* Summary Section */
+.summary-section {
+  margin-bottom: 30px;
+}
+
+.summary-section h3 {
+  margin-bottom: 20px;
+  color: #495057;
+  font-size: 1.4rem;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.summary-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #007bff;
+  transition: transform 0.2s ease-in-out;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+}
+
+.summary-card.warning {
+  border-left-color: #ffc107;
+}
+
+.summary-card.danger {
+  border-left-color: #dc3545;
+}
+
+.summary-card h4 {
+  margin: 0 0 10px 0;
+  color: #495057;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.summary-number {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+  color: #2c3e50;
+}
+
+.breakdown-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+}
+
+.breakdown-card {
+  background: white;
+  padding: 15px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.breakdown-card h4 {
+  margin: 0 0 10px 0;
+  color: #495057;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.breakdown-card p {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+  color: #2c3e50;
+}
+
+/* Debtors Section */
+.debtors-section {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.debtors-section h3 {
+  background: #f8f9fa;
+  padding: 20px;
+  margin: 0;
+  color: #495057;
+  border-bottom: 1px solid #e9ecef;
+  font-size: 1.2rem;
+}
+
+.debtors-table {
+  overflow-x: auto;
+}
+
+.debtors-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.debtors-table th {
+  background-color: #e9ecef;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+  white-space: nowrap;
+}
+
+.debtors-table td {
+  padding: 12px;
+  border-bottom: 1px solid #dee2e6;
+  vertical-align: top;
+}
+
+.debtors-table tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Delinquency Status Colors */
+.delinquency-warning {
+  background-color: #fff3cd !important;
+  border-left: 4px solid #ffc107;
+}
+
+.delinquency-danger {
+  background-color: #f8d7da !important;
+  border-left: 4px solid #dc3545;
+}
+
+.delinquency-critical {
+  background-color: #d1ecf1 !important;
+  border-left: 4px solid #17a2b8;
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.delinquency-warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.status-badge.delinquency-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.status-badge.delinquency-critical {
+  background-color: #17a2b8;
+  color: white;
+}
+
+/* Expand Button */
+.btn-expand {
+  background: none;
+  border: 1px solid #007bff;
+  color: #007bff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-expand:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Debtor Details */
+.debtor-details {
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  margin: 10px;
+}
+
+.debtor-details h5 {
+  margin: 0 0 15px 0;
+  color: #495057;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.unpaid-tuitions-table {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.unpaid-tuitions-table th {
+  background-color: #e9ecef;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.unpaid-tuitions-table td {
+  padding: 8px 12px;
+  font-size: 13px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.days-overdue {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tuition-debtors-report {
+    padding: 10px;
+  }
+
+  .tuition-debtors-report h1 {
+    font-size: 2rem;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .breakdown-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .debtors-table {
+    font-size: 12px;
+  }
+
+  .debtors-table th,
+  .debtors-table td {
+    padding: 8px;
+  }
+
+  .summary-number {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .breakdown-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-actions {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+}
