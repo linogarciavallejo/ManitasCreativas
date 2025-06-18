@@ -55,6 +55,7 @@ builder.Services.AddScoped<IGradoRepository, GradoRepository>();
 builder.Services.AddScoped<ISedeRepository, SedeRepository>();
 builder.Services.AddScoped<IContactoRepository, ContactoRepository>();
 builder.Services.AddScoped<IAlumnoContactoRepository, AlumnoContactoRepository>();
+builder.Services.AddScoped<IAlumnoRutaRepository, AlumnoRutaRepository>();
 
 // Dependency Injection for Services
 builder.Services.AddScoped<IUsuarioService, UsuarioService>(sp => {
@@ -67,6 +68,7 @@ builder.Services.AddScoped<INivelEducativoService, NivelEducativoService>();
 builder.Services.AddScoped<IGradoService, GradoService>();
 builder.Services.AddScoped<ISedeService, SedeService>();
 builder.Services.AddScoped<IContactoService, ContactoService>();
+builder.Services.AddScoped<IAlumnoRutaService, AlumnoRutaService>();
 
 // Register AlumnoService after its dependencies with all three repositories
 builder.Services.AddScoped<IAlumnoService, AlumnoService>(sp => {
@@ -74,6 +76,14 @@ builder.Services.AddScoped<IAlumnoService, AlumnoService>(sp => {
     var gradoRepository = sp.GetRequiredService<IGradoRepository>();
     var sedeRepository = sp.GetRequiredService<ISedeRepository>();
     return new AlumnoService(alumnoRepository, gradoRepository, sedeRepository);
+});
+
+// Configure AlumnoRutaService with its dependencies
+builder.Services.AddScoped<IAlumnoRutaService, AlumnoRutaService>(sp => {
+    var alumnoRutaRepository = sp.GetRequiredService<IAlumnoRutaRepository>();
+    var alumnoRepository = sp.GetRequiredService<IAlumnoRepository>();
+    var rubroRepository = sp.GetRequiredService<IRubroRepository>();
+    return new AlumnoRutaService(alumnoRutaRepository, alumnoRepository, rubroRepository);
 });
 
 // Fix for CS1643: Ensure all code paths return a value in the lambda expression
@@ -92,25 +102,6 @@ builder.Services.AddScoped<IPagoService, PagoService>(sp =>
 });
 // Inject S3Service into PagoService
 builder.Services.AddScoped<S3Service>();
-//builder.Services.AddScoped<IPagoService, PagoService>(sp =>
-//{
-//    var pagoRepository = sp.GetRequiredService<IPagoRepository>();
-//    var s3Service = sp.GetRequiredService<S3Service>();
-//    //return new PagoService(pagoRepository, s3Service);
-//    // Inject S3Service into PagoService
-//    builder.Services.AddScoped<S3Service>();
-//    builder.Services.AddScoped<IPagoService, PagoService>(sp =>
-//    {
-//        var pagoRepository = sp.GetRequiredService<IPagoRepository>();
-//        var s3Service = sp.GetRequiredService<S3Service>();
-//        var alumnoRepository = sp.GetRequiredService<IAlumnoRepository>();
-//        var rubroRepository = sp.GetRequiredService<IRubroRepository>();
-//        var usuarioRepository = sp.GetRequiredService<IUsuarioRepository>();
-//        var pagoImagenRepository = sp.GetRequiredService<IPagoImagenRepository>();
-
-//        return new PagoService(pagoRepository, s3Service, alumnoRepository, rubroRepository, usuarioRepository, pagoImagenRepository);
-//    });
-//});
 
 // Add DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -151,6 +142,7 @@ app.MapGradoEndpoints();
 app.MapSedeEndpoints();
 app.MapContactoEndpoints();
 app.MapAlumnoContactoEndpoints();
+app.MapAlumnoRutaEndpoints();
 
 app.MapFallbackToFile("index.html"); // Serve the SPA
 
