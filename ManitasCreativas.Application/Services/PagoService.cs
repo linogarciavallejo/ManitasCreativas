@@ -17,6 +17,7 @@ public class PagoService : IPagoService
     private readonly IUsuarioRepository _usuarioRepository;
     private readonly IPagoImagenRepository _pagoImagenRepository;
     private readonly IAlumnoContactoRepository _alumnoContactoRepository;
+    private readonly IAlumnoRutaRepository _alumnoRutaRepository;
 
     public PagoService(
         IPagoRepository pagoRepository, 
@@ -25,7 +26,8 @@ public class PagoService : IPagoService
         IRubroRepository rubroRepository, 
         IUsuarioRepository usuarioRepository, 
         IPagoImagenRepository pagoImagenRepository,
-        IAlumnoContactoRepository alumnoContactoRepository)
+        IAlumnoContactoRepository alumnoContactoRepository,
+        IAlumnoRutaRepository alumnoRutaRepository)
     {
         _pagoRepository = pagoRepository;
         _s3Service = s3Service;
@@ -34,6 +36,7 @@ public class PagoService : IPagoService
         _usuarioRepository = usuarioRepository;
         _pagoImagenRepository = pagoImagenRepository;
         _alumnoContactoRepository = alumnoContactoRepository;
+        _alumnoRutaRepository = alumnoRutaRepository;
     }
 
     public async Task<IEnumerable<PagoReadDto>> GetPagosByCriteriaAsync(int cicloEscolar, int rubroId, int gradoId, int month)
@@ -1145,7 +1148,7 @@ public class PagoService : IPagoService
         return summary;
     }    public async Task<TransportDebtorsReportDto> GetTransportDebtorsReportAsync(TransportDebtorsFilterDto filter)
     {
-        Console.WriteLine("=== Starting Transport Debtors Report ===");
+        Console.WriteLine("=== Starting Transport Debtors Report (Using AlumnoRuta) ===");
         Console.WriteLine($"Filter: Year={filter.Year}, Month={filter.Month}, SedeId={filter.SedeId}, RubroId={filter.RubroId}");
         
         var reportDate = DateTime.Now;
@@ -1182,20 +1185,12 @@ public class PagoService : IPagoService
             Console.WriteLine($"After seccion filter: {activeAlumnos.Count} students");
         }
 
-        // Get all transport rubros (EsPagoDeTransporte = true)
+        // Get all transport rubros for reference
         var rubros = await _rubroRepository.GetAllAsync();
-        var transportRubros = rubros.Where(r => r.EsPagoDeTransporte == true).ToList();        Console.WriteLine($"Total transport rubros: {transportRubros.Count}");
-        foreach (var rubro in transportRubros)
-        {
-            Console.WriteLine($"  - Rubro ID {rubro.Id}: {rubro.Descripcion} (Monto: {rubro.MontoPreestablecido}, GradoId: {rubro.GradoId}, NivelEducativoId: {rubro.NivelEducativoId})");
-        }
+        var transportRubros = rubros.Where(r => r.EsPagoDeTransporte == true).ToList();
+        Console.WriteLine($"Total transport rubros: {transportRubros.Count}");
 
-        // Apply rubro filter if specified
-        if (filter.RubroId.HasValue)
-        {
-            transportRubros = transportRubros.Where(r => r.Id == filter.RubroId.Value).ToList();
-            Console.WriteLine($"After rubro filter: {transportRubros.Count} transport rubros");
-        }        // Get all payments for transport rubros
+        // Get all transport payments for the year
         var pagos = await _pagoRepository.GetAllAsync();
         var transportPayments = pagos.Where(p => 
             transportRubros.Any(r => r.Id == p.RubroId) && 
@@ -1205,10 +1200,35 @@ public class PagoService : IPagoService
         Console.WriteLine($"Total transport payments for year {filter.Year ?? reportDate.Year}: {transportPayments.Count}");
 
         var debtors = new List<TransportDebtorDto>();
-        Console.WriteLine($"Processing {activeAlumnos.Count} students...");        foreach (var alumno in activeAlumnos)
+        Console.WriteLine($"Processing {activeAlumnos.Count} students...");
+
+        foreach (var alumno in activeAlumnos)
         {
-            Console.WriteLine($"Processing student: {alumno.PrimerNombre} {alumno.PrimerApellido} (GradoId: {alumno.GradoId}, NivelEducativoId: {alumno.Grado?.NivelEducativoId})");
-            var unpaidTransports = GetUnpaidTransports(alumno, transportRubros, transportPayments, asOfDate, filter);
+            Console.WriteLine($"Processing student: {alumno.PrimerNombre} {alumno.PrimerApellido} (ID: {alumno.Id})");
+            
+            // Get the student's assigned transport routes using AlumnoRuta
+            var alumnoRutas = await _alumnoRutaRepository.GetByAlumnoIdAsync(alumno.Id);
+            var activeRoutes = alumnoRutas.Where(ar => 
+                ar.FechaInicio <= asOfDate && 
+                (ar.FechaFin == null || ar.FechaFin >= asOfDate)
+            ).ToList();
+
+            Console.WriteLine($"  Student has {activeRoutes.Count} active transport route assignments");
+
+            // Apply rubro filter if specified
+            if (filter.RubroId.HasValue)
+            {
+                activeRoutes = activeRoutes.Where(ar => ar.RubroTransporteId == filter.RubroId.Value).ToList();
+                Console.WriteLine($"  After rubro filter: {activeRoutes.Count} routes");
+            }
+
+            if (!activeRoutes.Any())
+            {
+                Console.WriteLine($"  Student {alumno.PrimerNombre} {alumno.PrimerApellido} has no active transport routes - skipping");
+                continue;
+            }
+
+            var unpaidTransports = GetUnpaidTransportsUsingAlumnoRuta(alumno, activeRoutes, transportPayments, asOfDate, filter);
               
             if (unpaidTransports.Any())
             {
@@ -1228,7 +1248,7 @@ public class PagoService : IPagoService
                     .OrderByDescending(p => p.Fecha)
                     .FirstOrDefault()?.Fecha ?? DateTime.MinValue;
 
-                var isCurrentMonthOverdue = IsCurrentMonthTransportOverdue(asOfDate, transportPayments, alumno.Id, transportRubros);
+                var isCurrentMonthOverdue = IsCurrentMonthTransportOverdueUsingAlumnoRuta(asOfDate, transportPayments, alumno.Id, activeRoutes);
 
                 // Format the full name as requested: "Primer Apellido Segundo Apellido, Primer Nombre Segundo Nombre"
                 string nombreCompleto = string.Format("{0} {1}, {2} {3}",
@@ -1237,10 +1257,13 @@ public class PagoService : IPagoService
                     alumno.PrimerNombre,
                     alumno.SegundoNombre ?? string.Empty).Trim();
 
-                // Get the transport route name
-                var rubroTransporte = filter.RubroId.HasValue 
-                    ? transportRubros.FirstOrDefault(r => r.Id == filter.RubroId.Value)?.Descripcion ?? "N/A"
-                    : "Múltiples Rutas";                debtors.Add(new TransportDebtorDto
+                // Get the transport route names - show multiple routes if applicable
+                var routeNames = activeRoutes.Select(ar => ar.RubroTransporte?.Descripcion ?? "N/A").Distinct().ToList();
+                var rubroTransporte = routeNames.Count == 1 
+                    ? routeNames.First() 
+                    : string.Join(", ", routeNames);
+
+                debtors.Add(new TransportDebtorDto
                 {
                     AlumnoId = alumno.Id,
                     NombreCompleto = nombreCompleto,
@@ -1255,7 +1278,8 @@ public class PagoService : IPagoService
                     LastPaymentDate = lastPaymentDate,
                     IsCurrentMonthOverdue = isCurrentMonthOverdue
                 });
-            }        }
+            }
+        }
 
         Console.WriteLine($"=== Transport Debtors Report Complete ===");
         Console.WriteLine($"Total debtors found: {debtors.Count}");
@@ -1291,9 +1315,9 @@ public class PagoService : IPagoService
             Debtors = sortedDebtors,
             Summary = summary
         };
-    }    private List<UnpaidTransportDto> GetUnpaidTransports(
+    }    private List<UnpaidTransportDto> GetUnpaidTransportsUsingAlumnoRuta(
         Alumno alumno, 
-        List<Rubro> transportRubros, 
+        List<AlumnoRuta> activeRoutes, 
         List<Pago> transportPayments, 
         DateTime asOfDate,
         TransportDebtorsFilterDto filter)
@@ -1304,26 +1328,31 @@ public class PagoService : IPagoService
 
         // Check each month from January to current month (or specified month)
         var endMonth = filter.Month ?? currentMonth;
-          // Filter transport rubros to only those applicable to this student's grade/level
-        var applicableRubros = transportRubros.Where(r => 
-            // Transport rubros with special placeholder nivel educativo (999) apply to all students
-            (r.NivelEducativoId == 999) ||
-            // If rubro has no specific grade (gradoId is null), check nivel educativo
-            (r.GradoId == null && r.NivelEducativoId == alumno.Grado?.NivelEducativoId) ||
-            // If rubro has specific grade, check exact match
-            (r.GradoId == alumno.GradoId)
-        ).ToList();
 
-        Console.WriteLine($"  Student {alumno.PrimerNombre} {alumno.PrimerApellido}: {applicableRubros.Count} applicable rubros, checking months 1-{endMonth}");
+        Console.WriteLine($"  Student {alumno.PrimerNombre} {alumno.PrimerApellido}: {activeRoutes.Count} active routes, checking months 1-{endMonth}");
 
         for (int month = 1; month <= endMonth; month++)
         {
-            foreach (var rubro in applicableRubros)
+            foreach (var alumnoRuta in activeRoutes)
             {
+                // Only check months where the route assignment was active
+                var monthStartDate = new DateTime(currentYear, month, 1);
+                var monthEndDate = new DateTime(currentYear, month, DateTime.DaysInMonth(currentYear, month));
+                
+                // Check if route assignment overlaps with this month
+                bool routeActiveThisMonth = alumnoRuta.FechaInicio <= monthEndDate && 
+                                          (alumnoRuta.FechaFin == null || alumnoRuta.FechaFin >= monthStartDate);
+                
+                if (!routeActiveThisMonth)
+                {
+                    Console.WriteLine($"    Route {alumnoRuta.RubroTransporte?.Descripcion} not active for {GetSpanishMonthName(month)} {currentYear}");
+                    continue;
+                }
+
                 // Check if payment exists for this month and rubro
                 var paymentExists = transportPayments.Any(p => 
                     p.AlumnoId == alumno.Id &&
-                    p.RubroId == rubro.Id &&
+                    p.RubroId == alumnoRuta.RubroTransporteId &&
                     p.MesColegiatura == month &&
                     p.AnioColegiatura == currentYear &&
                     !p.EsAnulado
@@ -1341,13 +1370,13 @@ public class PagoService : IPagoService
                         Year = currentYear,
                         Month = month,
                         MonthName = GetSpanishMonthName(month),
-                        Amount = rubro.MontoPreestablecido ?? 0,
+                        Amount = alumnoRuta.RubroTransporte?.MontoPreestablecido ?? 0,
                         DueDate = dueDate,
                         DaysPastDue = daysPastDue,
-                        RubroNombre = rubro.Descripcion ?? "N/A"
+                        RubroNombre = alumnoRuta.RubroTransporte?.Descripcion ?? "N/A"
                     });
                     
-                    Console.WriteLine($"    Missing payment: {GetSpanishMonthName(month)} {currentYear} - {rubro.Descripcion} (Q{rubro.MontoPreestablecido})");
+                    Console.WriteLine($"    Missing payment: {GetSpanishMonthName(month)} {currentYear} - {alumnoRuta.RubroTransporte?.Descripcion} (Q{alumnoRuta.RubroTransporte?.MontoPreestablecido})");
                 }
             }
         }
@@ -1355,7 +1384,7 @@ public class PagoService : IPagoService
         return unpaidTransports;
     }
 
-    private bool IsCurrentMonthTransportOverdue(DateTime asOfDate, List<Pago> transportPayments, int alumnoId, List<Rubro> transportRubros)
+    private bool IsCurrentMonthTransportOverdueUsingAlumnoRuta(DateTime asOfDate, List<Pago> transportPayments, int alumnoId, List<AlumnoRuta> activeRoutes)
     {
         var currentMonth = asOfDate.Month;
         var currentYear = asOfDate.Year;
@@ -1363,17 +1392,21 @@ public class PagoService : IPagoService
 
         if (asOfDate > dueDate)
         {
-            // Check if any applicable transport payment exists for current month
-            var applicableRubros = transportRubros.Where(r => 
-                // Same logic as in GetUnpaidTransports to get applicable rubros
-                r.EsPagoDeTransporte == true
-            ).ToList();
-
-            foreach (var rubro in applicableRubros)
+            foreach (var alumnoRuta in activeRoutes)
             {
+                // Check if route is active for current month
+                var monthStartDate = new DateTime(currentYear, currentMonth, 1);
+                var monthEndDate = new DateTime(currentYear, currentMonth, DateTime.DaysInMonth(currentYear, currentMonth));
+                
+                bool routeActiveThisMonth = alumnoRuta.FechaInicio <= monthEndDate && 
+                                          (alumnoRuta.FechaFin == null || alumnoRuta.FechaFin >= monthStartDate);
+                
+                if (!routeActiveThisMonth)
+                    continue;
+
                 var paymentExists = transportPayments.Any(p => 
                     p.AlumnoId == alumnoId &&
-                    p.RubroId == rubro.Id &&
+                    p.RubroId == alumnoRuta.RubroTransporteId &&
                     p.MesColegiatura == currentMonth &&
                     p.AnioColegiatura == currentYear &&
                     !p.EsAnulado
