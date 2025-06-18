@@ -16,6 +16,7 @@ namespace ManitasCreativas.Infrastructure
         public DbSet<Alumno> Alumnos { get; set; }
         public DbSet<Contacto> Contactos { get; set; }
         public DbSet<AlumnoContacto> AlumnoContactos { get; set; }
+        public DbSet<AlumnoRuta> AlumnoRutas { get; set; }
         public DbSet<Rubro> Rubros { get; set; }
         public DbSet<Pago> Pagos { get; set; }
         public DbSet<PagoImagen> PagoImagenes { get; set; }
@@ -46,6 +47,19 @@ namespace ManitasCreativas.Infrastructure
         }
         private void ConfigureEntityRelationships(ModelBuilder modelBuilder)
         {
+            // Configure AlumnoRuta relationships
+            modelBuilder.Entity<AlumnoRuta>()
+                .HasOne(ar => ar.Alumno)
+                .WithMany()
+                .HasForeignKey(ar => ar.AlumnoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AlumnoRuta>()
+                .HasOne(ar => ar.RubroTransporte)
+                .WithMany()
+                .HasForeignKey(ar => ar.RubroTransporteId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<Alumno>()
                 .HasOne(a => a.UsuarioCreacion)
                 .WithMany()
