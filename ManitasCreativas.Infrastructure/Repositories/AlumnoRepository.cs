@@ -11,22 +11,20 @@ public class AlumnoRepository : IAlumnoRepository
     public AlumnoRepository(AppDbContext context)
     {
         _context = context;
-    }
-
-    public async Task<Alumno?> GetByIdAsync(int id)
+    }    public async Task<Alumno?> GetByIdAsync(int id)
     {
         return await _context.Alumnos
             .Include(a => a.Sede)
             .Include(a => a.Grado)
+                .ThenInclude(g => g.NivelEducativo)
             .Include(a => a.Pagos)
             .FirstOrDefaultAsync(a => a.Id == id);
-    }
-
-    public async Task<IEnumerable<Alumno>> GetAllAsync()
+    }public async Task<IEnumerable<Alumno>> GetAllAsync()
     {
         return await _context.Alumnos
             .Include(a => a.Sede)
             .Include(a => a.Grado)
+                .ThenInclude(g => g.NivelEducativo)
             .Include(a => a.Pagos)
             .ToListAsync();
     }

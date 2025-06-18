@@ -1,0 +1,429 @@
+.transport-debtors-report {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.transport-debtors-report h1 {
+  color: #2c3e50;
+  margin-bottom: 30px;
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+/* Filters Section */
+.filters-section {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  border: 1px solid #e9ecef;
+}
+
+.filters-section h3 {
+  margin-bottom: 20px;
+  color: #495057;
+  font-size: 1.2rem;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-group label {
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.filter-group select,
+.filter-group input {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.filter-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #545b62;
+}
+
+/* Loading State */
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+/* Error Message */
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  border: 1px solid #f5c6cb;
+}
+
+/* Summary Section */
+.summary-section {
+  margin-bottom: 30px;
+}
+
+.summary-section h3 {
+  margin-bottom: 20px;
+  color: #495057;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.summary-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  text-align: center;
+  transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.summary-card.warning {
+  border-color: #ffc107;
+  background-color: #fff3cd;
+}
+
+.summary-card.danger {
+  border-color: #dc3545;
+  background-color: #f8d7da;
+}
+
+.summary-card h4 {
+  margin: 0 0 10px 0;
+  color: #495057;
+  font-size: 1rem;
+}
+
+.summary-number {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+  color: #2c3e50;
+}
+
+.breakdown-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.breakdown-card {
+  background: white;
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  text-align: center;
+}
+
+.breakdown-card h4 {
+  margin: 0 0 8px 0;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.breakdown-card p {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #007bff;
+}
+
+/* Debtors Section */
+.debtors-section {
+  margin-top: 30px;
+}
+
+.debtors-section h3 {
+  margin-bottom: 20px;
+  color: #495057;
+}
+
+.debtors-table {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.debtors-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.debtors-table th {
+  background-color: #f8f9fa;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.debtors-table td {
+  padding: 12px;
+  border-bottom: 1px solid #dee2e6;
+  vertical-align: middle;
+}
+
+.debtors-table tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Right-align currency columns */
+.debtors-table td:nth-child(5), /* Deuda Total column */
+.debtors-table th:nth-child(5) {
+  text-align: right;
+}
+
+/* Additional styling for currency values */
+.currency-value {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}
+
+/* Delinquency Status Colors */
+.delinquency-warning {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.delinquency-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.delinquency-critical {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-badge.delinquency-warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.status-badge.delinquency-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.status-badge.delinquency-critical {
+  background-color: #17a2b8;
+  color: white;
+}
+
+/* Expand Button */
+.btn-expand {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.btn-expand:hover {
+  background: #0056b3;
+}
+
+/* Debtor Details */
+.debtor-details {
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+}
+
+.debtor-details h5 {
+  margin: 0 0 15px 0;
+  color: #495057;
+}
+
+.unpaid-transports-table {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.unpaid-transports-table th {
+  background-color: #e9ecef;
+  padding: 8px;
+  font-size: 0.9rem;
+}
+
+.unpaid-transports-table td {
+  padding: 8px;
+  font-size: 0.9rem;
+}
+
+.days-overdue {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+/* High Delinquency Row Styling */
+.high-delinquency-row {
+  background-color: #fff5f5 !important;
+  border-left: 4px solid #dc3545 !important;
+}
+
+.high-delinquency-row:hover {
+  background-color: #ffe6e6 !important;
+}
+
+/* Red Flag Icon */
+.red-flag {
+  color: #dc3545;
+  font-weight: bold;
+  font-size: 1.1em;
+  margin-right: 4px;
+}
+
+/* Make sure the flag is visible in table cells */
+.debtors-table td .red-flag {
+  display: inline;
+  vertical-align: middle;
+}
+
+/* Additional styling for emphasis on high delinquency */
+.high-delinquency-row .red-flag {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .transport-debtors-report {
+    padding: 10px;
+  }
+
+  .transport-debtors-report h1 {
+    font-size: 2rem;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .breakdown-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .debtors-table {
+    font-size: 12px;
+  }
+
+  .debtors-table th,
+  .debtors-table td {
+    padding: 8px;
+  }
+
+  .summary-number {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .breakdown-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-actions {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+}

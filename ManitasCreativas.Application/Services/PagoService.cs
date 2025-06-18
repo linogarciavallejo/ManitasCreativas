@@ -1143,6 +1143,267 @@ public class PagoService : IPagoService
         };
 
         return summary;
+    }    public async Task<TransportDebtorsReportDto> GetTransportDebtorsReportAsync(TransportDebtorsFilterDto filter)
+    {
+        Console.WriteLine("=== Starting Transport Debtors Report ===");
+        Console.WriteLine($"Filter: Year={filter.Year}, Month={filter.Month}, SedeId={filter.SedeId}, RubroId={filter.RubroId}");
+        
+        var reportDate = DateTime.Now;
+        var asOfDate = filter.Year.HasValue && filter.Month.HasValue 
+            ? new DateTime(filter.Year.Value, filter.Month.Value, DateTime.DaysInMonth(filter.Year.Value, filter.Month.Value))
+            : reportDate;
+
+        Console.WriteLine($"AsOfDate: {asOfDate:yyyy-MM-dd}");
+
+        // Get all active students
+        var alumnos = await _alumnoRepository.GetAllAsync();
+        var activeAlumnos = alumnos.Where(a => a.Estado == EstadoAlumno.Activo).ToList();
+        Console.WriteLine($"Total active students: {activeAlumnos.Count}");
+
+        // Apply filters to students
+        if (filter.SedeId.HasValue)
+        {
+            activeAlumnos = activeAlumnos.Where(a => a.SedeId == filter.SedeId.Value).ToList();
+            Console.WriteLine($"After sede filter: {activeAlumnos.Count} students");
+        }
+        if (filter.NivelEducativoId.HasValue)
+        {
+            activeAlumnos = activeAlumnos.Where(a => a.Grado?.NivelEducativoId == filter.NivelEducativoId.Value).ToList();
+            Console.WriteLine($"After nivel educativo filter: {activeAlumnos.Count} students");
+        }
+        if (filter.GradoId.HasValue)
+        {
+            activeAlumnos = activeAlumnos.Where(a => a.GradoId == filter.GradoId.Value).ToList();
+            Console.WriteLine($"After grado filter: {activeAlumnos.Count} students");
+        }
+        if (!string.IsNullOrEmpty(filter.Seccion))
+        {
+            activeAlumnos = activeAlumnos.Where(a => a.Seccion == filter.Seccion).ToList();
+            Console.WriteLine($"After seccion filter: {activeAlumnos.Count} students");
+        }
+
+        // Get all transport rubros (EsPagoDeTransporte = true)
+        var rubros = await _rubroRepository.GetAllAsync();
+        var transportRubros = rubros.Where(r => r.EsPagoDeTransporte == true).ToList();        Console.WriteLine($"Total transport rubros: {transportRubros.Count}");
+        foreach (var rubro in transportRubros)
+        {
+            Console.WriteLine($"  - Rubro ID {rubro.Id}: {rubro.Descripcion} (Monto: {rubro.MontoPreestablecido}, GradoId: {rubro.GradoId}, NivelEducativoId: {rubro.NivelEducativoId})");
+        }
+
+        // Apply rubro filter if specified
+        if (filter.RubroId.HasValue)
+        {
+            transportRubros = transportRubros.Where(r => r.Id == filter.RubroId.Value).ToList();
+            Console.WriteLine($"After rubro filter: {transportRubros.Count} transport rubros");
+        }        // Get all payments for transport rubros
+        var pagos = await _pagoRepository.GetAllAsync();
+        var transportPayments = pagos.Where(p => 
+            transportRubros.Any(r => r.Id == p.RubroId) && 
+            !p.EsAnulado &&
+            p.CicloEscolar == (filter.Year ?? reportDate.Year)
+        ).ToList();
+        Console.WriteLine($"Total transport payments for year {filter.Year ?? reportDate.Year}: {transportPayments.Count}");
+
+        var debtors = new List<TransportDebtorDto>();
+        Console.WriteLine($"Processing {activeAlumnos.Count} students...");        foreach (var alumno in activeAlumnos)
+        {
+            Console.WriteLine($"Processing student: {alumno.PrimerNombre} {alumno.PrimerApellido} (GradoId: {alumno.GradoId}, NivelEducativoId: {alumno.Grado?.NivelEducativoId})");
+            var unpaidTransports = GetUnpaidTransports(alumno, transportRubros, transportPayments, asOfDate, filter);
+              
+            if (unpaidTransports.Any())
+            {
+                Console.WriteLine($"Student {alumno.PrimerNombre} {alumno.PrimerApellido} has {unpaidTransports.Count} unpaid transports");
+                var totalDebt = unpaidTransports.Sum(ut => ut.Amount);
+                // Count unique months behind instead of total unpaid transport records
+                var monthsBehind = unpaidTransports.Select(ut => new { ut.Year, ut.Month }).Distinct().Count();
+                
+                // Apply filters
+                if (filter.MinMonthsBehind.HasValue && monthsBehind < filter.MinMonthsBehind.Value)
+                    continue;
+                if (filter.MinDebtAmount.HasValue && totalDebt < filter.MinDebtAmount.Value)
+                    continue;
+
+                var lastPaymentDate = transportPayments
+                    .Where(p => p.AlumnoId == alumno.Id)
+                    .OrderByDescending(p => p.Fecha)
+                    .FirstOrDefault()?.Fecha ?? DateTime.MinValue;
+
+                var isCurrentMonthOverdue = IsCurrentMonthTransportOverdue(asOfDate, transportPayments, alumno.Id, transportRubros);
+
+                // Format the full name as requested: "Primer Apellido Segundo Apellido, Primer Nombre Segundo Nombre"
+                string nombreCompleto = string.Format("{0} {1}, {2} {3}",
+                    alumno.PrimerApellido,
+                    alumno.SegundoApellido ?? string.Empty,
+                    alumno.PrimerNombre,
+                    alumno.SegundoNombre ?? string.Empty).Trim();
+
+                // Get the transport route name
+                var rubroTransporte = filter.RubroId.HasValue 
+                    ? transportRubros.FirstOrDefault(r => r.Id == filter.RubroId.Value)?.Descripcion ?? "N/A"
+                    : "Múltiples Rutas";                debtors.Add(new TransportDebtorDto
+                {
+                    AlumnoId = alumno.Id,
+                    NombreCompleto = nombreCompleto,
+                    NivelEducativo = alumno.Grado?.NivelEducativo?.Nombre ?? "N/A",
+                    Grado = alumno.Grado?.Nombre ?? "N/A",
+                    Seccion = alumno.Seccion ?? "N/A",
+                    Sede = alumno.Sede?.Nombre ?? "N/A",
+                    RubroTransporte = rubroTransporte,
+                    UnpaidTransports = unpaidTransports,
+                    TotalDebt = totalDebt,
+                    MonthsBehind = monthsBehind,
+                    LastPaymentDate = lastPaymentDate,
+                    IsCurrentMonthOverdue = isCurrentMonthOverdue
+                });
+            }        }
+
+        Console.WriteLine($"=== Transport Debtors Report Complete ===");
+        Console.WriteLine($"Total debtors found: {debtors.Count}");
+        
+        // Calculate summary
+        var summary = CalculateTransportDebtorsSummary(debtors);
+
+        // Sort debtors based on filter criteria
+        List<TransportDebtorDto> sortedDebtors;
+        if (filter.GradoId.HasValue)
+        {
+            // If specific grade is selected, sort by section then by name
+            sortedDebtors = debtors
+                .OrderBy(d => d.Seccion)
+                .ThenBy(d => d.NombreCompleto)
+                .ToList();
+        }
+        else
+        {
+            // If all grades (or no specific grade), sort by name
+            sortedDebtors = debtors
+                .OrderBy(d => d.NombreCompleto)
+                .ToList();
+        }
+
+        return new TransportDebtorsReportDto
+        {
+            ReportDate = reportDate,
+            AsOfDate = asOfDate,
+            TotalStudents = activeAlumnos.Count,
+            StudentsInDebt = debtors.Count,
+            TotalDebtAmount = debtors.Sum(d => d.TotalDebt),
+            Debtors = sortedDebtors,
+            Summary = summary
+        };
+    }    private List<UnpaidTransportDto> GetUnpaidTransports(
+        Alumno alumno, 
+        List<Rubro> transportRubros, 
+        List<Pago> transportPayments, 
+        DateTime asOfDate,
+        TransportDebtorsFilterDto filter)
+    {
+        var unpaidTransports = new List<UnpaidTransportDto>();
+        var currentYear = asOfDate.Year;
+        var currentMonth = asOfDate.Month;
+
+        // Check each month from January to current month (or specified month)
+        var endMonth = filter.Month ?? currentMonth;
+          // Filter transport rubros to only those applicable to this student's grade/level
+        var applicableRubros = transportRubros.Where(r => 
+            // Transport rubros with special placeholder nivel educativo (999) apply to all students
+            (r.NivelEducativoId == 999) ||
+            // If rubro has no specific grade (gradoId is null), check nivel educativo
+            (r.GradoId == null && r.NivelEducativoId == alumno.Grado?.NivelEducativoId) ||
+            // If rubro has specific grade, check exact match
+            (r.GradoId == alumno.GradoId)
+        ).ToList();
+
+        Console.WriteLine($"  Student {alumno.PrimerNombre} {alumno.PrimerApellido}: {applicableRubros.Count} applicable rubros, checking months 1-{endMonth}");
+
+        for (int month = 1; month <= endMonth; month++)
+        {
+            foreach (var rubro in applicableRubros)
+            {
+                // Check if payment exists for this month and rubro
+                var paymentExists = transportPayments.Any(p => 
+                    p.AlumnoId == alumno.Id &&
+                    p.RubroId == rubro.Id &&
+                    p.MesColegiatura == month &&
+                    p.AnioColegiatura == currentYear &&
+                    !p.EsAnulado
+                );
+
+                if (!paymentExists)
+                {
+                    // Calculate due date (assumed 5th of each month like tuition)
+                    var dueDate = new DateTime(currentYear, month, 5);
+                    var daysPastDue = (int)(asOfDate - dueDate).TotalDays;
+                    daysPastDue = daysPastDue > 0 ? daysPastDue : 0;
+
+                    unpaidTransports.Add(new UnpaidTransportDto
+                    {
+                        Year = currentYear,
+                        Month = month,
+                        MonthName = GetSpanishMonthName(month),
+                        Amount = rubro.MontoPreestablecido ?? 0,
+                        DueDate = dueDate,
+                        DaysPastDue = daysPastDue,
+                        RubroNombre = rubro.Descripcion ?? "N/A"
+                    });
+                    
+                    Console.WriteLine($"    Missing payment: {GetSpanishMonthName(month)} {currentYear} - {rubro.Descripcion} (Q{rubro.MontoPreestablecido})");
+                }
+            }
+        }
+
+        return unpaidTransports;
+    }
+
+    private bool IsCurrentMonthTransportOverdue(DateTime asOfDate, List<Pago> transportPayments, int alumnoId, List<Rubro> transportRubros)
+    {
+        var currentMonth = asOfDate.Month;
+        var currentYear = asOfDate.Year;
+        var dueDate = new DateTime(currentYear, currentMonth, 5);
+
+        if (asOfDate > dueDate)
+        {
+            // Check if any applicable transport payment exists for current month
+            var applicableRubros = transportRubros.Where(r => 
+                // Same logic as in GetUnpaidTransports to get applicable rubros
+                r.EsPagoDeTransporte == true
+            ).ToList();
+
+            foreach (var rubro in applicableRubros)
+            {
+                var paymentExists = transportPayments.Any(p => 
+                    p.AlumnoId == alumnoId &&
+                    p.RubroId == rubro.Id &&
+                    p.MesColegiatura == currentMonth &&
+                    p.AnioColegiatura == currentYear &&
+                    !p.EsAnulado
+                );
+
+                if (!paymentExists)
+                {
+                    return true; // At least one transport payment is overdue
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private TransportDebtorsSummaryDto CalculateTransportDebtorsSummary(List<TransportDebtorDto> debtors)
+    {
+        var summary = new TransportDebtorsSummaryDto
+        {
+            CurrentMonthDelinquent = debtors.Count(d => d.IsCurrentMonthOverdue),
+            OneMonthBehind = debtors.Count(d => d.MonthsBehind == 1),
+            TwoMonthsBehind = debtors.Count(d => d.MonthsBehind == 2),
+            ThreeOrMoreMonthsBehind = debtors.Count(d => d.MonthsBehind >= 3),
+            AverageDebtPerStudent = debtors.Any() ? debtors.Average(d => d.TotalDebt) : 0,
+            DebtorsByGrade = debtors.GroupBy(d => d.Grado).ToDictionary(g => g.Key, g => g.Count()),
+            DebtorsBySede = debtors.GroupBy(d => d.Sede).ToDictionary(g => g.Key, g => g.Count()),
+            DebtorsByRoute = debtors.GroupBy(d => d.RubroTransporte).ToDictionary(g => g.Key, g => g.Count())
+        };
+
+        return summary;
     }
 
     private string GetSpanishMonthName(int month)

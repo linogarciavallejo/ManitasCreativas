@@ -20,8 +20,7 @@ const ReportsMenu: React.FC = () => {
       ],
       route: '/main/monthly-payments-report',
       available: true
-    },
-    {
+    },    {
       title: 'Reporte de Morosos de Colegiatura',
       description: 'Identifica estudiantes con pagos de colegiatura en mora según política escolar (pago antes del día 5 de cada mes).',
       features: [
@@ -32,6 +31,19 @@ const ReportsMenu: React.FC = () => {
         'Datos estructurados para futura exportación PDF'
       ],
       route: '/main/tuition-debtors-report',
+      available: true
+    },
+    {
+      title: 'Reporte de Morosos de Transporte',
+      description: 'Identifica estudiantes con pagos de transporte en mora organizados por rutas de transporte.',
+      features: [
+        'Identificación automática de morosos de transporte',
+        'Filtros por ruta de transporte específica',
+        'Categorización por tiempo de atraso',
+        'Detalles de pagos de transporte pendientes',
+        'Estadísticas de resumen por grado, sede y ruta'
+      ],
+      route: '/main/transport-debtors-report',
       available: true
     },
     {
