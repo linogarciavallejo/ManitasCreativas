@@ -30,7 +30,9 @@ public class AlumnoRutaService : IAlumnoRutaService
         return alumnoRutas.Select(ar => new AlumnoRutaDto
         {
             AlumnoId = ar.AlumnoId,
-            RubroTransporteId = ar.RubroTransporteId
+            RubroTransporteId = ar.RubroTransporteId,
+            FechaInicio = ar.FechaInicio,
+            FechaFin = ar.FechaFin
         });
     }
 
@@ -45,7 +47,9 @@ public class AlumnoRutaService : IAlumnoRutaService
         return new AlumnoRutaDto
         {
             AlumnoId = alumnoRuta.AlumnoId,
-            RubroTransporteId = alumnoRuta.RubroTransporteId
+            RubroTransporteId = alumnoRuta.RubroTransporteId,
+            FechaInicio = alumnoRuta.FechaInicio,
+            FechaFin = alumnoRuta.FechaFin
         };
     }
 
@@ -74,10 +78,18 @@ public class AlumnoRutaService : IAlumnoRutaService
             throw new InvalidOperationException("This student is already assigned to this transport route.");
         }
 
+        // Validate that FechaInicio is provided
+        if (alumnoRutaDto.FechaInicio == default)
+        {
+            throw new ArgumentException("FechaInicio is required.");
+        }
+
         var alumnoRuta = new AlumnoRuta
         {
             AlumnoId = alumnoRutaDto.AlumnoId,
-            RubroTransporteId = alumnoRutaDto.RubroTransporteId
+            RubroTransporteId = alumnoRutaDto.RubroTransporteId,
+            FechaInicio = alumnoRutaDto.FechaInicio,
+            FechaFin = alumnoRutaDto.FechaFin
         };
 
         await _alumnoRutaRepository.AddAsync(alumnoRuta);
@@ -93,8 +105,15 @@ public class AlumnoRutaService : IAlumnoRutaService
             throw new KeyNotFoundException($"AlumnoRuta with AlumnoId {alumnoRutaDto.AlumnoId} and RubroTransporteId {alumnoRutaDto.RubroTransporteId} not found.");
         }
 
-        // For this entity, there's not much to update since it's just a relationship
-        // You could add additional fields in the future if needed
+        // Validate that FechaInicio is provided
+        if (alumnoRutaDto.FechaInicio == default)
+        {
+            throw new ArgumentException("FechaInicio is required.");
+        }
+
+        // Update the fields
+        existingAlumnoRuta.FechaInicio = alumnoRutaDto.FechaInicio;
+        existingAlumnoRuta.FechaFin = alumnoRutaDto.FechaFin;
 
         await _alumnoRutaRepository.UpdateAsync(existingAlumnoRuta);
     }

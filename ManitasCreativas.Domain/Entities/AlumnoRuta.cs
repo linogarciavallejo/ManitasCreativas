@@ -13,5 +13,8 @@ namespace ManitasCreativas.Domain.Entities
         public Alumno Alumno { get; set; }
         public int RubroTransporteId { get; set; }
         public Rubro RubroTransporte { get; set; }
+        
+        public DateTime FechaInicio { get; set; }
+        public DateTime? FechaFin { get; set; }
     }
 }
