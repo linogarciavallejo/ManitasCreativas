@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Select, Button, Table, Space, Typography, message, Modal, Tag } from 'antd';
+import { Select, Button, Table, Space, Typography, message, Tag, Popconfirm } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { AlumnoRutaDetailed } from '../../types/routeAssignment';
 import { Rubro } from '../../services/rubroService';
@@ -82,28 +82,36 @@ const RoutesAssignment: React.FC = () => {
     setModalMode('edit');
     setEditingStudent(student);
     setModalVisible(true);
-  };
-
-  const handleRemoveStudent = (student: AlumnoRutaDetailed) => {
-    Modal.confirm({
-      title: '¿Remover de ruta?',
-      content: `Esta acción no se puede deshacer.`,
-      okText: 'Sí, remover',
-      okType: 'danger',
-      cancelText: 'Cancelar',
-      onOk: async () => {
-        try {
-          await routeAssignmentService.removeStudentFromRoute(student.alumnoId, student.rubroTransporteId);
-          message.success('Estudiante removido exitosamente');
-          if (selectedRoute) {
-            loadAssignedStudents(selectedRoute);
-          }
-        } catch (error) {
-          console.error('Error removing student:', error);
-          message.error('Error al remover el estudiante');
-        }
+  };  const handleRemoveStudent = async (student: AlumnoRutaDetailed) => {
+    try {
+      console.log('=== DELETE CONFIRMED ===');
+      console.log('Removing student:', student);
+      console.log('API call parameters:', { alumnoId: student.alumnoId, rubroTransporteId: student.rubroTransporteId });
+      
+      const response = await routeAssignmentService.removeStudentFromRoute(student.alumnoId, student.rubroTransporteId);
+      console.log('API response:', response);
+      console.log('Delete API call succeeded!');
+      
+      message.success('Estudiante removido exitosamente');
+      
+      // Reload the assigned students to refresh the table
+      if (selectedRoute) {
+        console.log('Reloading assigned students for route:', selectedRoute);
+        await loadAssignedStudents(selectedRoute);
+        console.log('Table reloaded after delete');
       }
-    });
+    } catch (error) {
+      console.error('=== DELETE API ERROR ===');
+      console.error('Error removing student:', error);
+      // Check if error has response details
+      if (error && typeof error === 'object' && 'response' in error) {
+        console.error('Error response:', error.response);
+      }
+      if (error && typeof error === 'object' && 'message' in error) {
+        console.error('Error message:', error.message);
+      }
+      message.error('Error al remover el estudiante');
+    }
   };
 
   const handleModalSuccess = () => {
@@ -122,10 +130,60 @@ const RoutesAssignment: React.FC = () => {
   const getSelectedRouteName = () => {
     const route = transportRubros.find(r => r.id === selectedRoute);
     return route?.descripcion || '';
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-GT');
+  };  const formatDate = (dateString: string) => {
+    // Handle different date formats that might come from the backend
+    if (!dateString) return '';
+    
+    try {
+      console.log('Formatting date string:', dateString);
+      
+      // Parse the date string as UTC to avoid timezone conversion issues
+      let date: Date;
+      
+      if (dateString.includes('T')) {
+        // If it's an ISO string (e.g., "2025-01-01T00:00:00Z"), parse it directly
+        date = new Date(dateString);
+      } else {
+        // If it's just a date (e.g., "2025-01-01"), treat it as local date
+        const dateParts = dateString.split('-');
+        if (dateParts.length === 3) {
+          const year = parseInt(dateParts[0]);
+          const month = parseInt(dateParts[1]) - 1; // months are 0-indexed
+          const day = parseInt(dateParts[2]);
+          date = new Date(year, month, day);
+        } else {
+          date = new Date(dateString);
+        }
+      }
+      
+      // If still invalid, return empty string
+      if (isNaN(date.getTime())) {
+        console.error('Invalid date string:', dateString);
+        return '';
+      }
+      
+      // For UTC dates, we want to display the date part without timezone conversion
+      let displayDate = date;
+      if (dateString.includes('T') && dateString.endsWith('Z')) {
+        // For UTC dates, extract the date components directly
+        const year = date.getUTCFullYear();
+        const month = date.getUTCMonth();
+        const day = date.getUTCDate();
+        displayDate = new Date(year, month, day);
+      }
+      
+      const formattedDate = displayDate.toLocaleDateString('es-GT', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+      
+      console.log('Formatted date result:', formattedDate);
+      return formattedDate;
+    } catch (error) {
+      console.error('Error formatting date:', dateString, error);
+      return '';
+    }
   };
 
   const columns = [    {
@@ -153,7 +211,10 @@ const RoutesAssignment: React.FC = () => {
       dataIndex: 'fechaInicio',
       key: 'fechaInicio',
       width: 120,
-      render: (date: string) => formatDate(date),
+      render: (date: string) => {
+        console.log('Formatting date:', date);
+        return formatDate(date);
+      },
     },
     {
       title: 'Fecha Fin',
@@ -175,14 +236,28 @@ const RoutesAssignment: React.FC = () => {
             icon={<EditOutlined />}
             onClick={() => handleEditStudent(record)}
             title="Editar"
-          />
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleRemoveStudent(record)}
-            title="Remover"
-          />
+          />          <Popconfirm
+            title={
+              <div>
+                <p>¿Está seguro de remover este estudiante de la ruta?</p>
+                <p style={{ fontSize: '12px', color: '#ff4d4f' }}>
+                  Esta acción no se puede deshacer.
+                </p>
+              </div>
+            }
+            onConfirm={() => handleRemoveStudent(record)}
+            okText="Sí, remover"
+            cancelText="No, cancelar"
+            okButtonProps={{ danger: true }}
+            icon={<DeleteOutlined style={{ color: 'red' }} />}
+          >
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              title="Remover"
+            />
+          </Popconfirm>
         </Space>
       ),
     },

@@ -55,15 +55,18 @@ export const routeAssignmentService = {
       throw error;
     }
   },
-
   // Remove a student from a transport route
   async removeStudentFromRoute(alumnoId: number, rubroTransporteId: number): Promise<void> {
     const url = `/alumnos/${alumnoId}/rutas/${rubroTransporteId}`;
     
     try {
-      await makeApiRequest<void>(url, 'DELETE');
+      console.log('API call - removeStudentFromRoute:', { alumnoId, rubroTransporteId, url });
+      const response = await makeApiRequest<void>(url, 'DELETE');
+      console.log('API call successful - removeStudentFromRoute');
+      return response;
     } catch (error) {
       console.error('Error removing student from route:', error);
+      console.error('API call details:', { alumnoId, rubroTransporteId, url });
       throw error;
     }
   },

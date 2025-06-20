@@ -1,9 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, DatePicker, AutoComplete, Button, Typography, Space, message } from 'antd';
+import { Modal, Form, Input, DatePicker, AutoComplete, Button, Typography, Space, message, Row, Col } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { AlumnoOption } from '../../types/routeAssignment';
 import { routeAssignmentService } from '../../services/routeAssignmentService';
+import { makeApiRequest } from '../../services/apiHelper';
+
+interface StudentByCodigoResponse {
+  id: number;
+  codigo: string;
+  primerNombre: string;
+  segundoNombre: string;
+  primerApellido: string;
+  segundoApellido: string;
+  gradoNombre: string;
+  seccion: string;
+  sedeNombre: string;
+}
 
 const { Text } = Typography;
 
@@ -30,12 +43,12 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
   initialData,
   onCancel,
   onSuccess
-}) => {
-  const [form] = Form.useForm();
+}) => {  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [studentOptions, setStudentOptions] = useState<AlumnoOption[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<AlumnoOption | null>(null);
+  const [codigoInputValue, setCodigoInputValue] = useState('');
 
   useEffect(() => {
     if (visible) {
@@ -45,8 +58,7 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
           fechaInicio: dayjs(initialData.fechaInicio),
           fechaFin: initialData.fechaFin ? dayjs(initialData.fechaFin) : null,
           alumno: initialData.alumnoNombre
-        });
-        setSelectedStudent({
+        });        setSelectedStudent({
           id: initialData.alumnoId,
           value: initialData.alumnoId.toString(),
           label: initialData.alumnoNombre,
@@ -57,15 +69,16 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
           seccion: '',
           sede: ''
         });
+        setCodigoInputValue('');
       } else {
         // Set default values for add mode
         const currentYear = new Date().getFullYear();
         form.setFieldsValue({
           fechaInicio: dayjs(`${currentYear}-01-01`),
           fechaFin: null,
-          alumno: ''
-        });
+          alumno: ''        });
         setSelectedStudent(null);
+        setCodigoInputValue('');
       }
     }
   }, [visible, mode, initialData, form]);
@@ -91,7 +104,44 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
     setSelectedStudent(option);
     form.setFieldsValue({ alumno: option.label });
   };
+  const handleCodigoSearch = async (codigo: string) => {
+    if (!codigo.trim()) {
+      message.warning('Por favor ingrese un código válido');
+      return;
+    }
 
+    setSearchLoading(true);
+    try {      // Get student details by código using the specific endpoint
+      const response = await makeApiRequest<StudentByCodigoResponse>(`/alumnos/codigo/${codigo}`, 'GET');
+      if (response) {
+        const student: AlumnoOption = {
+          id: response.id,
+          value: response.id.toString(),
+          label: `${response.primerApellido} ${response.segundoApellido}, ${response.primerNombre} ${response.segundoNombre}`.trim(),
+          codigo: response.codigo,
+          primerNombre: response.primerNombre,
+          segundoNombre: response.segundoNombre,
+          primerApellido: response.primerApellido,
+          segundoApellido: response.segundoApellido,
+          grado: response.gradoNombre,
+          seccion: response.seccion || '',
+          sede: response.sedeNombre
+        };
+        
+        setSelectedStudent(student);
+        form.setFieldsValue({ alumno: student.label });
+        setCodigoInputValue('');
+        message.success('Estudiante encontrado');
+      } else {
+        message.error('No se encontró ningún estudiante con ese código');
+      }
+    } catch (error) {
+      console.error('Error searching by código:', error);
+      message.error('No se encontró ningún estudiante con ese código');
+    } finally {
+      setSearchLoading(false);
+    }
+  };
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -108,11 +158,45 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
         rubroTransporteId,
         fechaInicio: values.fechaInicio.format('YYYY-MM-DD'),
         fechaFin: values.fechaFin ? values.fechaFin.format('YYYY-MM-DD') : undefined
-      };
+      };      if (mode === 'add') {
+        // Check if student is already assigned to this route
+        try {
+          const existingAssignment = await routeAssignmentService.getStudentRouteAssignment(
+            assignmentData.alumnoId, 
+            assignmentData.rubroTransporteId
+          );
+          
+          if (existingAssignment) {
+            message.error('Este estudiante ya está asignado a esta ruta de transporte');
+            return;
+          }
+        } catch (error) {
+          // If we get a 404, it means no assignment exists, which is what we want
+          const axiosError = error as { response?: { status: number } };
+          if (axiosError.response?.status !== 404) {
+            console.error('Error checking existing assignment:', error);
+            message.error('Error al verificar asignaciones existentes');
+            return;
+          }
+          // 404 is expected when no assignment exists, so we continue
+        }
 
-      if (mode === 'add') {
-        await routeAssignmentService.assignStudentToRoute(assignmentData);
-        message.success('Estudiante asignado exitosamente');
+        try {
+          await routeAssignmentService.assignStudentToRoute(assignmentData);
+          message.success('Estudiante asignado exitosamente');
+        } catch (error) {
+          console.error('Error assigning student:', error);          // Check if it's a duplicate error from the backend
+          const axiosError = error as { response?: { status: number; data?: string } };
+          if (axiosError.response?.status === 409 || 
+              (axiosError.response?.data && 
+               typeof axiosError.response.data === 'string' && 
+               axiosError.response.data.includes('already assigned'))) {
+            message.error('Este estudiante ya está asignado a esta ruta de transporte');
+          } else {
+            message.error('Error al asignar el estudiante');
+          }
+          return;
+        }
       } else {
         await routeAssignmentService.updateStudentRouteAssignment(
           assignmentData.alumnoId,
@@ -133,11 +217,11 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
       setLoading(false);
     }
   };
-
   const handleCancel = () => {
     form.resetFields();
     setSelectedStudent(null);
     setStudentOptions([]);
+    setCodigoInputValue('');
     onCancel();
   };
 
@@ -160,26 +244,47 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
         <div style={{ marginBottom: 20 }}>
           <Text strong>Ruta: </Text>
           <Text>{rubroNombre}</Text>
-        </div>
-
-        {mode === 'add' && (
-          <Form.Item
-            label="Alumno"
-            name="alumno"
-            rules={[{ required: true, message: 'Por favor selecciona un estudiante' }]}
-          >            <AutoComplete
-              placeholder="Buscar por código, nombre o apellido..."
-              onSearch={handleStudentSearch}
-              onSelect={handleStudentSelect}
-              options={studentOptions}
-              filterOption={false}
-              notFoundContent={searchLoading ? 'Buscando...' : 'No se encontraron estudiantes'}
-              style={{ width: '100%' }}
-              allowClear
-            >
-              <Input prefix={<SearchOutlined />} placeholder="Buscar estudiante..." />
-            </AutoComplete>
-          </Form.Item>
+        </div>        {mode === 'add' && (
+          <>
+            <Row gutter={16}>
+              <Col xs={24} sm={12}>
+                <Form.Item label="Código de Alumno">
+                  <Input.Search
+                    placeholder="Buscar por Código"
+                    enterButton={<SearchOutlined />}
+                    value={codigoInputValue}
+                    onChange={(e) => setCodigoInputValue(e.target.value)}
+                    onSearch={handleCodigoSearch}
+                    loading={searchLoading}
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  label="Nombre del Alumno"
+                  name="alumno"
+                  rules={[{ required: true, message: 'Por favor selecciona un estudiante' }]}
+                >
+                  <AutoComplete
+                    placeholder="Buscar por código, nombre o apellido..."
+                    onSearch={handleStudentSearch}
+                    onSelect={handleStudentSelect}
+                    options={studentOptions}
+                    filterOption={false}
+                    notFoundContent={searchLoading ? 'Buscando...' : 'No se encontraron estudiantes'}
+                    style={{ width: '100%' }}
+                    allowClear
+                    onClear={() => {
+                      setSelectedStudent(null);
+                      setStudentOptions([]);
+                    }}
+                  >
+                    <Input prefix={<SearchOutlined />} placeholder="Buscar estudiante..." />
+                  </AutoComplete>
+                </Form.Item>
+              </Col>
+            </Row>
+          </>
         )}
 
         {mode === 'edit' && (
