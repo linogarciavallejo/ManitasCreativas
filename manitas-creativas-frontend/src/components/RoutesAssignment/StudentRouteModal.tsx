@@ -51,17 +51,26 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
   const [selectedStudent, setSelectedStudent] = useState<AlumnoOption | null>(null);
   const [codigoInputValue, setCodigoInputValue] = useState('');
   const [isStudentAlreadyAssigned, setIsStudentAlreadyAssigned] = useState(false);
-  const [checkingAssignment, setCheckingAssignment] = useState(false);
-
-  useEffect(() => {
+  const [checkingAssignment, setCheckingAssignment] = useState(false);  useEffect(() => {
     if (visible) {
       if (mode === 'edit' && initialData) {
-        // Pre-fill form for edit mode
+        // Pre-fill form for edit mode        // Parse UTC dates correctly to avoid timezone conversion issues
+        const parseUtcDate = (dateString: string) => {
+          if (dateString.includes('T') && dateString.endsWith('Z')) {
+            // For UTC dates like "2025-01-01T00:00:00Z", extract just the date part
+            // and create a local date to avoid timezone conversion
+            const datePart = dateString.split('T')[0]; // "2025-01-01"
+            console.log('Parsing UTC date:', dateString, '-> date part:', datePart, '-> dayjs result:', dayjs(datePart).format('YYYY-MM-DD'));
+            return dayjs(datePart);
+          }
+          return dayjs(dateString);
+        };
+        
         form.setFieldsValue({
-          fechaInicio: dayjs(initialData.fechaInicio),
-          fechaFin: initialData.fechaFin ? dayjs(initialData.fechaFin) : null,
+          fechaInicio: parseUtcDate(initialData.fechaInicio),
+          fechaFin: initialData.fechaFin ? parseUtcDate(initialData.fechaFin) : null,
           alumno: initialData.alumnoNombre
-        });        setSelectedStudent({
+        });setSelectedStudent({
           id: initialData.alumnoId,
           value: initialData.alumnoId.toString(),
           label: initialData.alumnoNombre,
@@ -85,32 +94,34 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
       }
     }
   }, [visible, mode, initialData, form]);
-
-  // Function to check if a student is already assigned to this route
+  // Function to check if a student is already assigned to this route or any other route
   const checkStudentAssignment = async (studentId: number) => {
     setCheckingAssignment(true);
     try {
-      const existingAssignment = await routeAssignmentService.getStudentRouteAssignment(
-        studentId, 
-        rubroTransporteId
-      );
+      // Get all route assignments for this student
+      const allAssignments = await routeAssignmentService.getStudentAllRouteAssignments(studentId);
       
-      if (existingAssignment) {
-        setIsStudentAlreadyAssigned(true);
-        toast.warning('Este estudiante ya está asignado a esta ruta de transporte.');
+      if (allAssignments.length > 0) {        // Check if student is assigned to the current route
+        const currentRouteAssignment = allAssignments.find(assignment => 
+          assignment.rubroTransporteId === rubroTransporteId
+        );
+        
+        if (currentRouteAssignment) {
+          // Student is assigned to the current route
+          setIsStudentAlreadyAssigned(true);
+          toast.warning('Este estudiante ya está asignado a esta ruta de transporte.');        } else {
+          // Student is assigned to a different route
+          setIsStudentAlreadyAssigned(true);
+          toast.error('Este estudiante ya está asignado a otra ruta de transporte. Debe remover al estudiante de esa ruta primero antes de asignarlo a esta ruta.');
+        }
       } else {
+        // Student is not assigned to any route
         setIsStudentAlreadyAssigned(false);
       }
     } catch (error) {
-      const axiosError = error as { response?: { status: number } };
-      if (axiosError.response?.status === 404) {
-        // 404 means no assignment exists, which is what we want
-        setIsStudentAlreadyAssigned(false);
-      } else {
-        console.error('Error checking student assignment:', error);
-        // On error, assume not assigned to allow user to try
-        setIsStudentAlreadyAssigned(false);
-      }
+      console.error('Error checking student assignment:', error);
+      // On error, assume not assigned to allow user to try
+      setIsStudentAlreadyAssigned(false);
     } finally {
       setCheckingAssignment(false);
     }

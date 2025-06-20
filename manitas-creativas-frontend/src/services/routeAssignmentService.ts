@@ -70,7 +70,6 @@ export const routeAssignmentService = {
       throw error;
     }
   },
-
   // Search for students for route assignment
   async searchStudents(query: string): Promise<AlumnoOption[]> {
     const url = `/alumnos/search?query=${encodeURIComponent(query)}`;
@@ -80,6 +79,22 @@ export const routeAssignmentService = {
       return response;
     } catch (error) {
       console.error('Error searching students:', error);
+      throw error;
+    }
+  },
+  // Check if a student is assigned to any route
+  async getStudentAllRouteAssignments(alumnoId: number): Promise<AlumnoRuta[]> {
+    const url = `/alumnos/${alumnoId}/rutas`;
+    
+    try {
+      const response = await makeApiRequest<AlumnoRuta[]>(url, 'GET');
+      return response;
+    } catch (error) {
+      const axiosError = error as { response?: { status: number } };
+      if (axiosError.response?.status === 404) {
+        return [];
+      }
+      console.error('Error fetching student route assignments:', error);
       throw error;
     }
   }

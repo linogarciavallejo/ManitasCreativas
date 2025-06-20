@@ -136,8 +136,6 @@ const RoutesAssignment: React.FC = () => {
     if (!dateString) return '';
     
     try {
-      console.log('Formatting date string:', dateString);
-      
       // Parse the date string as UTC to avoid timezone conversion issues
       let date: Date;
       
@@ -179,7 +177,6 @@ const RoutesAssignment: React.FC = () => {
         year: 'numeric'
       });
       
-      console.log('Formatted date result:', formattedDate);
       return formattedDate;
     } catch (error) {
       console.error('Error formatting date:', dateString, error);
@@ -210,12 +207,8 @@ const RoutesAssignment: React.FC = () => {
     {
       title: 'Fecha Inicio',
       dataIndex: 'fechaInicio',
-      key: 'fechaInicio',
-      width: 120,
-      render: (date: string) => {
-        console.log('Formatting date:', date);
-        return formatDate(date);
-      },
+      key: 'fechaInicio',      width: 120,
+      render: (date: string) => formatDate(date),
     },
     {
       title: 'Fecha Fin',
