@@ -44,4 +44,16 @@ public class AlumnoRutaRepository : IAlumnoRutaRepository
         _context.AlumnoRutas.Remove(alumnoRuta);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<IEnumerable<AlumnoRuta>> GetByRubroTransporteIdAsync(int rubroTransporteId)
+    {
+        return await _context.AlumnoRutas
+            .Include(ar => ar.Alumno)
+                .ThenInclude(a => a.Sede)
+            .Include(ar => ar.Alumno)
+                .ThenInclude(a => a.Grado)
+            .Include(ar => ar.RubroTransporte)
+            .Where(ar => ar.RubroTransporteId == rubroTransporteId)
+            .ToListAsync();
+    }
 }

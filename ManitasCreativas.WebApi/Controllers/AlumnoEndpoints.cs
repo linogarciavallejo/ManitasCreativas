@@ -52,12 +52,22 @@ public static class AlumnoEndpoints
         {
             var isUnique = await alumnoService.IsCodigoUniqueAsync(codigo, excludeAlumnoId);
             return Results.Ok(new { isUnique });
-        });
-
-        // Endpoint for querying alumnos by names
-        app.MapGet("/alumnos/search", async (string nombre, string apellido, IAlumnoService alumnoService) =>
+        });        // Endpoint for querying alumnos by names
+        app.MapGet("/alumnos/search-by-names", async (string nombre, string apellido, IAlumnoService alumnoService) =>
         {
             var alumnos = await alumnoService.GetAlumnosByNamesAsync(nombre, apellido);
+            return Results.Ok(alumnos);
+        });
+
+        // Endpoint for flexible student search (for route assignment)
+        app.MapGet("/alumnos/search", async (string? query, IAlumnoService alumnoService) =>
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return Results.Ok(new List<object>());
+            }
+            
+            var alumnos = await alumnoService.SearchAlumnosAsync(query);
             return Results.Ok(alumnos);
         });
 

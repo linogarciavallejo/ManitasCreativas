@@ -15,6 +15,7 @@ import {
   LogoutOutlined,
   BarChartOutlined,
   PieChartOutlined,
+  CarOutlined,
 } from "@ant-design/icons";
 import { Button, Layout, Menu, theme } from "antd";
 import { Link, Outlet, useNavigate } from "react-router-dom";
@@ -117,11 +118,15 @@ const Main: React.FC = () => {
               key: "8",
               icon: <TagOutlined />,
               label: <Link to="rubros">Rubros</Link>,
-            },
-            {
+            },            {
               key: "9",
               icon: <IdcardOutlined />,
               label: <Link to="students">Alumnos</Link>,
+            },
+            {
+              key: "9.1",
+              icon: <CarOutlined />,
+              label: <Link to="routes-assignment">Asignación de Rutas</Link>,
             },
             {
               key: "divider-3",

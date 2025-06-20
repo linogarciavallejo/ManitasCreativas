@@ -5,6 +5,20 @@ public static class AlumnoRutaEndpoints
 {
     public static void MapAlumnoRutaEndpoints(this WebApplication app)
     {
+        // Get all students assigned to a specific transport route
+        app.MapGet("/alumnos/rutas/by-route/{rubroTransporteId}", async (int rubroTransporteId, IAlumnoRutaService alumnoRutaService) =>
+        {
+            try
+            {
+                var students = await alumnoRutaService.GetStudentsByRouteAsync(rubroTransporteId);
+                return Results.Ok(students);
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(ex.Message);
+            }
+        });
+
         // Get all routes for a specific student
         app.MapGet("/alumnos/{alumnoId}/rutas", async (int alumnoId, IAlumnoRutaService alumnoRutaService) =>
         {

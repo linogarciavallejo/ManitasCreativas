@@ -128,4 +128,45 @@ public class AlumnoRutaService : IAlumnoRutaService
 
         await _alumnoRutaRepository.DeleteAsync(alumnoRuta);
     }
+
+    public async Task<IEnumerable<AlumnoRutaDetailedDto>> GetStudentsByRouteAsync(int rubroTransporteId)
+    {
+        var alumnoRutas = await _alumnoRutaRepository.GetByRubroTransporteIdAsync(rubroTransporteId);
+        var result = new List<AlumnoRutaDetailedDto>();
+
+        foreach (var alumnoRuta in alumnoRutas)
+        {
+            var alumno = await _alumnoRepository.GetByIdAsync(alumnoRuta.AlumnoId);
+            if (alumno != null)
+            {
+                var primerApellido = alumno.PrimerApellido ?? "";
+                var segundoApellido = alumno.SegundoApellido ?? "";
+                var primerNombre = alumno.PrimerNombre ?? "";
+                var segundoNombre = alumno.SegundoNombre ?? "";
+                
+                var apellidos = $"{primerApellido} {segundoApellido}".Trim();
+                var nombres = $"{primerNombre} {segundoNombre}".Trim();
+                var nombreCompleto = $"{apellidos}, {nombres}";
+
+                var detailedDto = new AlumnoRutaDetailedDto
+                {
+                    AlumnoId = alumnoRuta.AlumnoId,
+                    RubroTransporteId = alumnoRuta.RubroTransporteId,
+                    FechaInicio = alumnoRuta.FechaInicio,
+                    FechaFin = alumnoRuta.FechaFin,
+                    AlumnoNombre = nombres,
+                    AlumnoApellidos = apellidos,
+                    AlumnoCompleto = nombreCompleto,
+                    Grado = alumno.Grado?.Nombre ?? "",
+                    Seccion = alumno.Seccion ?? "",
+                    Sede = alumno.Sede?.Nombre ?? ""
+                };
+
+                result.Add(detailedDto);
+            }
+        }
+
+        // Sort alphabetically by the concatenation as specified in requirements
+        return result.OrderBy(x => x.AlumnoCompleto.ToLower()).ToList();
+    }
 }

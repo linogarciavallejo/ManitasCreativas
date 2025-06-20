@@ -424,4 +424,21 @@ public class AlumnoService : IAlumnoService
         return false;
     }
 
+    public async Task<IEnumerable<AlumnoSearchDto>> SearchAlumnosAsync(string query)
+    {
+        var alumnos = await _alumnoRepository.SearchAlumnosAsync(query);
+        return alumnos.Select(a => new AlumnoSearchDto
+        {
+            Id = a.Id,
+            Codigo = a.Codigo,
+            PrimerNombre = a.PrimerNombre,
+            SegundoNombre = a.SegundoNombre,
+            PrimerApellido = a.PrimerApellido,
+            SegundoApellido = a.SegundoApellido,
+            Grado = a.Grado?.Nombre ?? "",
+            Seccion = a.Seccion ?? "",
+            Sede = a.Sede?.Nombre ?? ""
+        }).ToList();
+    }
+
 }

@@ -99,4 +99,23 @@ public class AlumnoRepository : IAlumnoRepository
             .Include(g => g.NivelEducativo)
             .FirstOrDefaultAsync(g => g.Id == id);
     }
+
+    public async Task<IEnumerable<Alumno>> SearchAlumnosAsync(string query)
+    {
+        return await _context.Alumnos
+            .Include(a => a.Sede)
+            .Include(a => a.Grado)
+                .ThenInclude(g => g.NivelEducativo)
+            .Where(a =>
+                a.Codigo.Contains(query) ||
+                a.PrimerNombre.Contains(query) ||
+                a.SegundoNombre.Contains(query) ||
+                a.PrimerApellido.Contains(query) ||
+                a.SegundoApellido.Contains(query) ||
+                (a.PrimerNombre + " " + a.SegundoNombre).Contains(query) ||
+                (a.PrimerApellido + " " + a.SegundoApellido).Contains(query) ||
+                (a.PrimerApellido + " " + a.SegundoApellido + ", " + a.PrimerNombre + " " + a.SegundoNombre).Contains(query)
+            )
+            .ToListAsync();
+    }
 }
