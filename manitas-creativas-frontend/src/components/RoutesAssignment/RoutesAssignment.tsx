@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Select, Button, Table, Space, Typography, message, Tag, Popconfirm } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { ToastContainer } from 'react-toastify';
 import { AlumnoRutaDetailed } from '../../types/routeAssignment';
 import { Rubro } from '../../services/rubroService';
 import { rubroService } from '../../services/rubroService';
@@ -262,9 +263,20 @@ const RoutesAssignment: React.FC = () => {
       ),
     },
   ];
-
   return (
     <div className="routes-assignment">
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <div className="routes-assignment-header">
         <Title level={2}>Asignación de Rutas</Title>
         

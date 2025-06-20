@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, DatePicker, AutoComplete, Button, Typography, Space, message, Row, Col } from 'antd';
+import { Modal, Form, Input, DatePicker, AutoComplete, Button, Typography, Space, Row, Col } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
+import { toast } from 'react-toastify';
 import dayjs from 'dayjs';
 import { AlumnoOption } from '../../types/routeAssignment';
 import { routeAssignmentService } from '../../services/routeAssignmentService';
@@ -49,6 +50,8 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
   const [searchLoading, setSearchLoading] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<AlumnoOption | null>(null);
   const [codigoInputValue, setCodigoInputValue] = useState('');
+  const [isStudentAlreadyAssigned, setIsStudentAlreadyAssigned] = useState(false);
+  const [checkingAssignment, setCheckingAssignment] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -76,12 +79,42 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
         form.setFieldsValue({
           fechaInicio: dayjs(`${currentYear}-01-01`),
           fechaFin: null,
-          alumno: ''        });
-        setSelectedStudent(null);
+          alumno: ''        });        setSelectedStudent(null);
         setCodigoInputValue('');
+        setIsStudentAlreadyAssigned(false);
       }
     }
   }, [visible, mode, initialData, form]);
+
+  // Function to check if a student is already assigned to this route
+  const checkStudentAssignment = async (studentId: number) => {
+    setCheckingAssignment(true);
+    try {
+      const existingAssignment = await routeAssignmentService.getStudentRouteAssignment(
+        studentId, 
+        rubroTransporteId
+      );
+      
+      if (existingAssignment) {
+        setIsStudentAlreadyAssigned(true);
+        toast.warning('Este estudiante ya está asignado a esta ruta de transporte.');
+      } else {
+        setIsStudentAlreadyAssigned(false);
+      }
+    } catch (error) {
+      const axiosError = error as { response?: { status: number } };
+      if (axiosError.response?.status === 404) {
+        // 404 means no assignment exists, which is what we want
+        setIsStudentAlreadyAssigned(false);
+      } else {
+        console.error('Error checking student assignment:', error);
+        // On error, assume not assigned to allow user to try
+        setIsStudentAlreadyAssigned(false);
+      }
+    } finally {
+      setCheckingAssignment(false);
+    }
+  };
 
   const handleStudentSearch = async (query: string) => {
     if (!query || query.length < 2) {
@@ -92,21 +125,20 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
     setSearchLoading(true);
     try {
       const students = await routeAssignmentService.searchStudents(query);
-      setStudentOptions(students);
-    } catch (error) {
+      setStudentOptions(students);    } catch (error) {
       console.error('Error searching students:', error);
-      message.error('Error al buscar estudiantes');
+      toast.error('Error al buscar estudiantes');
     } finally {
       setSearchLoading(false);
     }
-  };
-  const handleStudentSelect = (_value: string, option: AlumnoOption) => {
+  };  const handleStudentSelect = (_value: string, option: AlumnoOption) => {
     setSelectedStudent(option);
     form.setFieldsValue({ alumno: option.label });
+    // Check if this student is already assigned to this route
+    checkStudentAssignment(option.id);
   };
-  const handleCodigoSearch = async (codigo: string) => {
-    if (!codigo.trim()) {
-      message.warning('Por favor ingrese un código válido');
+  const handleCodigoSearch = async (codigo: string) => {    if (!codigo.trim()) {
+      toast.warning('Por favor ingrese un código válido');
       return;
     }
 
@@ -126,31 +158,32 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
           grado: response.gradoNombre,
           seccion: response.seccion || '',
           sede: response.sedeNombre
-        };
-        
-        setSelectedStudent(student);
+        };        setSelectedStudent(student);
         form.setFieldsValue({ alumno: student.label });
         setCodigoInputValue('');
-        message.success('Estudiante encontrado');
+        // Check if this student is already assigned to this route
+        checkStudentAssignment(student.id);
       } else {
-        message.error('No se encontró ningún estudiante con ese código');
+        toast.error('No se encontró ningún estudiante con ese código');
       }
     } catch (error) {
       console.error('Error searching by código:', error);
-      message.error('No se encontró ningún estudiante con ese código');
+      toast.error('No se encontró ningún estudiante con ese código');
     } finally {
       setSearchLoading(false);
     }
-  };
-  const handleSubmit = async () => {
+  };  const handleSubmit = async () => {
+    console.log('=== HANDLE SUBMIT STARTED ===');
     try {
       const values = await form.validateFields();
-      
-      if (mode === 'add' && !selectedStudent) {
-        message.error('Por favor selecciona un estudiante');
+      console.log('Form values validated:', values);
+        if (mode === 'add' && !selectedStudent) {
+        console.log('No student selected, showing error');
+        toast.error('Por favor selecciona un estudiante');
         return;
       }
 
+      console.log('Setting loading to true');
       setLoading(true);
 
       const assignmentData = {
@@ -158,62 +191,56 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
         rubroTransporteId,
         fechaInicio: values.fechaInicio.format('YYYY-MM-DD'),
         fechaFin: values.fechaFin ? values.fechaFin.format('YYYY-MM-DD') : undefined
-      };      if (mode === 'add') {
-        // Check if student is already assigned to this route
+      };
+      console.log('Assignment data prepared:', assignmentData);      if (mode === 'add') {
+        console.log('=== ADD MODE - ATTEMPTING TO ASSIGN STUDENT ===');
         try {
-          const existingAssignment = await routeAssignmentService.getStudentRouteAssignment(
-            assignmentData.alumnoId, 
-            assignmentData.rubroTransporteId
-          );
-          
-          if (existingAssignment) {
-            message.error('Este estudiante ya está asignado a esta ruta de transporte');
-            return;
-          }
+          const result = await routeAssignmentService.assignStudentToRoute(assignmentData);
+          console.log('Assignment successful:', result);
+          toast.success('Estudiante asignado exitosamente');
         } catch (error) {
-          // If we get a 404, it means no assignment exists, which is what we want
-          const axiosError = error as { response?: { status: number } };
-          if (axiosError.response?.status !== 404) {
-            console.error('Error checking existing assignment:', error);
-            message.error('Error al verificar asignaciones existentes');
-            return;
-          }
-          // 404 is expected when no assignment exists, so we continue
-        }
-
-        try {
-          await routeAssignmentService.assignStudentToRoute(assignmentData);
-          message.success('Estudiante asignado exitosamente');
-        } catch (error) {
-          console.error('Error assigning student:', error);          // Check if it's a duplicate error from the backend
+          console.error('=== ERROR ASSIGNING STUDENT ===');
+          console.error('Error assigning student:', error);
+          // Check if it's a duplicate error from the backend (fallback)
           const axiosError = error as { response?: { status: number; data?: string } };
+          console.log('Assignment error details:', {
+            status: axiosError.response?.status,
+            data: axiosError.response?.data
+          });
           if (axiosError.response?.status === 409 || 
+              axiosError.response?.status === 400 ||
               (axiosError.response?.data && 
                typeof axiosError.response.data === 'string' && 
-               axiosError.response.data.includes('already assigned'))) {
-            message.error('Este estudiante ya está asignado a esta ruta de transporte');
-          } else {
-            message.error('Error al asignar el estudiante');
+               (axiosError.response.data.includes('already assigned') ||
+                axiosError.response.data.includes('ya está asignado') ||
+                axiosError.response.data.includes('duplicate') ||
+                axiosError.response.data.includes('duplicado')))) {
+            console.log('=== BACKEND DUPLICATE ERROR DETECTED ===');
+            toast.warning('Este estudiante ya está asignado a esta ruta de transporte. No se puede reasignar a la misma ruta.');} else {
+            console.log('=== OTHER ASSIGNMENT ERROR ===');
+            toast.error('Error al asignar el estudiante');
           }
           return;
         }
       } else {
+        console.log('=== EDIT MODE - UPDATING ASSIGNMENT ===');
         await routeAssignmentService.updateStudentRouteAssignment(
           assignmentData.alumnoId,
           assignmentData.rubroTransporteId,
           {
             fechaInicio: assignmentData.fechaInicio,
             fechaFin: assignmentData.fechaFin
-          }
-        );
-        message.success('Asignación actualizada exitosamente');
+          }        );
+        toast.success('Asignación actualizada exitosamente');
       }
 
-      onSuccess();
-    } catch (error) {
+      console.log('=== CALLING onSuccess ===');
+      onSuccess();    } catch (error) {
+      console.error('=== TOP LEVEL ERROR ===');
       console.error('Error saving assignment:', error);
-      message.error('Error al guardar la asignación');
+      toast.error('Error al guardar la asignación');
     } finally {
+      console.log('=== FINALLY BLOCK - SETTING LOADING FALSE ===');
       setLoading(false);
     }
   };
@@ -225,20 +252,19 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
     onCancel();
   };
 
-  return (
-    <Modal
+  return (    <Modal
       title={mode === 'add' ? 'Agregar Estudiante' : 'Editar Asignación'}
       open={visible}
       onCancel={handleCancel}
       footer={[
         <Button key="cancel" onClick={handleCancel}>
           Cancelar
-        </Button>,
-        <Button key="save" type="primary" loading={loading} onClick={handleSubmit}>
+        </Button>,        <Button key="save" type="primary" loading={loading} onClick={handleSubmit}
+          disabled={loading || !selectedStudent || isStudentAlreadyAssigned || checkingAssignment}>
           {mode === 'add' ? 'Agregar' : 'Guardar'}
         </Button>
       ]}
-      width={600}
+      width={750}
     >
       <Form form={form} layout="vertical" style={{ marginTop: 20 }}>
         <div style={{ marginBottom: 20 }}>
@@ -264,8 +290,7 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
                   label="Nombre del Alumno"
                   name="alumno"
                   rules={[{ required: true, message: 'Por favor selecciona un estudiante' }]}
-                >
-                  <AutoComplete
+                >                  <AutoComplete
                     placeholder="Buscar por código, nombre o apellido..."
                     onSearch={handleStudentSearch}
                     onSelect={handleStudentSelect}
@@ -273,14 +298,12 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
                     filterOption={false}
                     notFoundContent={searchLoading ? 'Buscando...' : 'No se encontraron estudiantes'}
                     style={{ width: '100%' }}
-                    allowClear
-                    onClear={() => {
+                    allowClear                    onClear={() => {
                       setSelectedStudent(null);
                       setStudentOptions([]);
+                      setIsStudentAlreadyAssigned(false);
                     }}
-                  >
-                    <Input prefix={<SearchOutlined />} placeholder="Buscar estudiante..." />
-                  </AutoComplete>
+                  />
                 </Form.Item>
               </Col>
             </Row>
