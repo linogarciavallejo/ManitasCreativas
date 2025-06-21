@@ -280,11 +280,10 @@ const TransportDebtorsReport: React.FC = () => {
                 <option key={seccion} value={seccion}>{seccion}</option>
               ))}
             </select>
-          </div>
-
-          <div className="filter-group">
+          </div>          <div className="filter-group filter-group-route">
             <label>Ruta de Transporte:</label>
             <select
+              className="route-select"
               value={filter.rubroId || ''}
               onChange={(e) => handleFilterChange('rubroId', e.target.value ? parseInt(e.target.value) : undefined)}
             >

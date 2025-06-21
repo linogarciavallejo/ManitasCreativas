@@ -34,6 +34,16 @@
   margin-bottom: 20px;
 }
 
+/* Make the route filter group wider to accommodate long route names */
+.filter-group-route {
+  grid-column: span 2;
+}
+
+/* Make the route select dropdown wider */
+.route-select {
+  min-width: 350px;
+}
+
 .filter-group {
   display: flex;
   flex-direction: column;
