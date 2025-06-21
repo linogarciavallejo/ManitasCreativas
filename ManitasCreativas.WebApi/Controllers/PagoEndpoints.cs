@@ -267,11 +267,23 @@ public static class PagoEndpoints
                 bool? includeCurrentMonth,
                 int? minMonthsBehind,
                 decimal? minDebtAmount,
-                IPagoService pagoService
-            ) =>
+                IPagoService pagoService            ) =>
             {
                 try
                 {
+                    Console.WriteLine($"=== TRANSPORT DEBTORS ENDPOINT CALLED ===");
+                    Console.WriteLine($"Parameters received:");
+                    Console.WriteLine($"  year: {year}");
+                    Console.WriteLine($"  month: {month}");
+                    Console.WriteLine($"  sedeId: {sedeId}");
+                    Console.WriteLine($"  nivelEducativoId: {nivelEducativoId}");
+                    Console.WriteLine($"  gradoId: {gradoId}");
+                    Console.WriteLine($"  seccion: {seccion}");
+                    Console.WriteLine($"  rubroId: {rubroId}");
+                    Console.WriteLine($"  includeCurrentMonth: {includeCurrentMonth}");
+                    Console.WriteLine($"  minMonthsBehind: {minMonthsBehind}");
+                    Console.WriteLine($"  minDebtAmount: {minDebtAmount}");
+                    
                     var filter = new TransportDebtorsFilterDto
                     {
                         Year = year,
@@ -294,7 +306,7 @@ public static class PagoEndpoints
                     return Results.BadRequest(ex.Message);
                 }
             }
-        );
+        );        // Debug endpoint to check route assignments
     }
 }
 

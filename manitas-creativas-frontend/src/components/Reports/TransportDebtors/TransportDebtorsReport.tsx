@@ -54,6 +54,9 @@ const TransportDebtorsReport: React.FC = () => {
   };
 
   const fetchReport = useCallback(async () => {
+    console.log('=== Frontend Component fetchReport ===');
+    console.log('Current filter state:', filter);
+    
     setLoading(true);
     setError(null);
     try {
@@ -159,6 +162,38 @@ const TransportDebtorsReport: React.FC = () => {
       {/* Filters */}
       <div className="filters-section">
         <h3>Filtros</h3>
+        
+        {/* Info note about route assignments */}
+        <div style={{ 
+          background: '#e6f7ff', 
+          border: '1px solid #91d5ff', 
+          borderRadius: '4px', 
+          padding: '12px', 
+          marginBottom: '16px',
+          fontSize: '14px'
+        }}>
+          <strong>📋 Nota:</strong> Este reporte solo incluye estudiantes que tienen asignaciones de rutas de transporte activas. 
+          Los estudiantes sin rutas asignadas no aparecerán en el reporte, incluso si tienen pagos pendientes de transporte. 
+          Utilice el módulo de "Asignación de Rutas" para asignar estudiantes a rutas específicas.
+        </div>
+
+        {/* Debug filter display */}
+        <div style={{ 
+          background: '#f0f0f0', 
+          border: '1px solid #ccc', 
+          borderRadius: '4px', 
+          padding: '8px', 
+          marginBottom: '16px',
+          fontSize: '12px',
+          fontFamily: 'monospace'
+        }}>
+          <strong>🔍 Filtros aplicados:</strong><br/>
+          Año: {filter.year || 'Todos'} | 
+          Mes: {filter.month || 'Todos'} | 
+          Sede: {filter.sedeId || 'Todas'} | 
+          Ruta: {filter.rubroId ? `${filter.rubroId} (${transportRubros.find(r => r.id === filter.rubroId)?.descripcion || 'No encontrada'})` : 'Todas'}
+        </div>
+        
         <div className="filters-grid">
           <div className="filter-group">
             <label>Año:</label>
@@ -311,10 +346,10 @@ const TransportDebtorsReport: React.FC = () => {
           {/* Summary Cards */}
           <div className="summary-section">
             <h3>Resumen</h3>
-            <div className="summary-cards">
-              <div className="summary-card">
+            <div className="summary-cards">              <div className="summary-card">
                 <h4>Total Estudiantes</h4>
                 <p className="summary-number">{reportData.totalStudents}</p>
+                <small>Con rutas asignadas</small>
               </div>
               <div className="summary-card warning">
                 <h4>Estudiantes en Mora</h4>
@@ -328,9 +363,17 @@ const TransportDebtorsReport: React.FC = () => {
                 <h4>Promedio por Estudiante</h4>
                 <p className="summary-number">{formatCurrency(reportData.summary.averageDebtPerStudent)}</p>
               </div>
-            </div>
-
-            <div className="breakdown-cards">
+            </div>            <div className="breakdown-cards">
+              <div className="breakdown-card">
+                <h4>Deudores por Ruta</h4>
+                <div style={{ fontSize: '12px' }}>
+                  {reportData.summary.debtorsByRoute && Object.entries(reportData.summary.debtorsByRoute).map(([route, count]) => (
+                    <div key={route} style={{ margin: '4px 0' }}>
+                      <strong>{route}:</strong> {count} estudiantes
+                    </div>
+                  ))}
+                </div>
+              </div>
               <div className="breakdown-card">
                 <h4>Mes Actual Vencido</h4>
                 <p>{reportData.summary.currentMonthDelinquent}</p>
@@ -350,9 +393,35 @@ const TransportDebtorsReport: React.FC = () => {
             </div>
           </div>
 
-          {/* Debtors Table */}
-          <div className="debtors-section">
-            <h3>Estudiantes en Mora ({reportData.debtors.length})</h3>
+          {/* Debtors Table */}          <div className="debtors-section">
+            <h3>Estudiantes en Mora - Solo Rutas Asignadas ({reportData.debtors.length})</h3>
+            
+            {/* Filter status message */}
+            {filter.rubroId ? (
+              <div style={{ 
+                background: '#fff2e6', 
+                border: '1px solid #ffb366', 
+                borderRadius: '4px', 
+                padding: '8px', 
+                marginBottom: '12px',
+                fontSize: '14px'
+              }}>
+                🚍 <strong>Filtro de ruta aplicado:</strong> Solo mostrando estudiantes asignados a la ruta 
+                "{transportRubros.find(r => r.id === filter.rubroId)?.descripcion || `ID ${filter.rubroId}`}"
+              </div>
+            ) : (
+              <div style={{ 
+                background: '#f6fff2', 
+                border: '1px solid #73d13d', 
+                borderRadius: '4px', 
+                padding: '8px', 
+                marginBottom: '12px',
+                fontSize: '14px'
+              }}>
+                🚍 <strong>Todas las rutas:</strong> Mostrando estudiantes de todas las rutas de transporte asignadas
+              </div>
+            )}
+
             <div className="debtors-table">
               <table>
                 <thead>
