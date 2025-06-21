@@ -88,16 +88,17 @@ const Main: React.FC = () => {
               ),
             },
             {
-              key: "6.1",
+              key: "7",
               icon: <BarChartOutlined />,
               label: <Link to="reports">Centro de Reportes</Link>,
             },
+            // {
+            //   key: "6.2",
+            //   icon: <PieChartOutlined />,
+            //   label: <Link to="monthly-payments-report">Reporte Mensual de Pagos</Link>,
+            // },
             {
-              key: "6.2",
-              icon: <PieChartOutlined />,
-              label: <Link to="monthly-payments-report">Reporte Mensual de Pagos</Link>,
-            },            {
-              key: "7",
+              key: "8",
               icon: <BankOutlined />,
               label: <Link to="statement">Estado de Cuenta</Link>,
             },
@@ -115,16 +116,16 @@ const Main: React.FC = () => {
               ),
             },
             {
-              key: "8",
+              key: "9",
               icon: <TagOutlined />,
               label: <Link to="rubros">Rubros</Link>,
             },            {
-              key: "9",
+              key: "10",
               icon: <IdcardOutlined />,
               label: <Link to="students">Alumnos</Link>,
             },
             {
-              key: "9.1",
+              key: "11",
               icon: <CarOutlined />,
               label: <Link to="routes-assignment">Asignación de Rutas</Link>,
             },
@@ -142,12 +143,12 @@ const Main: React.FC = () => {
               ),
             },
             {
-              key: "10",
+              key: "12",
               icon: <UserOutlined />,
               label: <Link to="users">Usuarios</Link>,
             },
             {
-              key: "11",
+              key: "13",
               icon: <LogoutOutlined />,
               label: "Salir",
               onClick: handleSignOut,

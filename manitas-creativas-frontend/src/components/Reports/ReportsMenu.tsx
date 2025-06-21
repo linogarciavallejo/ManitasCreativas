@@ -47,14 +47,14 @@ const ReportsMenu: React.FC = () => {
       available: true
     },
     {
-      title: 'Reporte de Pagos por Grado',
+      title: 'Control de Pagos',
       description: 'Reporte detallado de pagos organizados por grado académico.',
       route: '/main/payment-report',
       available: true
     },
     {
-      title: 'Reporte de Transporte',
-      description: 'Análisis específico de pagos de transporte por rutas.',
+      title: 'Reporte de Pagos de Bus',
+      description: 'Análisis específico de pagos de bus por rutas.',
       route: '/main/transport-payments-report',
       available: true
     }
@@ -104,7 +104,7 @@ const ReportsMenu: React.FC = () => {
 
       <Card style={{ marginTop: '24px', backgroundColor: '#f6ffed', borderColor: '#b7eb8f' }}>
         <Title level={4} style={{ color: '#52c41a', marginBottom: '8px' }}>
-          🎉 Nuevo: Reporte Mensual de Pagos con PivotTable.js
+          🎉 Nuevo: Reporte Mensual de Pagos con tablas pivote.
         </Title>
         <Paragraph>
           Experimenta con nuestro nuevo reporte interactivo que te permite:
