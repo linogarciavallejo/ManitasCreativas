@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Route Test</title>
+</head>
+<body>
+    <h1>Transport Route Filter Test</h1>
+    <div id="results"></div>
+    <script>
+        async function testRoutes() {
+            const results = document.getElementById('results');
+            
+            // Test cases
+            const testCases = [
+                { name: 'No filter', url: 'http://localhost:5264/pagos/transport-debtors-report?year=2025&month=6' },
+                { name: 'Ruta Pueblo (ID 11)', url: 'http://localhost:5264/pagos/transport-debtors-report?year=2025&month=6&rubroId=11' },
+                { name: 'Ruta Las Victorias (ID 13)', url: 'http://localhost:5264/pagos/transport-debtors-report?year=2025&month=6&rubroId=13' },
+                { name: 'Non-existent route (ID 99)', url: 'http://localhost:5264/pagos/transport-debtors-report?year=2025&month=6&rubroId=99' }
+            ];
+            
+            for (const testCase of testCases) {
+                try {
+                    console.log(`Testing: ${testCase.name} - ${testCase.url}`);
+                    const response = await fetch(testCase.url);
+                    const data = await response.json();
+                    
+                    results.innerHTML += `<h3>${testCase.name}:</h3>`;
+                    results.innerHTML += `<p><strong>Total Students:</strong> ${data.totalStudents}, <strong>Debtors:</strong> ${data.studentsInDebt}</p>`;
+                    results.innerHTML += `<p><strong>Total Debt:</strong> Q${data.totalDebtAmount}</p>`;
+                    
+                    if (data.debtors && data.debtors.length > 0) {
+                        const routes = [...new Set(data.debtors.map(d => d.rubroTransporte))];
+                        results.innerHTML += `<p><strong>Routes found:</strong> ${routes.join(', ')}</p>`;
+                        results.innerHTML += `<p><strong>Students:</strong> ${data.debtors.map(d => d.nombreCompleto).join(', ')}</p>`;
+                    } else {
+                        results.innerHTML += `<p><em>No debtors found</em></p>`;
+                    }
+                    results.innerHTML += `<hr>`;
+                } catch (error) {
+                    results.innerHTML += `<p><strong>${testCase.name}:</strong> Error - ${error.message}</p><hr>`;
+                }
+            }
+        }
+        
+        testRoutes();
+    </script>
+</body>
+</html>

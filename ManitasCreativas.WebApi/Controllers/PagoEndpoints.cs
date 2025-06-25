@@ -253,7 +253,60 @@ public static class PagoEndpoints
                     return Results.BadRequest(ex.Message);
                 }
             }
-        );
+        );        // Transport debtors report endpoint
+        app.MapGet(
+            "/pagos/transport-debtors-report",
+            async (
+                int? year,
+                int? month,
+                int? sedeId,
+                int? nivelEducativoId,
+                int? gradoId,
+                string? seccion,
+                int? rubroId,
+                bool? includeCurrentMonth,
+                int? minMonthsBehind,
+                decimal? minDebtAmount,
+                IPagoService pagoService            ) =>
+            {
+                try
+                {
+                    Console.WriteLine($"=== TRANSPORT DEBTORS ENDPOINT CALLED ===");
+                    Console.WriteLine($"Parameters received:");
+                    Console.WriteLine($"  year: {year}");
+                    Console.WriteLine($"  month: {month}");
+                    Console.WriteLine($"  sedeId: {sedeId}");
+                    Console.WriteLine($"  nivelEducativoId: {nivelEducativoId}");
+                    Console.WriteLine($"  gradoId: {gradoId}");
+                    Console.WriteLine($"  seccion: {seccion}");
+                    Console.WriteLine($"  rubroId: {rubroId}");
+                    Console.WriteLine($"  includeCurrentMonth: {includeCurrentMonth}");
+                    Console.WriteLine($"  minMonthsBehind: {minMonthsBehind}");
+                    Console.WriteLine($"  minDebtAmount: {minDebtAmount}");
+                    
+                    var filter = new TransportDebtorsFilterDto
+                    {
+                        Year = year,
+                        Month = month,
+                        SedeId = sedeId,
+                        NivelEducativoId = nivelEducativoId,
+                        GradoId = gradoId,
+                        Seccion = seccion,
+                        RubroId = rubroId,
+                        IncludeCurrentMonth = includeCurrentMonth ?? true,
+                        MinMonthsBehind = minMonthsBehind,
+                        MinDebtAmount = minDebtAmount
+                    };
+                    
+                    var report = await pagoService.GetTransportDebtorsReportAsync(filter);
+                    return Results.Ok(report);
+                }
+                catch (Exception ex)
+                {
+                    return Results.BadRequest(ex.Message);
+                }
+            }
+        );        // Debug endpoint to check route assignments
     }
 }
 

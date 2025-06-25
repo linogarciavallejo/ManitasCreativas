@@ -18,6 +18,8 @@ const TransportPaymentsReport = React.lazy(() => import("../components/Transport
 const MonthlyPaymentReport = React.lazy(() => import("../components/Reports/MonthlyPayments"));
 const ReportsMenu = React.lazy(() => import("../components/Reports/ReportsMenu"));
 const TuitionDebtorsReport = React.lazy(() => import("../components/Reports/TuitionDebtors"));
+const TransportDebtorsReport = React.lazy(() => import("../components/Reports/TransportDebtors"));
+const RoutesAssignment = React.lazy(() => import("../components/RoutesAssignment"));
 
 const AppRoutes: React.FC = () => {
   //userStore();
@@ -40,10 +42,10 @@ const AppRoutes: React.FC = () => {
         <Route path="students" element={<Students />} />
         <Route path="users" element={<Users />} />
         <Route path="payment-report" element={<PaymentReport />} />
-        <Route path="edit-payments" element={<EditPayments />} />        <Route path="transport-payments" element={<TransportPayments />} />        <Route path="transport-payments-report" element={<TransportPaymentsReport />} />
-        <Route path="reports" element={<ReportsMenu />} />
-        <Route path="monthly-payments-report" element={<MonthlyPaymentReport />} />
+        <Route path="edit-payments" element={<EditPayments />} />        <Route path="transport-payments" element={<TransportPayments />} />        <Route path="transport-payments-report" element={<TransportPaymentsReport />} />        <Route path="reports" element={<ReportsMenu />} />        <Route path="monthly-payments-report" element={<MonthlyPaymentReport />} />
         <Route path="tuition-debtors-report" element={<TuitionDebtorsReport />} />
+        <Route path="transport-debtors-report" element={<TransportDebtorsReport />} />
+        <Route path="routes-assignment" element={<RoutesAssignment />} />
       </Route>
     </Routes>
   );

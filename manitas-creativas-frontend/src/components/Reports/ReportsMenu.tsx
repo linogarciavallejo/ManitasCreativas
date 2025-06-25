@@ -20,8 +20,7 @@ const ReportsMenu: React.FC = () => {
       ],
       route: '/main/monthly-payments-report',
       available: true
-    },
-    {
+    },    {
       title: 'Reporte de Morosos de Colegiatura',
       description: 'Identifica estudiantes con pagos de colegiatura en mora según política escolar (pago antes del día 5 de cada mes).',
       features: [
@@ -35,14 +34,27 @@ const ReportsMenu: React.FC = () => {
       available: true
     },
     {
-      title: 'Reporte de Pagos por Grado',
+      title: 'Reporte de Morosos de Transporte',
+      description: 'Identifica estudiantes con pagos de transporte en mora organizados por rutas de transporte.',
+      features: [
+        'Identificación automática de morosos de transporte',
+        'Filtros por ruta de transporte específica',
+        'Categorización por tiempo de atraso',
+        'Detalles de pagos de transporte pendientes',
+        'Estadísticas de resumen por grado, sede y ruta'
+      ],
+      route: '/main/transport-debtors-report',
+      available: true
+    },
+    {
+      title: 'Control de Pagos',
       description: 'Reporte detallado de pagos organizados por grado académico.',
       route: '/main/payment-report',
       available: true
     },
     {
-      title: 'Reporte de Transporte',
-      description: 'Análisis específico de pagos de transporte por rutas.',
+      title: 'Reporte de Pagos de Bus',
+      description: 'Análisis específico de pagos de bus por rutas.',
       route: '/main/transport-payments-report',
       available: true
     }
@@ -92,7 +104,7 @@ const ReportsMenu: React.FC = () => {
 
       <Card style={{ marginTop: '24px', backgroundColor: '#f6ffed', borderColor: '#b7eb8f' }}>
         <Title level={4} style={{ color: '#52c41a', marginBottom: '8px' }}>
-          🎉 Nuevo: Reporte Mensual de Pagos con PivotTable.js
+          🎉 Nuevo: Reporte Mensual de Pagos con tablas pivote.
         </Title>
         <Paragraph>
           Experimenta con nuestro nuevo reporte interactivo que te permite:

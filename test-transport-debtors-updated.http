@@ -1,0 +1,26 @@
+### Test Transport Debtors Report with proper route assignments
+# This tests the updated report that only includes students with assigned transport routes
+
+### Basic transport debtors report (all parameters)
+GET http://localhost:5264/pagos/transport-debtors-report?year=2025&month=6&includeCurrentMonth=true
+Content-Type: application/json
+
+### Transport debtors filtered by specific route
+GET http://localhost:5264/pagos/transport-debtors-report?year=2025&month=6&rubroId=5&includeCurrentMonth=true
+Content-Type: application/json
+
+### Transport debtors filtered by sede
+GET http://localhost:5264/pagos/transport-debtors-report?year=2025&month=6&sedeId=1&includeCurrentMonth=true
+Content-Type: application/json
+
+### Transport debtors with minimum months behind filter
+GET http://localhost:5264/pagos/transport-debtors-report?year=2025&month=6&minMonthsBehind=2&includeCurrentMonth=true
+Content-Type: application/json
+
+### Check route assignments for debugging
+GET http://localhost:5264/alumnos/rutas/by-route/5
+Content-Type: application/json
+
+### Check specific student's route assignments
+GET http://localhost:5264/alumnos/1/rutas
+Content-Type: application/json

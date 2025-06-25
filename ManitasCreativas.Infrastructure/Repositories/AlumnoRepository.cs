@@ -11,22 +11,20 @@ public class AlumnoRepository : IAlumnoRepository
     public AlumnoRepository(AppDbContext context)
     {
         _context = context;
-    }
-
-    public async Task<Alumno?> GetByIdAsync(int id)
+    }    public async Task<Alumno?> GetByIdAsync(int id)
     {
         return await _context.Alumnos
             .Include(a => a.Sede)
             .Include(a => a.Grado)
+                .ThenInclude(g => g.NivelEducativo)
             .Include(a => a.Pagos)
             .FirstOrDefaultAsync(a => a.Id == id);
-    }
-
-    public async Task<IEnumerable<Alumno>> GetAllAsync()
+    }public async Task<IEnumerable<Alumno>> GetAllAsync()
     {
         return await _context.Alumnos
             .Include(a => a.Sede)
             .Include(a => a.Grado)
+                .ThenInclude(g => g.NivelEducativo)
             .Include(a => a.Pagos)
             .ToListAsync();
     }
@@ -100,5 +98,24 @@ public class AlumnoRepository : IAlumnoRepository
         return await _context.Grados
             .Include(g => g.NivelEducativo)
             .FirstOrDefaultAsync(g => g.Id == id);
+    }
+
+    public async Task<IEnumerable<Alumno>> SearchAlumnosAsync(string query)
+    {
+        return await _context.Alumnos
+            .Include(a => a.Sede)
+            .Include(a => a.Grado)
+                .ThenInclude(g => g.NivelEducativo)
+            .Where(a =>
+                a.Codigo.Contains(query) ||
+                a.PrimerNombre.Contains(query) ||
+                a.SegundoNombre.Contains(query) ||
+                a.PrimerApellido.Contains(query) ||
+                a.SegundoApellido.Contains(query) ||
+                (a.PrimerNombre + " " + a.SegundoNombre).Contains(query) ||
+                (a.PrimerApellido + " " + a.SegundoApellido).Contains(query) ||
+                (a.PrimerApellido + " " + a.SegundoApellido + ", " + a.PrimerNombre + " " + a.SegundoNombre).Contains(query)
+            )
+            .ToListAsync();
     }
 }

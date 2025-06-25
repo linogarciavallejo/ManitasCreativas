@@ -9,4 +9,5 @@ public interface IAlumnoRutaRepository
     Task AddAsync(AlumnoRuta alumnoRuta);
     Task UpdateAsync(AlumnoRuta alumnoRuta);
     Task DeleteAsync(AlumnoRuta alumnoRuta);
+    Task<IEnumerable<AlumnoRuta>> GetByRubroTransporteIdAsync(int rubroTransporteId);
 }

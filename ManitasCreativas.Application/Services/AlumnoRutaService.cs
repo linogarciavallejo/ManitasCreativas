@@ -30,7 +30,9 @@ public class AlumnoRutaService : IAlumnoRutaService
         return alumnoRutas.Select(ar => new AlumnoRutaDto
         {
             AlumnoId = ar.AlumnoId,
-            RubroTransporteId = ar.RubroTransporteId
+            RubroTransporteId = ar.RubroTransporteId,
+            FechaInicio = ar.FechaInicio,
+            FechaFin = ar.FechaFin
         });
     }
 
@@ -45,7 +47,9 @@ public class AlumnoRutaService : IAlumnoRutaService
         return new AlumnoRutaDto
         {
             AlumnoId = alumnoRuta.AlumnoId,
-            RubroTransporteId = alumnoRuta.RubroTransporteId
+            RubroTransporteId = alumnoRuta.RubroTransporteId,
+            FechaInicio = alumnoRuta.FechaInicio,
+            FechaFin = alumnoRuta.FechaFin
         };
     }
 
@@ -72,12 +76,18 @@ public class AlumnoRutaService : IAlumnoRutaService
         if (existingRelation != null)
         {
             throw new InvalidOperationException("This student is already assigned to this transport route.");
+        }        // Validate that FechaInicio is provided
+        if (alumnoRutaDto.FechaInicio == default)
+        {
+            throw new ArgumentException("FechaInicio is required.");
         }
 
         var alumnoRuta = new AlumnoRuta
         {
             AlumnoId = alumnoRutaDto.AlumnoId,
-            RubroTransporteId = alumnoRutaDto.RubroTransporteId
+            RubroTransporteId = alumnoRutaDto.RubroTransporteId,
+            FechaInicio = DateTime.SpecifyKind(alumnoRutaDto.FechaInicio, DateTimeKind.Utc),
+            FechaFin = alumnoRutaDto.FechaFin.HasValue ? DateTime.SpecifyKind(alumnoRutaDto.FechaFin.Value, DateTimeKind.Utc) : null
         };
 
         await _alumnoRutaRepository.AddAsync(alumnoRuta);
@@ -93,20 +103,75 @@ public class AlumnoRutaService : IAlumnoRutaService
             throw new KeyNotFoundException($"AlumnoRuta with AlumnoId {alumnoRutaDto.AlumnoId} and RubroTransporteId {alumnoRutaDto.RubroTransporteId} not found.");
         }
 
-        // For this entity, there's not much to update since it's just a relationship
-        // You could add additional fields in the future if needed
-
-        await _alumnoRutaRepository.UpdateAsync(existingAlumnoRuta);
+        // Validate that FechaInicio is provided
+        if (alumnoRutaDto.FechaInicio == default)
+        {
+            throw new ArgumentException("FechaInicio is required.");
+        }        // Update the fields
+        existingAlumnoRuta.FechaInicio = DateTime.SpecifyKind(alumnoRutaDto.FechaInicio, DateTimeKind.Utc);
+        existingAlumnoRuta.FechaFin = alumnoRutaDto.FechaFin.HasValue ? DateTime.SpecifyKind(alumnoRutaDto.FechaFin.Value, DateTimeKind.Utc) : null;        await _alumnoRutaRepository.UpdateAsync(existingAlumnoRuta);
     }
 
     public async Task DeleteAsync(int alumnoId, int rubroTransporteId)
     {
+        Console.WriteLine(
+            $"AlumnoRutaService.DeleteAsync called with alumnoId: {alumnoId}, rubroTransporteId: {rubroTransporteId}");
+        
         var alumnoRuta = await _alumnoRutaRepository.GetByIdsAsync(alumnoId, rubroTransporteId);
         if (alumnoRuta == null)
         {
-            throw new KeyNotFoundException($"AlumnoRuta with AlumnoId {alumnoId} and RubroTransporteId {rubroTransporteId} not found.");
+            Console.WriteLine(
+                $"AlumnoRuta not found with AlumnoId {alumnoId} and RubroTransporteId {rubroTransporteId}");
+            throw new KeyNotFoundException(
+                $"AlumnoRuta with AlumnoId {alumnoId} and RubroTransporteId {rubroTransporteId} not found.");
         }
 
+        Console.WriteLine(
+            $"Found AlumnoRuta to delete: AlumnoId={alumnoRuta.AlumnoId}, RubroTransporteId={alumnoRuta.RubroTransporteId}");
         await _alumnoRutaRepository.DeleteAsync(alumnoRuta);
+        Console.WriteLine("AlumnoRuta successfully deleted");
+    }
+
+    public async Task<IEnumerable<AlumnoRutaDetailedDto>> GetStudentsByRouteAsync(
+        int rubroTransporteId)
+    {
+        var alumnoRutas = await _alumnoRutaRepository.GetByRubroTransporteIdAsync(
+            rubroTransporteId);
+        var result = new List<AlumnoRutaDetailedDto>();
+
+        foreach (var alumnoRuta in alumnoRutas)
+        {
+            var alumno = await _alumnoRepository.GetByIdAsync(alumnoRuta.AlumnoId);
+            if (alumno != null)
+            {
+                var primerApellido = alumno.PrimerApellido ?? "";
+                var segundoApellido = alumno.SegundoApellido ?? "";
+                var primerNombre = alumno.PrimerNombre ?? "";
+                var segundoNombre = alumno.SegundoNombre ?? "";
+                
+                var apellidos = $"{primerApellido} {segundoApellido}".Trim();
+                var nombres = $"{primerNombre} {segundoNombre}".Trim();
+                var nombreCompleto = $"{apellidos}, {nombres}";
+
+                var detailedDto = new AlumnoRutaDetailedDto
+                {
+                    AlumnoId = alumnoRuta.AlumnoId,
+                    RubroTransporteId = alumnoRuta.RubroTransporteId,
+                    FechaInicio = alumnoRuta.FechaInicio,
+                    FechaFin = alumnoRuta.FechaFin,
+                    AlumnoNombre = nombres,
+                    AlumnoApellidos = apellidos,
+                    AlumnoCompleto = nombreCompleto,
+                    Grado = alumno.Grado?.Nombre ?? "",
+                    Seccion = alumno.Seccion ?? "",
+                    Sede = alumno.Sede?.Nombre ?? ""
+                };
+
+                result.Add(detailedDto);
+            }
+        }
+
+        // Sort alphabetically by the concatenation as specified in requirements
+        return result.OrderBy(x => x.AlumnoCompleto.ToLower()).ToList();
     }
 }
