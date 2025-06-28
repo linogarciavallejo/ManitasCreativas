@@ -46,7 +46,11 @@ public class PagoReadDto
     public int? UsuarioActualizacionId { get; set; }
     public bool? EsPagoDeCarnet { get; set; } = false;
     public string EstadoCarnet { get; set; } = string.Empty;
-    public bool? EsPagoDeTransporte { get; set; } = false;    public bool EsAnulado { get; set; } = false;
+    public bool? EsPagoDeTransporte { get; set; } = false;
+    public bool? EsPagoDeUniforme { get; set; } = false;
+    
+    // Uniform payment details (only populated when EsPagoDeUniforme is true)
+    public List<PagoDetalleDto> PagoDetalles { get; set; } = new List<PagoDetalleDto>();    public bool EsAnulado { get; set; } = false;
     public string? MotivoAnulacion { get; set; } = string.Empty;
     public DateTime? FechaAnulacion { get; set; } = null;
     public int? UsuarioAnulacionId { get; set; } = null;

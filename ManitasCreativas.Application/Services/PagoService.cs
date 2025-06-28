@@ -18,6 +18,7 @@ public class PagoService : IPagoService
     private readonly IPagoImagenRepository _pagoImagenRepository;
     private readonly IAlumnoContactoRepository _alumnoContactoRepository;
     private readonly IAlumnoRutaRepository _alumnoRutaRepository;
+    private readonly IPagoDetalleRepository _pagoDetalleRepository;
 
     public PagoService(
         IPagoRepository pagoRepository, 
@@ -27,7 +28,8 @@ public class PagoService : IPagoService
         IUsuarioRepository usuarioRepository, 
         IPagoImagenRepository pagoImagenRepository,
         IAlumnoContactoRepository alumnoContactoRepository,
-        IAlumnoRutaRepository alumnoRutaRepository)
+        IAlumnoRutaRepository alumnoRutaRepository,
+        IPagoDetalleRepository pagoDetalleRepository)
     {
         _pagoRepository = pagoRepository;
         _s3Service = s3Service;
@@ -37,6 +39,7 @@ public class PagoService : IPagoService
         _pagoImagenRepository = pagoImagenRepository;
         _alumnoContactoRepository = alumnoContactoRepository;
         _alumnoRutaRepository = alumnoRutaRepository;
+        _pagoDetalleRepository = pagoDetalleRepository;
     }
 
     public async Task<IEnumerable<PagoReadDto>> GetPagosByCriteriaAsync(int cicloEscolar, int rubroId, int gradoId, int month)
@@ -94,6 +97,7 @@ public class PagoService : IPagoService
             EsPagoDeCarnet = pago.EsPagoDeCarnet,
             EstadoCarnet = pago.EstadoCarnet ?? string.Empty,
             EsPagoDeTransporte = pago.EsPagoDeTransporte,
+            EsPagoDeUniforme = pago.EsPagoDeUniforme,
             UsuarioCreacionId = pago.UsuarioCreacionId,
             UsuarioActualizacionId = pago.UsuarioActualizacionId,
             FechaCreacion = pago.FechaCreacion,
@@ -101,7 +105,22 @@ public class PagoService : IPagoService
             EsAnulado = pago.EsAnulado,
             MotivoAnulacion = pago.MotivoAnulacion,
             FechaAnulacion = pago.FechaAnulacion,
-            UsuarioAnulacionId = pago.UsuarioAnulacionId,            ImagenesPago = pago.ImagenesPago?.Where(pi => pi.EsImagenEliminada != true).Select(pi => new PagoImagenDto
+            UsuarioAnulacionId = pago.UsuarioAnulacionId,
+            
+            // Load uniform payment details if this is a uniform payment
+            PagoDetalles = pago.EsPagoDeUniforme == true 
+                ? (await _pagoDetalleRepository.GetByPagoIdAsync(pago.Id)).Select(pd => new PagoDetalleDto
+                {
+                    Id = pd.Id,
+                    PagoId = pd.PagoId,
+                    RubroUniformeDetalleId = pd.RubroUniformeDetalleId,
+                    Cantidad = pd.Cantidad,
+                    PrecioUnitario = pd.PrecioUnitario,
+                    Subtotal = pd.Subtotal
+                }).ToList() 
+                : new List<PagoDetalleDto>(),
+            
+            ImagenesPago = pago.ImagenesPago?.Where(pi => pi.EsImagenEliminada != true).Select(pi => new PagoImagenDto
             {
                 Id = pi.Id,
                 PagoId = pi.PagoId,
@@ -160,6 +179,7 @@ public class PagoService : IPagoService
             EsPagoDeCarnet = pagoDto.EsPagoDeCarnet,
             EstadoCarnet = pagoDto.EstadoCarnet,
             EsPagoDeTransporte = pagoDto.EsPagoDeTransporte,
+            EsPagoDeUniforme = pagoDto.EsPagoDeUniforme,
             UsuarioCreacion = usuario,
 
             // Audit fields
@@ -219,6 +239,24 @@ public class PagoService : IPagoService
             await _pagoImagenRepository.AddRangeAsync(pagoImagenes);
         }
 
+        // Handle uniform payment details if this is a uniform payment
+        if (pagoDto.EsPagoDeUniforme == true && pagoDto.PagoDetalles.Any())
+        {
+            foreach (var detalleDto in pagoDto.PagoDetalles)
+            {
+                var pagoDetalle = new PagoDetalle
+                {
+                    PagoId = pago.Id,
+                    RubroUniformeDetalleId = detalleDto.RubroUniformeDetalleId,
+                    PrecioUnitario = detalleDto.PrecioUnitario,
+                    Cantidad = detalleDto.Cantidad,
+                    Subtotal = detalleDto.Subtotal
+                };
+                
+                await _pagoDetalleRepository.AddAsync(pagoDetalle);
+            }
+        }
+
         // Return the created pago as a DTO
         return await GetPagoByIdAsync(pago.Id);
     }    
@@ -263,6 +301,7 @@ public class PagoService : IPagoService
         existingPago.EsPagoDeCarnet = pagoDto.EsPagoDeCarnet;
         existingPago.EstadoCarnet = pagoDto.EstadoCarnet;
         existingPago.EsPagoDeTransporte = pagoDto.EsPagoDeTransporte;
+        existingPago.EsPagoDeUniforme = pagoDto.EsPagoDeUniforme;
         // Update audit fields
         existingPago.FechaActualizacion = DateTime.UtcNow;
         existingPago.UsuarioActualizacionId = pagoDto.UsuarioActualizacionId;
@@ -273,7 +312,39 @@ public class PagoService : IPagoService
             : pagoDto.FechaAnulacion?.Kind == DateTimeKind.Unspecified 
                 ? (pagoDto.FechaAnulacion.HasValue ? DateTime.SpecifyKind(pagoDto.FechaAnulacion.Value, DateTimeKind.Utc) : null)
                 : pagoDto.FechaAnulacion?.ToUniversalTime();
-        existingPago.UsuarioAnulacionId = pagoDto.UsuarioAnulacionId;await _pagoRepository.UpdateAsync(existingPago);
+        existingPago.UsuarioAnulacionId = pagoDto.UsuarioAnulacionId;
+
+        // Handle uniform payment details if this is a uniform payment
+        if (existingPago.EsPagoDeUniforme == true && pagoDto.PagoDetalles != null && pagoDto.PagoDetalles.Any())
+        {
+            // Delete existing uniform payment details for this payment
+            await _pagoDetalleRepository.DeleteByPagoIdAsync(existingPago.Id);
+            
+            // Create new uniform payment details
+            var pagoDetalles = new List<PagoDetalle>();
+            foreach (var detalleDto in pagoDto.PagoDetalles)
+            {
+                var pagoDetalle = new PagoDetalle
+                {
+                    PagoId = existingPago.Id,
+                    RubroUniformeDetalleId = detalleDto.RubroUniformeDetalleId,
+                    Cantidad = detalleDto.Cantidad,
+                    PrecioUnitario = detalleDto.PrecioUnitario,
+                    Subtotal = detalleDto.Subtotal
+                };
+                pagoDetalles.Add(pagoDetalle);
+            }
+            
+            // Add new uniform payment details
+            await _pagoDetalleRepository.AddRangeAsync(pagoDetalles);
+        }
+        else if (existingPago.EsPagoDeUniforme != true)
+        {
+            // If this is no longer a uniform payment, remove any existing uniform payment details
+            await _pagoDetalleRepository.DeleteByPagoIdAsync(existingPago.Id);
+        }
+
+        await _pagoRepository.UpdateAsync(existingPago);
 
         // Handle image updates - both uploaded files and existing URLs
         var existingImages = await _pagoImagenRepository.GetByPagoIdAsync(id);
@@ -421,7 +492,9 @@ public class PagoService : IPagoService
                                     MesColegiatura = pago.MesColegiatura,
                                     Notas = pago.Notas ?? string.Empty,
                                     EsPagoDeCarnet = pago.EsPagoDeCarnet,
-                                    EstadoCarnet = pago.EstadoCarnet ?? string.Empty
+                                    EstadoCarnet = pago.EstadoCarnet ?? string.Empty,
+                                    EsPagoDeTransporte = pago.EsPagoDeTransporte,
+                                    EsPagoDeUniforme = pago.EsPagoDeUniforme
                                 };
                             }
                         }
@@ -440,7 +513,9 @@ public class PagoService : IPagoService
                                 MesColegiatura = null,
                                 Notas = pago.Notas ?? string.Empty,
                                 EsPagoDeCarnet = pago.EsPagoDeCarnet,
-                                EstadoCarnet = pago.EstadoCarnet ?? string.Empty
+                                EstadoCarnet = pago.EstadoCarnet ?? string.Empty,
+                                EsPagoDeTransporte = pago.EsPagoDeTransporte,
+                                EsPagoDeUniforme = pago.EsPagoDeUniforme
                             };
                         }
                     }
@@ -695,7 +770,10 @@ public class PagoService : IPagoService
                         Estado = string.Empty, // Can be set based on payment status if needed
                         MesColegiatura = mes,
                         Notas = pago.Notas ?? string.Empty,
-                        EsPagoDeTransporte = true
+                        EsPagoDeCarnet = pago.EsPagoDeCarnet,
+                        EstadoCarnet = pago.EstadoCarnet ?? string.Empty,
+                        EsPagoDeTransporte = pago.EsPagoDeTransporte,
+                        EsPagoDeUniforme = pago.EsPagoDeUniforme
                     };
                 }
                 else
