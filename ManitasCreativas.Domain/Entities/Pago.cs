@@ -17,6 +17,7 @@ namespace ManitasCreativas.Domain.Entities
         public MedioPago MedioPago { get; set; }
         public string? Notas { get; set; }
         public ICollection<PagoImagen> ImagenesPago { get; set; }
+        public ICollection<PagoDetalle> PagoDetalles { get; set; } = new List<PagoDetalle>();
         public int AlumnoId { get; set; }
         public Alumno Alumno { get; set; }
         public int RubroId { get; set; }

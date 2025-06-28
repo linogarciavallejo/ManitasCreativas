@@ -76,5 +76,6 @@ namespace ManitasCreativas.Domain.Entities
 
 
         public ICollection<Pago> Pagos { get; set; }
+        public ICollection<RubroUniformeDetalle> RubroUniformeDetalles { get; set; } = new List<RubroUniformeDetalle>();
     }
 }
