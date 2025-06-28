@@ -20,7 +20,15 @@ namespace ManitasCreativas.Infrastructure
         public DbSet<Rubro> Rubros { get; set; }
         public DbSet<Pago> Pagos { get; set; }
         public DbSet<PagoImagen> PagoImagenes { get; set; }
+        public DbSet<PagoDetalle> PagoDetalles { get; set; }
         public DbSet<NivelEducativo> NivelesEducativos { get; set; }
+        
+        // Uniform entities
+        public DbSet<PrendaUniforme> PrendasUniforme { get; set; }
+        public DbSet<PrendaUniformeImagen> PrendaUniformeImagenes { get; set; }
+        public DbSet<EntradaUniforme> EntradaUniformes { get; set; }
+        public DbSet<EntradaUniformeDetalle> EntradaUniformeDetalles { get; set; }
+        public DbSet<RubroUniformeDetalle> RubroUniformeDetalles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -88,6 +96,184 @@ namespace ManitasCreativas.Infrastructure
                 .HasForeignKey(p => p.UsuarioActualizacionId) // Use existing UsuarioActualizacionId field
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Configure uniform entity relationships
+            ConfigureUniformEntityRelationships(modelBuilder);
+
+        }
+
+        private void ConfigureUniformEntityRelationships(ModelBuilder modelBuilder)
+        {
+            // Configure PrendaUniforme -> PrendaUniformeImagen (one-to-many)
+            modelBuilder.Entity<PrendaUniformeImagen>()
+                .HasOne(pui => pui.PrendaUniforme)
+                .WithMany(pu => pu.ImagenesPrenda)
+                .HasForeignKey(pui => pui.PrendaUniformeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure EntradaUniforme -> EntradaUniformeDetalle (one-to-many)
+            modelBuilder.Entity<EntradaUniformeDetalle>()
+                .HasOne(eud => eud.EntradaUniforme)
+                .WithMany(eu => eu.EntradaUniformeDetalles)
+                .HasForeignKey(eud => eud.EntradaUniformeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure PrendaUniforme -> EntradaUniformeDetalle (one-to-many)
+            modelBuilder.Entity<EntradaUniformeDetalle>()
+                .HasOne(eud => eud.PrendaUniforme)
+                .WithMany(pu => pu.EntradaUniformeDetalles)
+                .HasForeignKey(eud => eud.PrendaUniformeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure Rubro -> RubroUniformeDetalle (one-to-many)
+            modelBuilder.Entity<RubroUniformeDetalle>()
+                .HasOne(rud => rud.Rubro)
+                .WithMany(r => r.RubroUniformeDetalles)
+                .HasForeignKey(rud => rud.RubroId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure PrendaUniforme -> RubroUniformeDetalle (one-to-many)
+            modelBuilder.Entity<RubroUniformeDetalle>()
+                .HasOne(rud => rud.PrendaUniforme)
+                .WithMany(pu => pu.RubroUniformeDetalles)
+                .HasForeignKey(rud => rud.PrendaUniformeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure RubroUniformeDetalle -> PagoDetalle (one-to-many)
+            modelBuilder.Entity<PagoDetalle>()
+                .HasOne(pd => pd.RubroUniformeDetalle)
+                .WithMany(rud => rud.PagoDetalles)
+                .HasForeignKey(pd => pd.RubroUniformeDetalleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure Pago -> PagoDetalle (one-to-many)
+            modelBuilder.Entity<PagoDetalle>()
+                .HasOne(pd => pd.Pago)
+                .WithMany(p => p.PagoDetalles)
+                .HasForeignKey(pd => pd.PagoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure audit user relationships for uniform entities
+            ConfigureUniformAuditUserRelationships(modelBuilder);
+            
+            // Configure additional uniform entity properties
+            ConfigureUniformEntityProperties(modelBuilder);
+        }
+
+        private void ConfigureUniformEntityProperties(ModelBuilder modelBuilder)
+        {
+            // Configure PrendaUniforme properties
+            modelBuilder.Entity<PrendaUniforme>()
+                .Property(pu => pu.Descripcion)
+                .IsRequired()
+                .HasMaxLength(200);
+                
+            modelBuilder.Entity<PrendaUniforme>()
+                .Property(pu => pu.Sexo)
+                .IsRequired()
+                .HasMaxLength(10);
+                
+            modelBuilder.Entity<PrendaUniforme>()
+                .Property(pu => pu.Talla)
+                .IsRequired()
+                .HasMaxLength(10);
+                
+            modelBuilder.Entity<PrendaUniforme>()
+                .Property(pu => pu.Precio)
+                .HasPrecision(18, 2);
+                
+            modelBuilder.Entity<PrendaUniforme>()
+                .Property(pu => pu.Notas)
+                .HasMaxLength(500);
+
+            // Configure EntradaUniforme properties
+            modelBuilder.Entity<EntradaUniforme>()
+                .Property(eu => eu.Total)
+                .HasPrecision(18, 2);
+                
+            modelBuilder.Entity<EntradaUniforme>()
+                .Property(eu => eu.Notas)
+                .HasMaxLength(500);
+
+            // Configure EntradaUniformeDetalle properties
+            modelBuilder.Entity<EntradaUniformeDetalle>()
+                .Property(eud => eud.Subtotal)
+                .HasPrecision(18, 2);
+
+            // Configure PagoDetalle properties
+            modelBuilder.Entity<PagoDetalle>()
+                .Property(pd => pd.PrecioUnitario)
+                .HasPrecision(18, 2);
+                
+            modelBuilder.Entity<PagoDetalle>()
+                .Property(pd => pd.Subtotal)
+                .HasPrecision(18, 2);
+
+            // Configure indexes for better performance
+            modelBuilder.Entity<PrendaUniforme>()
+                .HasIndex(pu => pu.Sexo)
+                .HasDatabaseName("IX_PrendaUniforme_Sexo");
+                
+            modelBuilder.Entity<PrendaUniforme>()
+                .HasIndex(pu => pu.Talla)
+                .HasDatabaseName("IX_PrendaUniforme_Talla");
+
+            modelBuilder.Entity<EntradaUniforme>()
+                .HasIndex(eu => eu.FechaEntrada)
+                .HasDatabaseName("IX_EntradaUniforme_FechaEntrada");
+
+            // Configure composite unique constraint for RubroUniformeDetalle
+            modelBuilder.Entity<RubroUniformeDetalle>()
+                .HasIndex(rud => new { rud.RubroId, rud.PrendaUniformeId })
+                .IsUnique()
+                .HasDatabaseName("IX_RubroUniformeDetalle_RubroId_PrendaUniformeId");
+        }
+
+        private void ConfigureUniformAuditUserRelationships(ModelBuilder modelBuilder)
+        {
+            // Configure PrendaUniforme -> Usuario relationships for audit
+            modelBuilder.Entity<PrendaUniforme>()
+                .HasOne(pu => pu.UsuarioCreacion)
+                .WithMany()
+                .HasForeignKey(pu => pu.UsuarioCreacionId)
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            modelBuilder.Entity<PrendaUniforme>()
+                .HasOne(pu => pu.UsuarioActualizacion)
+                .WithMany()
+                .HasForeignKey(pu => pu.UsuarioActualizacionId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure EntradaUniforme -> Usuario relationships for audit
+            modelBuilder.Entity<EntradaUniforme>()
+                .HasOne(eu => eu.UsuarioCreacion)
+                .WithMany()
+                .HasForeignKey(eu => eu.UsuarioCreacionId)
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            modelBuilder.Entity<EntradaUniforme>()
+                .HasOne(eu => eu.UsuarioActualizacion)
+                .WithMany()
+                .HasForeignKey(eu => eu.UsuarioActualizacionId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure RubroUniformeDetalle -> Usuario relationships for audit
+            modelBuilder.Entity<RubroUniformeDetalle>()
+                .HasOne(rud => rud.UsuarioCreacion)
+                .WithMany()
+                .HasForeignKey(rud => rud.UsuarioCreacionId)
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            modelBuilder.Entity<RubroUniformeDetalle>()
+                .HasOne(rud => rud.UsuarioActualizacion)
+                .WithMany()
+                .HasForeignKey(rud => rud.UsuarioActualizacionId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
         private void ConfigureAuditFields(ModelBuilder modelBuilder)
@@ -110,6 +296,19 @@ namespace ManitasCreativas.Infrastructure
             // Configure PagoImagen audit fields
             modelBuilder.Entity<PagoImagen>()
                 .Property(pi => pi.FechaCreacion)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                
+            // Configure uniform entity audit fields
+            modelBuilder.Entity<PrendaUniforme>()
+                .Property(pu => pu.FechaCreacion)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                
+            modelBuilder.Entity<EntradaUniforme>()
+                .Property(eu => eu.FechaCreacion)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                
+            modelBuilder.Entity<RubroUniformeDetalle>()
+                .Property(rud => rud.FechaCreacion)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
                 
         }
@@ -272,6 +471,61 @@ namespace ManitasCreativas.Infrastructure
                     else if (entry.State == EntityState.Modified)
                     {
                         pagoImagen.FechaActualizacion = now;
+                        // Note: UsuarioActualizacionId should be set by the service/controller
+                        
+                        // Prevent changes to creation audit fields
+                        entry.Property("FechaCreacion").IsModified = false;
+                        entry.Property("UsuarioCreacionId").IsModified = false;
+                    }
+                }
+                
+                // Handle audit fields for uniform entities
+                else if (entry.Entity is PrendaUniforme prendaUniforme)
+                {
+                    if (entry.State == EntityState.Added)
+                    {
+                        prendaUniforme.FechaCreacion = now;
+                        // Note: UsuarioCreacionId should be set by the service/controller
+                    }
+                    else if (entry.State == EntityState.Modified)
+                    {
+                        prendaUniforme.FechaActualizacion = now;
+                        // Note: UsuarioActualizacionId should be set by the service/controller
+                        
+                        // Prevent changes to creation audit fields
+                        entry.Property("FechaCreacion").IsModified = false;
+                        entry.Property("UsuarioCreacionId").IsModified = false;
+                    }
+                }
+                
+                else if (entry.Entity is EntradaUniforme entradaUniforme)
+                {
+                    if (entry.State == EntityState.Added)
+                    {
+                        entradaUniforme.FechaCreacion = now;
+                        // Note: UsuarioCreacionId should be set by the service/controller
+                    }
+                    else if (entry.State == EntityState.Modified)
+                    {
+                        entradaUniforme.FechaActualizacion = now;
+                        // Note: UsuarioActualizacionId should be set by the service/controller
+                        
+                        // Prevent changes to creation audit fields
+                        entry.Property("FechaCreacion").IsModified = false;
+                        entry.Property("UsuarioCreacionId").IsModified = false;
+                    }
+                }
+                
+                else if (entry.Entity is RubroUniformeDetalle rubroUniformeDetalle)
+                {
+                    if (entry.State == EntityState.Added)
+                    {
+                        rubroUniformeDetalle.FechaCreacion = now;
+                        // Note: UsuarioCreacionId should be set by the service/controller
+                    }
+                    else if (entry.State == EntityState.Modified)
+                    {
+                        rubroUniformeDetalle.FechaActualizacion = now;
                         // Note: UsuarioActualizacionId should be set by the service/controller
                         
                         // Prevent changes to creation audit fields
