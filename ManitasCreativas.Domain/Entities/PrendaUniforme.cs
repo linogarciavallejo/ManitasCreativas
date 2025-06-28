@@ -35,5 +35,12 @@ namespace ManitasCreativas.Domain.Entities
         public int? UsuarioActualizacionId { get; set; }
         [ForeignKey("UsuarioActualizacionId")]
         public Usuario? UsuarioActualizacion { get; set; }
+
+        public bool EsEliminado { get; set; } = false;
+        public string? MotivoEliminacion { get; set; }
+        public DateTime? FechaEliminacion { get; set; }
+        public int? UsuarioEliminacionId { get; set; }
+        [ForeignKey("UsuarioEliminacionId")]
+        public Usuario? UsuarioEliminacion { get; set; }
     }
 }

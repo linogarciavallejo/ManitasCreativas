@@ -20,4 +20,8 @@ public class PrendaUniformeDto
     public DateTime? FechaActualizacion { get; set; }
     public int UsuarioCreacionId { get; set; }
     public int? UsuarioActualizacionId { get; set; }
+    public bool EsEliminado { get; set; } = false;
+    public string? MotivoEliminacion { get; set; }
+    public DateTime? FechaEliminacion { get; set; }
+    public int? UsuarioEliminacionId { get; set; }
 }
