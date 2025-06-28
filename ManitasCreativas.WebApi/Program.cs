@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using ManitasCreativas.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using ManitasCreativas.Application.Services;
+using ManitasCreativas.WebApi.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,6 +58,14 @@ builder.Services.AddScoped<IContactoRepository, ContactoRepository>();
 builder.Services.AddScoped<IAlumnoContactoRepository, AlumnoContactoRepository>();
 builder.Services.AddScoped<IAlumnoRutaRepository, AlumnoRutaRepository>();
 
+// Uniform Management Repositories
+builder.Services.AddScoped<IPrendaUniformeRepository, PrendaUniformeRepository>();
+builder.Services.AddScoped<IPrendaUniformeImagenRepository, PrendaUniformeImagenRepository>();
+builder.Services.AddScoped<IEntradaUniformeRepository, EntradaUniformeRepository>();
+builder.Services.AddScoped<IEntradaUniformeDetalleRepository, EntradaUniformeDetalleRepository>();
+builder.Services.AddScoped<IRubroUniformeDetalleRepository, RubroUniformeDetalleRepository>();
+builder.Services.AddScoped<IPagoDetalleRepository, PagoDetalleRepository>();
+
 // Dependency Injection for Services
 builder.Services.AddScoped<IUsuarioService, UsuarioService>(sp => {
     var usuarioRepository = sp.GetRequiredService<IUsuarioRepository>();
@@ -104,6 +113,11 @@ builder.Services.AddScoped<IPagoService, PagoService>(sp =>
 // Inject S3Service into PagoService
 builder.Services.AddScoped<S3Service>();
 
+// Uniform Management Services
+builder.Services.AddScoped<IPrendaUniformeService, PrendaUniformeService>();
+builder.Services.AddScoped<IEntradaUniformeService, EntradaUniformeService>();
+builder.Services.AddScoped<IRubroUniformeDetalleService, RubroUniformeDetalleService>();
+
 // Add DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -144,6 +158,11 @@ app.MapSedeEndpoints();
 app.MapContactoEndpoints();
 app.MapAlumnoContactoEndpoints();
 app.MapAlumnoRutaEndpoints();
+
+// Uniform Management Endpoints
+app.MapPrendaUniformeEndpoints();
+app.MapEntradaUniformeEndpoints();
+app.MapRubroUniformeDetalleEndpoints();
 
 app.MapFallbackToFile("index.html"); // Serve the SPA
 
