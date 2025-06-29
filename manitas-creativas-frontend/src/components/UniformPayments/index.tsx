@@ -145,8 +145,8 @@ const UniformPayments: React.FC = () => {
         const response = await makeApiRequest<Rubro[]>('/rubros', 'GET');
         
         // Debug logging
-        console.log('All rubros from API:', response);
-        console.log('Selected student nivel educativo:', selectedStudentDetails.nivelEducativoId);
+        //console.log('All rubros from API:', response);
+        //console.log('Selected student nivel educativo:', selectedStudentDetails.nivelEducativoId);
         
         const uniformRubros = response.filter(rubro => {
           const isUniformPayment = rubro.esPagoDeUniforme === true;
