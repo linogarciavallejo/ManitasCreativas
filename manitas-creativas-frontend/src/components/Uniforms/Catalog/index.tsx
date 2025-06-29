@@ -7,7 +7,6 @@ import {
   Input,
   InputNumber,
   Select,
-  message,
   Space,
   Popconfirm,
   Typography,
@@ -28,6 +27,8 @@ import {
   UploadOutlined,
   EyeOutlined
 } from '@ant-design/icons';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import type { ColumnsType } from 'antd/es/table';
 
 // Interface for file upload
@@ -156,7 +157,7 @@ const PrendaUniforme: React.FC = () => {
       setData(prendas);
     } catch (error) {
       console.error('Error fetching uniform garments:', error);
-      message.error('Error al cargar las prendas de uniforme');
+      toast.error('Error al cargar las prendas de uniforme');
     } finally {
       setFetchingData(false);
     }
@@ -449,7 +450,7 @@ const PrendaUniforme: React.FC = () => {
       });
     } catch (error) {
       console.error('Error fetching uniform details:', error);
-      message.error('Error al cargar los detalles de la prenda');
+      toast.error('Error al cargar los detalles de la prenda');
     }
   };
 
@@ -470,7 +471,7 @@ const PrendaUniforme: React.FC = () => {
       validateForm();
     } catch (error) {
       console.error('Error fetching uniform for edit:', error);
-      message.error('Error al cargar la prenda para edición');
+      toast.error('Error al cargar la prenda para edición');
     }
   };
 
@@ -478,11 +479,11 @@ const PrendaUniforme: React.FC = () => {
     try {
       setLoading(true);
       await uniformService.deletePrendaUniforme(id, 'Eliminado desde la interfaz de usuario', 1);
-      message.success('Prenda eliminada exitosamente');
+      toast.success('Prenda eliminada exitosamente');
       await fetchPrendasUniforme();
     } catch (error) {
       console.error('Error deleting uniform:', error);
-      message.error('Error al eliminar la prenda');
+      toast.error('Error al eliminar la prenda');
     } finally {
       setLoading(false);
     }
@@ -520,17 +521,17 @@ const PrendaUniforme: React.FC = () => {
 
       if (editingId) {
         await uniformService.updatePrendaUniforme(editingId, prendaData, 1);
-        message.success('Prenda actualizada exitosamente');
+        toast.success('Prenda actualizada exitosamente');
       } else {
         await uniformService.createPrendaUniforme(prendaData, 1);
-        message.success('Prenda creada exitosamente');
+        toast.success('Prenda creada exitosamente');
       }
 
       setModalVisible(false);
       await fetchPrendasUniforme();
     } catch (error) {
       console.error('Error saving uniform:', error);
-      message.error('Error al guardar la prenda');
+      toast.error('Error al guardar la prenda');
     } finally {
       setLoading(false);
     }
@@ -560,6 +561,18 @@ const PrendaUniforme: React.FC = () => {
 
   return (
     <div className="prenda-uniforme-container">
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <div style={{ padding: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <Title level={2}>Catálogo de Uniformes</Title>
