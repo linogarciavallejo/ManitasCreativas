@@ -25,6 +25,7 @@ export interface Rubro {
   ordenVisualizacionGrid?: number; // Added: new field for display order in grid
   esPagoDeCarnet?: boolean; // Added: new field for ID card payment flag
   esPagoDeTransporte?: boolean; // Added: new field for transport payment flag
+  esPagoDeUniforme?: boolean; // Added: new field for uniform payment flag
   
   // Audit fields
   fechaCreacion: string;

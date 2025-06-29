@@ -22,6 +22,7 @@ const TransportDebtorsReport = React.lazy(() => import("../components/Reports/Tr
 const RoutesAssignment = React.lazy(() => import("../components/RoutesAssignment"));
 const UniformsMain = React.lazy(() => import("../components/Uniforms"));
 const PrendaUniforme = React.lazy(() => import("../components/Uniforms/Catalog"));
+const UniformsConfiguration = React.lazy(() => import("../components/Uniforms/Configuration"));
 
 const AppRoutes: React.FC = () => {
   //userStore();
@@ -50,6 +51,7 @@ const AppRoutes: React.FC = () => {
         <Route path="routes-assignment" element={<RoutesAssignment />} />
         <Route path="uniforms" element={<UniformsMain />} />
         <Route path="uniforms/catalog" element={<PrendaUniforme />} />
+        <Route path="uniforms/configuration" element={<UniformsConfiguration />} />
       </Route>
     </Routes>
   );

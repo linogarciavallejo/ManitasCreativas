@@ -26,6 +26,7 @@ public class RubroDto
     public int? OrdenVisualizacionGrid { get; set; }
     public bool? EsPagoDeCarnet { get; set; }
     public bool? EsPagoDeTransporte { get; set; }
+    public bool? EsPagoDeUniforme { get; set; }
 
     // Audit fields
     public DateTime FechaCreacion { get; set; }

@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import {
   AppstoreOutlined,
   InboxOutlined,
-  TagsOutlined,
   ShoppingCartOutlined,
   BarChartOutlined,
   SettingOutlined
@@ -29,11 +28,11 @@ const UniformsMain: React.FC = () => {
       color: '#f6ffed'
     },
     {
-      title: 'Asignación de Categorías',
-      description: 'Configuración de rubros y precios por categoría de uniforme',
-      icon: <TagsOutlined style={{ fontSize: '32px', color: '#fa8c16' }} />,
-      link: '/main/uniforms/categories',
-      color: '#fff7e6'
+      title: 'Configuración de Uniformes',
+      description: 'Asociación de prendas con rubros de pago y configuración general',
+      icon: <SettingOutlined style={{ fontSize: '32px', color: '#fa541c' }} />,
+      link: '/main/uniforms/configuration',
+      color: '#fff2e8'
     },
     {
       title: 'Ventas de Uniformes',
