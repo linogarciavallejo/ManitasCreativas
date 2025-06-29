@@ -20,6 +20,8 @@ const ReportsMenu = React.lazy(() => import("../components/Reports/ReportsMenu")
 const TuitionDebtorsReport = React.lazy(() => import("../components/Reports/TuitionDebtors"));
 const TransportDebtorsReport = React.lazy(() => import("../components/Reports/TransportDebtors"));
 const RoutesAssignment = React.lazy(() => import("../components/RoutesAssignment"));
+const UniformsMain = React.lazy(() => import("../components/Uniforms"));
+const PrendaUniforme = React.lazy(() => import("../components/Uniforms/Catalog"));
 
 const AppRoutes: React.FC = () => {
   //userStore();
@@ -46,6 +48,8 @@ const AppRoutes: React.FC = () => {
         <Route path="tuition-debtors-report" element={<TuitionDebtorsReport />} />
         <Route path="transport-debtors-report" element={<TransportDebtorsReport />} />
         <Route path="routes-assignment" element={<RoutesAssignment />} />
+        <Route path="uniforms" element={<UniformsMain />} />
+        <Route path="uniforms/catalog" element={<PrendaUniforme />} />
       </Route>
     </Routes>
   );
