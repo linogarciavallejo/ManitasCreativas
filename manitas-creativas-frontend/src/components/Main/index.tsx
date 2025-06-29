@@ -53,6 +53,11 @@ const Main: React.FC = () => {
               label: <Link to="transport-payments">Pagos de Bus</Link>,
             },
             {
+              key: "2.5",
+              icon: <AppstoreOutlined />,
+              label: <Link to="uniform-payments">Pagos de Uniformes</Link>,
+            },
+            {
               key: "3",
               icon: <DollarOutlined />,
               label: <Link to="other-payments">Otros Pagos</Link>,

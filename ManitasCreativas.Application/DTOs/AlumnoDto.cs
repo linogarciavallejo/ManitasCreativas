@@ -12,6 +12,7 @@ public class AlumnoDto
     public string SedeNombre { get; set; } = string.Empty;
     public int GradoId { get; set; }
     public string GradoNombre { get; set; } = string.Empty;
+    public int NivelEducativoId { get; set; }
     public string? Seccion { get; set; }
     public bool? Becado { get; set; }
     public decimal? BecaParcialPorcentaje { get; set; }

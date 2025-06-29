@@ -10,6 +10,7 @@ export interface RubroUniformeDetalle {
   prendaUniformeSexo: string;
   prendaUniformeTalla: string;
   prendaUniformePrecio: number;
+  prendaUniformeImagenUrl?: string;
   fechaCreacion: string;
   fechaActualizacion?: string;
   usuarioCreacionId: number;

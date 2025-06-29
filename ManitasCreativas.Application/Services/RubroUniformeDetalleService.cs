@@ -152,6 +152,7 @@ public class RubroUniformeDetalleService : IRubroUniformeDetalleService
             PrendaUniformeSexo = detalle.PrendaUniforme?.Sexo ?? string.Empty,
             PrendaUniformeTalla = detalle.PrendaUniforme?.Talla ?? string.Empty,
             PrendaUniformePrecio = detalle.PrendaUniforme?.Precio ?? 0,
+            PrendaUniformeImagenUrl = detalle.PrendaUniforme?.ImagenesPrenda?.FirstOrDefault()?.Imagen?.ToString(),
             FechaCreacion = detalle.FechaCreacion,
             FechaActualizacion = detalle.FechaActualizacion,
             UsuarioCreacionId = detalle.UsuarioCreacionId,

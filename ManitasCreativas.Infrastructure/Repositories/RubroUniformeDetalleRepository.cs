@@ -18,6 +18,7 @@ public class RubroUniformeDetalleRepository : IRubroUniformeDetalleRepository
         return await _context.RubroUniformeDetalles
             .Include(rud => rud.Rubro)
             .Include(rud => rud.PrendaUniforme)
+                .ThenInclude(pu => pu.ImagenesPrenda)
             .FirstOrDefaultAsync(rud => rud.Id == id);
     }
 
@@ -25,6 +26,7 @@ public class RubroUniformeDetalleRepository : IRubroUniformeDetalleRepository
     {
         return await _context.RubroUniformeDetalles
             .Include(rud => rud.PrendaUniforme)
+                .ThenInclude(pu => pu.ImagenesPrenda)
             .Where(rud => rud.RubroId == rubroId && !rud.EsEliminado)
             .OrderBy(rud => rud.PrendaUniforme.Descripcion)
             .ToListAsync();
@@ -34,6 +36,8 @@ public class RubroUniformeDetalleRepository : IRubroUniformeDetalleRepository
     {
         return await _context.RubroUniformeDetalles
             .Include(rud => rud.Rubro)
+            .Include(rud => rud.PrendaUniforme)
+                .ThenInclude(pu => pu.ImagenesPrenda)
             .Where(rud => rud.PrendaUniformeId == prendaUniformeId && !rud.EsEliminado)
             .OrderBy(rud => rud.Rubro.Descripcion)
             .ToListAsync();
@@ -44,6 +48,7 @@ public class RubroUniformeDetalleRepository : IRubroUniformeDetalleRepository
         return await _context.RubroUniformeDetalles
             .Include(rud => rud.Rubro)
             .Include(rud => rud.PrendaUniforme)
+                .ThenInclude(pu => pu.ImagenesPrenda)
             .FirstOrDefaultAsync(rud => rud.RubroId == rubroId && 
                                       rud.PrendaUniformeId == prendaUniformeId && 
                                       !rud.EsEliminado);
@@ -54,6 +59,7 @@ public class RubroUniformeDetalleRepository : IRubroUniformeDetalleRepository
         return await _context.RubroUniformeDetalles
             .Include(rud => rud.Rubro)
             .Include(rud => rud.PrendaUniforme)
+                .ThenInclude(pu => pu.ImagenesPrenda)
             .OrderBy(rud => rud.Rubro.Descripcion)
             .ThenBy(rud => rud.PrendaUniforme.Descripcion)
             .ToListAsync();

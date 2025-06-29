@@ -12,6 +12,7 @@ public class RubroUniformeDetalleDto
     public string PrendaUniformeSexo { get; set; } = string.Empty;
     public string PrendaUniformeTalla { get; set; } = string.Empty;
     public decimal PrendaUniformePrecio { get; set; }
+    public string? PrendaUniformeImagenUrl { get; set; } = string.Empty;
 
     // Audit fields
     public DateTime FechaCreacion { get; set; }
