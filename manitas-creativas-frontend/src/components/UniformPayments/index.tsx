@@ -165,6 +165,35 @@ const UniformPayments: React.FC = () => {
         
         console.log('Filtered uniform rubros:', uniformRubros);
         setUniformRubros(uniformRubros);
+
+        // Auto-select if only one uniform is available
+        if (uniformRubros.length === 1) {
+          const singleRubro = uniformRubros[0];
+          setSelectedRubro(singleRubro);
+          setDinamicRubroId(singleRubro.id.toString());
+          
+          // Update form with the selected rubro
+          form.setFieldsValue({ 
+            rubroId: singleRubro.id.toString(),
+            monto: singleRubro.montoPreestablecido || 0
+          });
+
+          // Fetch available uniform items for this auto-selected rubro
+          try {
+            const uniformDetails = await rubroUniformeDetalleService.getRubroUniformeDetallesByRubroId(singleRubro.id);
+            setAvailableUniformItems(uniformDetails);
+            
+            if (payFullUniform) {
+              // Calculate total amount for full uniform
+              const total = uniformDetails.reduce((sum, item) => sum + item.prendaUniformePrecio, 0);
+              setTotalAmount(total);
+              form.setFieldsValue({ monto: total });
+            }
+          } catch (error) {
+            console.error('Error fetching uniform details for auto-selected rubro:', error);
+            toast.error('Error al cargar los detalles del uniforme');
+          }
+        }
       } catch (error) {
         console.error('Error fetching uniform rubros:', error);
         toast.error('Error al cargar los rubros de uniformes');
@@ -174,7 +203,7 @@ const UniformPayments: React.FC = () => {
     };
 
     fetchUniformRubros();
-  }, [selectedStudentDetails]);
+  }, [selectedStudentDetails, payFullUniform, form]);
 
   // Handle rubro selection
   const handleRubroChange = async (rubroId: string) => {
