@@ -438,10 +438,29 @@ const UniformPayments: React.FC = () => {
   const handleCodigoSearch = async (codigo: string) => {
     try {
       const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${codigo}`, "GET");
+      
+      // Reset uniform-related state when student changes
+      setSelectedRubro(null);
+      setDinamicRubroId("");
+      setUniformItems([]);
+      setAvailableUniformItems([]);
+      setTotalAmount(0);
+      
+      // Reset form uniform fields
+      form.setFieldsValue({
+        rubroId: undefined,
+        monto: 0
+      });
+      
+      // Set new student data
       setAlumnoId(response.id.toString());
       setSelectedCodigo(response.codigo);
-      setSelectedStudent(`${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim());
+      const fullName = `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim();
+      setSelectedStudent(fullName);
       setSelectedStudentDetails(response);
+      
+      // Reset typeahead input to show the new student's name
+      setAutoCompleteValue(fullName);
     } catch (error: unknown) {
       console.error("Error fetching student by code:", error);
       toast.error("No se encontró ningún alumno con ese código.");
