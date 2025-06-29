@@ -2,6 +2,7 @@ using ManitasCreativas.Application.DTOs;
 using ManitasCreativas.Application.Interfaces.Repositories;
 using ManitasCreativas.Application.Interfaces.Services;
 using ManitasCreativas.Domain.Entities;
+using System.IO;
 
 namespace ManitasCreativas.Application.Services;
 
@@ -10,15 +11,18 @@ public class PrendaUniformeService : IPrendaUniformeService
     private readonly IPrendaUniformeRepository _prendaUniformeRepository;
     private readonly IPrendaUniformeImagenRepository _prendaUniformeImagenRepository;
     private readonly IUsuarioRepository _usuarioRepository;
+    private readonly S3Service _s3Service;
 
     public PrendaUniformeService(
         IPrendaUniformeRepository prendaUniformeRepository,
         IPrendaUniformeImagenRepository prendaUniformeImagenRepository,
-        IUsuarioRepository usuarioRepository)
+        IUsuarioRepository usuarioRepository,
+        S3Service s3Service)
     {
         _prendaUniformeRepository = prendaUniformeRepository;
         _prendaUniformeImagenRepository = prendaUniformeImagenRepository;
         _usuarioRepository = usuarioRepository;
+        _s3Service = s3Service;
     }
 
     public async Task<IEnumerable<PrendaUniformeDto>> GetAllAsync()
@@ -93,12 +97,36 @@ public class PrendaUniformeService : IPrendaUniformeService
         {
             foreach (var imagenDto in createDto.Imagenes)
             {
-                var imagen = new PrendaUniformeImagen
+                try
                 {
-                    PrendaUniformeId = prenda.Id,
-                    Imagen = new Uri($"data:{imagenDto.ContentType};base64,{imagenDto.Base64Content}") // This will need proper file handling
-                };
-                await _prendaUniformeImagenRepository.AddAsync(imagen);
+                    // Convert base64 to stream
+                    var imageBytes = Convert.FromBase64String(imagenDto.Base64Content);
+                    using var imageStream = new MemoryStream(imageBytes);
+                    
+                    // Generate unique filename for the uniform image
+                    var fileExtension = imagenDto.FileName.Split('.').LastOrDefault() ?? "jpg";
+                    var uniqueFileName = $"prenda-{prenda.Id}-{Guid.NewGuid()}.{fileExtension}";
+                    
+                    // Upload to S3 in the uniformes folder
+                    var s3Url = await _s3Service.UploadFileAsync(
+                        imageStream, 
+                        $"uniformes/{uniqueFileName}", 
+                        imagenDto.ContentType
+                    );
+
+                    var imagen = new PrendaUniformeImagen
+                    {
+                        PrendaUniformeId = prenda.Id,
+                        Imagen = new Uri(s3Url),
+                    };
+                    
+                    await _prendaUniformeImagenRepository.AddAsync(imagen);
+                }
+                catch (Exception ex)
+                {
+                    // Log error but continue with other images
+                    Console.WriteLine($"Error uploading image for prenda {prenda.Id}: {ex.Message}");
+                }
             }
         }
 
@@ -121,6 +149,44 @@ public class PrendaUniformeService : IPrendaUniformeService
         prenda.UsuarioActualizacionId = usuarioActualizacionId;
 
         await _prendaUniformeRepository.UpdateAsync(prenda);
+
+        // Handle new images if provided
+        if (updateDto.Imagenes.Any())
+        {
+            foreach (var imagenDto in updateDto.Imagenes)
+            {
+                try
+                {
+                    // Convert base64 to stream
+                    var imageBytes = Convert.FromBase64String(imagenDto.Base64Content);
+                    using var imageStream = new MemoryStream(imageBytes);
+                    
+                    // Generate unique filename for the uniform image
+                    var fileExtension = imagenDto.FileName.Split('.').LastOrDefault() ?? "jpg";
+                    var uniqueFileName = $"prenda-{prenda.Id}-{Guid.NewGuid()}.{fileExtension}";
+                    
+                    // Upload to S3 in the uniformes folder
+                    var s3Url = await _s3Service.UploadFileAsync(
+                        imageStream,
+                        $"uniformes/{uniqueFileName}",
+                        imagenDto.ContentType
+                    );
+
+                    var imagen = new PrendaUniformeImagen
+                    {
+                        PrendaUniformeId = prenda.Id,
+                        Imagen = new Uri(s3Url),
+                    };
+                    
+                    await _prendaUniformeImagenRepository.AddAsync(imagen);
+                }
+                catch (Exception ex)
+                {
+                    // Log error but continue with other images
+                    Console.WriteLine($"Error uploading image for prenda {prenda.Id}: {ex.Message}");
+                }
+            }
+        }
 
         return await GetByIdWithImagesAsync(id) ?? throw new InvalidOperationException("Failed to retrieve updated prenda");
     }

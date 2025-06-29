@@ -53,6 +53,7 @@ const sexoOptions = [
 
 // Size options
 const tallaOptions = [
+  { value: '*', label: 'Todas' },
   { value: 'XXS', label: 'XXS' },
   { value: 'XS', label: 'XS' },
   { value: 'S', label: 'S' },
@@ -237,6 +238,7 @@ const PrendaUniforme: React.FC = () => {
       key: 'talla',
       width: '8%',
       align: 'center',
+      render: (talla: string) => talla === '*' ? 'Todas' : talla,
       sorter: (a, b) => a.talla.localeCompare(b.talla),
     },
     {
