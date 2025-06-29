@@ -18,6 +18,7 @@ import {
 import {
   PlusOutlined,
   DeleteOutlined,
+  EditOutlined,
   SearchOutlined,
   ClearOutlined,
   ReloadOutlined,
@@ -202,6 +203,13 @@ const UniformsConfiguration: React.FC = () => {
     return tallas.filter(Boolean);
   };
 
+  // Function to get available prendas (all prendas since they can be assigned to multiple rubros)
+  const getAvailablePrendas = () => {
+    // All prendas are available since a prenda can be assigned to multiple different rubros
+    // The validation is done at save time to prevent duplicate rubro-prenda combinations
+    return prendas;
+  };
+
   // Columns for the table
   const columns: ColumnsType<RubroUniformeDetalle> = [
     {
@@ -260,10 +268,17 @@ const UniformsConfiguration: React.FC = () => {
     {
       title: 'Acciones',
       key: 'actions',
-      width: '8%',
+      width: '10%',
       align: 'center',
       render: (_, record) => (
         <Space size="small">
+          <Button
+            type="link"
+            icon={<EditOutlined />}
+            size="small"
+            onClick={() => handleEdit(record)}
+            title="Editar"
+          />
           <Popconfirm
             title="¿Está seguro de eliminar esta configuración?"
             description="Esta acción no se puede deshacer"
@@ -382,6 +397,16 @@ const UniformsConfiguration: React.FC = () => {
     setIsFormValid(false);
   };
 
+  const handleEdit = (record: RubroUniformeDetalle) => {
+    setEditingId(record.id);
+    form.setFieldsValue({
+      rubroId: record.rubroId,
+      prendaUniformeId: record.prendaUniformeId
+    });
+    setModalVisible(true);
+    setIsFormValid(true);
+  };
+
   const handleDelete = async (id: number) => {
     try {
       setLoading(true);
@@ -401,10 +426,16 @@ const UniformsConfiguration: React.FC = () => {
       setLoading(true);
       const values = await form.validateFields();
       
-      // Check if combination already exists
-      const exists = await rubroUniformeDetalleService.existsRubroUniformeDetalle(values.rubroId, values.prendaUniformeId);
-      if (exists && editingId === null) {
-        toast.error('Esta combinación de rubro y prenda ya existe');
+      // Check if this exact rubro-prenda combination already exists (excluding current item when editing)
+      const duplicateCombination = data.find(item => 
+        item.rubroId === values.rubroId && 
+        item.prendaUniformeId === values.prendaUniformeId && 
+        !item.esEliminado && 
+        item.id !== editingId
+      );
+      
+      if (duplicateCombination) {
+        toast.error('Esta combinación de uniforme y prenda ya existe. Una prenda no puede estar asignada dos veces al mismo uniforme.');
         return;
       }
 
@@ -535,6 +566,7 @@ const UniformsConfiguration: React.FC = () => {
               label="Prenda de Uniforme"
               name="prendaUniformeId"
               rules={[{ required: true, message: 'Por favor seleccione una prenda' }]}
+              extra="Una prenda puede asignarse a múltiples rubros, pero no puede repetirse en el mismo rubro"
             >
               <Select
                 placeholder="Seleccione la prenda de uniforme"
@@ -542,7 +574,7 @@ const UniformsConfiguration: React.FC = () => {
                 showSearch
                 optionFilterProp="children"
               >
-                {prendas.map(prenda => (
+                {getAvailablePrendas().map(prenda => (
                   <Option key={prenda.id} value={prenda.id}>
                     {prenda.descripcion} - {prenda.sexo} - {prenda.talla === '*' ? 'Todas' : prenda.talla} - Q{prenda.precio.toFixed(2)}
                   </Option>
