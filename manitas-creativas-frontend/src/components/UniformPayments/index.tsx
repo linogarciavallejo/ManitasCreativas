@@ -666,7 +666,7 @@ const UniformPayments: React.FC = () => {
             {selectedStudentDetails && (
               <>
                 <p><strong>Grado:</strong> {selectedStudentDetails.gradoNombre} {selectedStudentDetails.seccion}</p>
-                <p><strong>Sede:</strong> {selectedStudentDetails.sedeNombre}</p>
+                {/* <p><strong>Sede:</strong> {selectedStudentDetails.sedeNombre}</p> */}
               </>
             )}
           </div>
