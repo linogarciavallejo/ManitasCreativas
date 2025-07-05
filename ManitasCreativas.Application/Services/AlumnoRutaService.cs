@@ -148,9 +148,10 @@ public class AlumnoRutaService : IAlumnoRutaService
                 var segundoApellido = alumno.SegundoApellido ?? "";
                 var primerNombre = alumno.PrimerNombre ?? "";
                 var segundoNombre = alumno.SegundoNombre ?? "";
+                var tercerNombre = alumno.TercerNombre ?? "";
                 
                 var apellidos = $"{primerApellido} {segundoApellido}".Trim();
-                var nombres = $"{primerNombre} {segundoNombre}".Trim();
+                var nombres = $"{primerNombre} {segundoNombre} {tercerNombre}".Trim();
                 var nombreCompleto = $"{apellidos}, {nombres}";
 
                 var detailedDto = new AlumnoRutaDetailedDto

@@ -74,7 +74,7 @@ public class AlumnoRepository : IAlumnoRepository
             .Include(a => a.Grado)
             .Include(a => a.Pagos)
             .Where(a =>
-                (a.PrimerNombre.Contains(nombre) || a.SegundoNombre.Contains(nombre)) ||
+                (a.PrimerNombre.Contains(nombre) || a.SegundoNombre.Contains(nombre) || a.TercerNombre.Contains(nombre)) ||
                 (a.PrimerApellido.Contains(apellido) || a.SegundoApellido.Contains(apellido))
             )
             .ToListAsync();
@@ -110,11 +110,14 @@ public class AlumnoRepository : IAlumnoRepository
                 a.Codigo.Contains(query) ||
                 a.PrimerNombre.Contains(query) ||
                 a.SegundoNombre.Contains(query) ||
+                a.TercerNombre.Contains(query) ||
                 a.PrimerApellido.Contains(query) ||
                 a.SegundoApellido.Contains(query) ||
                 (a.PrimerNombre + " " + a.SegundoNombre).Contains(query) ||
+                (a.PrimerNombre + " " + a.SegundoNombre + " " + a.TercerNombre).Contains(query) ||
                 (a.PrimerApellido + " " + a.SegundoApellido).Contains(query) ||
-                (a.PrimerApellido + " " + a.SegundoApellido + ", " + a.PrimerNombre + " " + a.SegundoNombre).Contains(query)
+                (a.PrimerApellido + " " + a.SegundoApellido + ", " + a.PrimerNombre + " " + a.SegundoNombre).Contains(query) ||
+                (a.PrimerApellido + " " + a.SegundoApellido + ", " + a.PrimerNombre + " " + a.SegundoNombre + " " + a.TercerNombre).Contains(query)
             )
             .ToListAsync();
     }
