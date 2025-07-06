@@ -383,12 +383,13 @@ public class PagoService : IPagoService
             int ordinal = 1;
             foreach (var alumno in seccionGroup)
             {
-                // Format the full name as requested: "Primer Apellido Segundo Apellido, Primer Nombre Segundo Nombre"
-                string nombreCompleto = string.Format("{0} {1}, {2} {3}",
+                // Format the full name as requested: "Primer Apellido Segundo Apellido, Primer Nombre Segundo Nombre Tercer Nombre"
+                string nombreCompleto = string.Format("{0} {1}, {2} {3} {4}",
                     alumno.PrimerApellido,
                     alumno.SegundoApellido ?? string.Empty,
                     alumno.PrimerNombre,
-                    alumno.SegundoNombre ?? string.Empty).Trim();
+                    alumno.SegundoNombre ?? string.Empty,
+                    alumno.TercerNombre ?? string.Empty).Trim();
                 
                 // Get all contactos for this alumno to extract NITs
                 var contactos = await _alumnoContactoRepository.GetByAlumnoIdAsync(alumno.Id);
