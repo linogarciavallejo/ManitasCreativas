@@ -659,11 +659,12 @@ public class PagoService : IPagoService
         foreach (var alumno in alumnos)
         {
             // Format full name: "Last Names, First Names"
-            string nombreCompleto = string.Format("{0} {1}, {2} {3}",
+            string nombreCompleto = string.Format("{0} {1}, {2} {3} {4}",
                 alumno.PrimerApellido?.Trim() ?? string.Empty,
                 alumno.SegundoApellido?.Trim() ?? string.Empty,
                 alumno.PrimerNombre?.Trim() ?? string.Empty,
-                alumno.SegundoNombre?.Trim() ?? string.Empty).Trim();
+                alumno.SegundoNombre?.Trim() ?? string.Empty,
+                alumno.TercerNombre?.Trim() ?? string.Empty).Trim();
 
             // Get contactos for this student
             var contactos = await _alumnoContactoRepository.GetByAlumnoIdAsync(alumno.Id);
