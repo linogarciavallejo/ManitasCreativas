@@ -52,8 +52,8 @@ const RoutesAssignment: React.FC = () => {
       const students = await routeAssignmentService.getStudentsByRoute(rubroId);
       // Sort alphabetically by full name as specified in requirements
       const sortedStudents = students.sort((a, b) => {
-        const nameA = `${a.alumnoApellidos}, ${a.alumnoNombre}`.toLowerCase();
-        const nameB = `${b.alumnoApellidos}, ${b.alumnoNombre}`.toLowerCase();
+        const nameA = a.alumnoCompleto.toLowerCase();
+        const nameB = b.alumnoCompleto.toLowerCase();
         return nameA.localeCompare(nameB);
       });
       setAssignedStudents(sortedStudents);
