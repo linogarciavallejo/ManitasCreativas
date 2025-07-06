@@ -55,6 +55,7 @@ const Students: React.FC = () => {
     return [
       alumno.primerNombre,
       alumno.segundoNombre,
+      alumno.tercerNombre,
       alumno.primerApellido,
       alumno.segundoApellido
     ].filter(Boolean).join(' ');
@@ -762,6 +763,26 @@ const Students: React.FC = () => {
               >
                 <Input placeholder="Segundo nombre (opcional)" />
               </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Tercer Nombre"
+                name="tercerNombre"
+                rules={[
+                  {
+                    pattern: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/,
+                    message: 'El nombre solo puede contener letras y espacios!'
+                  }
+                ]}
+              >
+                <Input placeholder="Tercer nombre (opcional)" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              {/* Empty column for symmetry */}
             </Col>
           </Row>
 
