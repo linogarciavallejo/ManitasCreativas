@@ -26,6 +26,7 @@
     <ProjectReference Include="..\ManitasCreativas.Application\ManitasCreativas.Application.csproj" />
     <ProjectReference Include="..\ManitasCreativas.Domain\ManitasCreativas.Domain.csproj" />
     <ProjectReference Include="..\ManitasCreativas.Infrastructure\ManitasCreativas.Infrastructure.csproj" />
+    <ProjectReference Include="..\ManitasCreativas.Infrastructure.Shared\ManitasCreativas.Infrastructure.Shared.csproj" />
   </ItemGroup>
 
 </Project>

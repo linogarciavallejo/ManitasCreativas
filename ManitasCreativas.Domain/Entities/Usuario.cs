@@ -25,5 +25,9 @@ namespace ManitasCreativas.Domain.Entities
         public EstadoUsuario EstadoUsuario { get; set; }
 
         public required Rol Rol { get; set; }
+
+        // Password reset fields
+        public string? PasswordResetToken { get; set; }
+        public DateTime? PasswordResetExpires { get; set; }
     }
 }

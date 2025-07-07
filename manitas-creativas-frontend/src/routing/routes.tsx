@@ -4,6 +4,8 @@ import { Route, Routes } from "react-router-dom";
 import PrivateRoute from "./PrivateRoute";
 
 const SignIn = React.lazy(() => import("../components/SignIn"));
+const ForgotPassword = React.lazy(() => import("../components/ForgotPassword"));
+const ResetPassword = React.lazy(() => import("../components/ResetPassword"));
 const Main = React.lazy(() => import("../components/Main"));
 const Tuitions = React.lazy(() => import("../components/Tuitions"));
 const OtherPayments = React.lazy(() => import("../components/OtherPayments"));
@@ -28,6 +30,9 @@ const AppRoutes: React.FC = () => {
     <Routes>
       {" "}
       <Route path="/" element={<SignIn />} />
+      <Route path="/signin" element={<SignIn />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route
         path="/main"
         element={

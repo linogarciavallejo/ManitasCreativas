@@ -57,6 +57,17 @@ const SignIn: React.FC = () => {
             Ingresar
           </Button>
         </Form.Item>
+        
+        <Form.Item>
+          <Button 
+            type="link" 
+            onClick={() => navigate('/forgot-password')}
+            block
+            style={{ padding: 0 }}
+          >
+            ¿Olvidaste tu contraseña?
+          </Button>
+        </Form.Item>
       </Form>
     </div>
   );

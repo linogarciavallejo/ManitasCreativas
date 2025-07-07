@@ -10,4 +10,6 @@ public interface IUsuarioService
     Task UpdateUsuarioAsync(UsuarioDto usuarioDto);
     Task DeleteUsuarioAsync(int id);
     Task<UsuarioDto?> GetUsuarioByCodigoUsuarioAsync(string codigoUsuario, string password);
+    Task<bool> InitiatePasswordResetAsync(string email);
+    Task<bool> ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
 }

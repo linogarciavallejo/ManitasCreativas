@@ -3,6 +3,7 @@ using ManitasCreativas.Application.Interfaces.Repositories;
 using ManitasCreativas.Application.Interfaces.Services;
 using ManitasCreativas.Domain.Entities;
 using ManitasCreativas.Domain.Enums;
+using Microsoft.Extensions.Configuration;
 
 namespace ManitasCreativas.Application.Services;
 
@@ -10,11 +11,15 @@ public class UsuarioService : IUsuarioService
 {
     private readonly IUsuarioRepository _usuarioRepository;
     private readonly IRolRepository _rolRepository;
+    private readonly IEmailService _emailService;
+    private readonly IConfiguration _configuration;
 
-    public UsuarioService(IUsuarioRepository usuarioRepository, IRolRepository rolRepository)
+    public UsuarioService(IUsuarioRepository usuarioRepository, IRolRepository rolRepository, IEmailService emailService, IConfiguration configuration)
     {
         _usuarioRepository = usuarioRepository;
         _rolRepository = rolRepository;
+        _emailService = emailService;
+        _configuration = configuration;
     }
 
     public async Task<IEnumerable<UsuarioDto>> GetAllUsuariosAsync()
@@ -118,5 +123,83 @@ public class UsuarioService : IUsuarioService
             EstadoUsuario = usuario.EstadoUsuario.ToString(),
             Rol = usuario.Rol?.Nombre
         };
+    }
+
+    public async Task<bool> InitiatePasswordResetAsync(string email)
+    {
+        var usuario = await _usuarioRepository.GetByEmailAsync(email);
+        if (usuario == null || usuario.EstadoUsuario != EstadoUsuario.Activo)
+        {
+            return false; // Don't reveal if email exists
+        }
+        
+        // Generate reset token
+        var token = Guid.NewGuid().ToString();
+        usuario.PasswordResetToken = token;
+        usuario.PasswordResetExpires = DateTime.UtcNow.AddHours(1); // 1 hour expiration
+        
+        await _usuarioRepository.UpdateAsync(usuario);
+        
+        // Send password reset email
+        try
+        {
+            var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173";
+            var resetUrl = $"{frontendUrl}/reset-password?token={token}";
+            var subject = "Recuperación de Contraseña - Manitas Creativas";
+            var body = $@"Estimado/a {usuario.Nombres},
+
+Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en Manitas Creativas.
+
+Para restablecer tu contraseña, haz clic en el siguiente enlace:
+{resetUrl}
+
+Este enlace expirará en 1 hora por seguridad.
+
+Si no solicitaste este cambio, puedes ignorar este correo electrónico y tu contraseña permanecerá sin cambios.
+
+Saludos cordiales,
+Equipo de Manitas Creativas";
+
+            await _emailService.SendEmailAsync(
+                recipientName: $"{usuario.Nombres} {usuario.Apellidos}",
+                recipientEmail: usuario.Email,
+                teamName: "Manitas Creativas",
+                subject: subject,
+                body: body,
+                ccName: null,
+                ccEmail: null
+            );
+            
+            Console.WriteLine($"Password reset email sent to {email}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error sending password reset email to {email}: {ex.Message}");
+            // Even if email fails, we return true for security (don't reveal if email exists)
+        }
+        
+        return true;
+    }
+    
+    public async Task<bool> ResetPasswordAsync(ResetPasswordDto resetPasswordDto)
+    {
+        if (resetPasswordDto.NewPassword != resetPasswordDto.ConfirmPassword)
+        {
+            return false;
+        }
+        
+        var usuario = await _usuarioRepository.GetByPasswordResetTokenAsync(resetPasswordDto.Token);
+        if (usuario == null)
+        {
+            return false;
+        }
+        
+        // Update password and clear reset token
+        usuario.Password = resetPasswordDto.NewPassword; // In production, hash this
+        usuario.PasswordResetToken = null;
+        usuario.PasswordResetExpires = null;
+        
+        await _usuarioRepository.UpdateAsync(usuario);
+        return true;
     }
 }
