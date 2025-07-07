@@ -2,6 +2,7 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 //import { userStore } from "../store";
 import PrivateRoute from "./PrivateRoute";
+import AdminRoute from "./AdminRoute";
 
 const SignIn = React.lazy(() => import("../components/SignIn"));
 const ForgotPassword = React.lazy(() => import("../components/ForgotPassword"));
@@ -15,13 +16,28 @@ const Students = React.lazy(() => import("../components/Students"));
 const Users = React.lazy(() => import("../components/Users"));
 const PaymentReport = React.lazy(() => import("../components/PaymentReport"));
 const EditPayments = React.lazy(() => import("../components/EditPayments"));
-const TransportPayments = React.lazy(() => import("../components/TransportPayments"));
-const TransportPaymentsReport = React.lazy(() => import("../components/TransportPaymentsReport/index"));
-const MonthlyPaymentReport = React.lazy(() => import("../components/Reports/MonthlyPayments"));
-const ReportsMenu = React.lazy(() => import("../components/Reports/ReportsMenu"));
-const TuitionDebtorsReport = React.lazy(() => import("../components/Reports/TuitionDebtors"));
-const TransportDebtorsReport = React.lazy(() => import("../components/Reports/TransportDebtors"));
-const RoutesAssignment = React.lazy(() => import("../components/RoutesAssignment"));
+const TransportPayments = React.lazy(
+  () => import("../components/TransportPayments")
+);
+const TransportPaymentsReport = React.lazy(
+  () => import("../components/TransportPaymentsReport/index")
+);
+const MonthlyPaymentReport = React.lazy(
+  () => import("../components/Reports/MonthlyPayments")
+);
+const ReportsMenu = React.lazy(
+  () => import("../components/Reports/ReportsMenu")
+);
+const TuitionDebtorsReport = React.lazy(
+  () => import("../components/Reports/TuitionDebtors")
+);
+const TransportDebtorsReport = React.lazy(
+  () => import("../components/Reports/TransportDebtors")
+);
+const RoutesAssignment = React.lazy(
+  () => import("../components/RoutesAssignment")
+);
+const UserRoleDebug = React.lazy(() => import("../components/UserRoleDebug"));
 
 const AppRoutes: React.FC = () => {
   //userStore();
@@ -43,14 +59,60 @@ const AppRoutes: React.FC = () => {
       >
         <Route path="tuitions" element={<Tuitions />} />
         <Route path="other-payments" element={<OtherPayments />} />
-        <Route path="statement" element={<Statement />} />        <Route path="rubros" element={<Rubros />} />
-        <Route path="students" element={<Students />} />
-        <Route path="users" element={<Users />} />
+        <Route path="statement" element={<Statement />} />{" "}
+        <Route
+          path="rubros"
+          element={
+            <AdminRoute>
+              <Rubros />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="students"
+          element={
+            <AdminRoute>
+              <Students />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="users"
+          element={
+            <AdminRoute>
+              <Users />
+            </AdminRoute>
+          }
+        />
         <Route path="payment-report" element={<PaymentReport />} />
-        <Route path="edit-payments" element={<EditPayments />} />        <Route path="transport-payments" element={<TransportPayments />} />        <Route path="transport-payments-report" element={<TransportPaymentsReport />} />        <Route path="reports" element={<ReportsMenu />} />        <Route path="monthly-payments-report" element={<MonthlyPaymentReport />} />
-        <Route path="tuition-debtors-report" element={<TuitionDebtorsReport />} />
-        <Route path="transport-debtors-report" element={<TransportDebtorsReport />} />
-        <Route path="routes-assignment" element={<RoutesAssignment />} />
+        <Route path="edit-payments" element={<EditPayments />} />{" "}
+        <Route path="transport-payments" element={<TransportPayments />} />{" "}
+        <Route
+          path="transport-payments-report"
+          element={<TransportPaymentsReport />}
+        />{" "}
+        <Route path="reports" element={<ReportsMenu />} />{" "}
+        <Route
+          path="monthly-payments-report"
+          element={<MonthlyPaymentReport />}
+        />
+        <Route
+          path="tuition-debtors-report"
+          element={<TuitionDebtorsReport />}
+        />
+        <Route
+          path="transport-debtors-report"
+          element={<TransportDebtorsReport />}
+        />
+        <Route
+          path="routes-assignment"
+          element={
+            <AdminRoute>
+              <RoutesAssignment />
+            </AdminRoute>
+          }
+        />
+        <Route path="debug-role" element={<UserRoleDebug />} />
       </Route>
     </Routes>
   );

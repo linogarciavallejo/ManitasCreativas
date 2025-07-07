@@ -65,6 +65,17 @@ export const isAuthenticated = (): boolean => {
   return localStorage.getItem(USER_KEY) !== null;
 };
 
+// Check if current user is an admin
+export const isCurrentUserAdmin = (): boolean => {
+  const user = getCurrentUser();
+  return user?.esAdmin === true;
+};
+
+// Check if user has admin role authorization
+export const hasAdminAccess = (): boolean => {
+  return isAuthenticated() && isCurrentUserAdmin();
+};
+
 // Sign out user
 export const signOut = (): void => {
   localStorage.removeItem(USER_KEY);

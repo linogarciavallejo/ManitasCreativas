@@ -35,7 +35,8 @@ public class UsuarioService : IUsuarioService
             Celular = u.Celular,
             Password = u.Password,
             EstadoUsuario = u.EstadoUsuario.ToString(),
-            Rol = u.Rol?.Nombre
+            Rol = u.Rol?.Nombre,
+            EsAdmin = u.Rol?.EsAdmin ?? false
         });
     }
 
@@ -52,7 +53,8 @@ public class UsuarioService : IUsuarioService
             Celular = usuario.Celular,
             Password = usuario.Password,
             EstadoUsuario = usuario.EstadoUsuario.ToString(),
-            Rol = usuario.Rol?.Nombre
+            Rol = usuario.Rol?.Nombre,
+            EsAdmin = usuario.Rol?.EsAdmin ?? false
         };
     }    public async Task AddUsuarioAsync(UsuarioDto usuarioDto)
     {
@@ -121,7 +123,8 @@ public class UsuarioService : IUsuarioService
             Celular = usuario.Celular,
             Password = usuario.Password,
             EstadoUsuario = usuario.EstadoUsuario.ToString(),
-            Rol = usuario.Rol?.Nombre
+            Rol = usuario.Rol?.Nombre,
+            EsAdmin = usuario.Rol?.EsAdmin ?? false
         };
     }
 

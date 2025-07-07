@@ -11,4 +11,5 @@ public class UsuarioDto
     public string Password { get; set; } = string.Empty;
     public string EstadoUsuario { get; set; } = string.Empty;
     public string Rol { get; set; } = string.Empty;
+    public bool EsAdmin { get; set; }
 }
