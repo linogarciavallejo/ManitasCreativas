@@ -1252,12 +1252,13 @@ public class PagoService : IPagoService
 
                 var isCurrentMonthOverdue = IsCurrentMonthTransportOverdueUsingAlumnoRuta(asOfDate, transportPayments, alumno.Id, activeRoutes);
 
-                // Format the full name as requested: "Primer Apellido Segundo Apellido, Primer Nombre Segundo Nombre"
-                string nombreCompleto = string.Format("{0} {1}, {2} {3}",
+                // Format the full name as requested: "Primer Apellido Segundo Apellido, Primer Nombre Segundo Nombre Tercer Nombre"
+                string nombreCompleto = string.Format("{0} {1}, {2} {3} {4}",
                     alumno.PrimerApellido,
                     alumno.SegundoApellido ?? string.Empty,
                     alumno.PrimerNombre,
-                    alumno.SegundoNombre ?? string.Empty).Trim();
+                    alumno.SegundoNombre ?? string.Empty,
+                    alumno.TercerNombre ?? string.Empty).Replace("  ", " ").Trim();
 
                 // Get the transport route names - show multiple routes if applicable
                 var routeNames = activeRoutes.Select(ar => ar.RubroTransporte?.Descripcion ?? "N/A").Distinct().ToList();
