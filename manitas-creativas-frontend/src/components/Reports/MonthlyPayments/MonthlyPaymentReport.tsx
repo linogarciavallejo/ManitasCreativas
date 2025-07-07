@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Card, Row, Col, Select, Button, DatePicker, Spin, message, Typography, Statistic, Space, Modal } from 'antd';
+import { Card, Row, Col, Select, Button, DatePicker, Spin, message, Typography, Statistic, Space, Modal, ConfigProvider } from 'antd';
 import { DownloadOutlined, ReloadOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+import esES from 'antd/es/locale/es_ES';
 import $ from 'jquery';
 // Import PivotTable.js CSS
 import 'pivottable/dist/pivot.css';
@@ -37,6 +39,11 @@ const MonthlyPaymentReport: React.FC = () => {
   });
   
   const pivotContainerRef = useRef<HTMLDivElement>(null);
+
+  // Configure dayjs to use Spanish locale
+  useEffect(() => {
+    dayjs.locale('es');
+  }, []);
 
   const fetchReportData = useCallback(async () => {
     setLoading(true);
@@ -350,13 +357,15 @@ const MonthlyPaymentReport: React.FC = () => {
           </Col>
           <Col span={4}>
             <label>Mes y Año:</label>
-            <DatePicker
-              picker="month"
-              value={dayjs().month(filter.month - 1).year(filter.year)}
-              onChange={handleDateChange}
-              style={{ width: '100%', marginTop: 4 }}
-              format="MMMM YYYY"
-            />
+            <ConfigProvider locale={esES}>
+              <DatePicker
+                picker="month"
+                value={dayjs().month(filter.month - 1).year(filter.year)}
+                onChange={handleDateChange}
+                style={{ width: '100%', marginTop: 4 }}
+                format="MMMM YYYY"
+              />
+            </ConfigProvider>
           </Col>
           <Col span={4}>
             <label>Grado (Opcional):</label>
