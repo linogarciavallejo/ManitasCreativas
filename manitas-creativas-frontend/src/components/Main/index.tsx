@@ -94,11 +94,6 @@ const Main: React.FC = () => {
       icon: <BankOutlined />,
       label: <Link to="statement">Estado de Cuenta</Link>,
     },
-    // {
-    //   key: "debug",
-    //   icon: <UserOutlined />,
-    //   label: <Link to="debug-role">Debug Role</Link>,
-    // },
     // Admin-only section
     ...(isAdmin ? [
       {

@@ -113,7 +113,14 @@ public class UsuarioService : IUsuarioService
     public async Task<UsuarioDto?> GetUsuarioByCodigoUsuarioAsync(string codigoUsuario, string password)
     {
         var usuario = await _usuarioRepository.GetByCodigoUsuarioAsync(codigoUsuario, password);
-        return usuario == null ? null : new UsuarioDto
+        
+        // Check if user exists and is active
+        if (usuario == null || usuario.EstadoUsuario != EstadoUsuario.Activo)
+        {
+            return null; // Return null for both non-existent and inactive users
+        }
+        
+        return new UsuarioDto
         {
             Id = usuario.Id,
             Nombres = usuario.Nombres,
@@ -204,5 +211,71 @@ Equipo de Manitas Creativas";
         
         await _usuarioRepository.UpdateAsync(usuario);
         return true;
+    }
+
+    public async Task<AuthenticationResultDto> AuthenticateUserAsync(string codigoUsuario, string password)
+    {
+        var usuario = await _usuarioRepository.GetByCodigoUsuarioAsync(codigoUsuario, password);
+        
+        if (usuario == null)
+        {
+            return new AuthenticationResultDto
+            {
+                IsSuccessful = false,
+                ErrorType = AuthenticationErrorType.InvalidCredentials,
+                ErrorMessage = "Credenciales inválidas. Verifique su código de usuario y contraseña."
+            };
+        }
+        
+        // Check user status
+        switch (usuario.EstadoUsuario)
+        {
+            case EstadoUsuario.Inactivo:
+                return new AuthenticationResultDto
+                {
+                    IsSuccessful = false,
+                    ErrorType = AuthenticationErrorType.UserInactive,
+                    ErrorMessage = "Su cuenta está inactiva. Contacte al administrador para activar su cuenta."
+                };
+                
+            case EstadoUsuario.Bloqueado:
+                return new AuthenticationResultDto
+                {
+                    IsSuccessful = false,
+                    ErrorType = AuthenticationErrorType.UserBlocked,
+                    ErrorMessage = "Su cuenta ha sido bloqueada. Contacte al administrador para más información."
+                };
+                
+            case EstadoUsuario.Activo:
+                // User is active, proceed with successful authentication
+                var usuarioDto = new UsuarioDto
+                {
+                    Id = usuario.Id,
+                    Nombres = usuario.Nombres,
+                    Apellidos = usuario.Apellidos,
+                    CodigoUsuario = usuario.CodigoUsuario,
+                    Email = usuario.Email,
+                    Celular = usuario.Celular,
+                    Password = usuario.Password,
+                    EstadoUsuario = usuario.EstadoUsuario.ToString(),
+                    Rol = usuario.Rol?.Nombre,
+                    EsAdmin = usuario.Rol?.EsAdmin ?? false
+                };
+                
+                return new AuthenticationResultDto
+                {
+                    IsSuccessful = true,
+                    Usuario = usuarioDto,
+                    ErrorType = AuthenticationErrorType.None
+                };
+                
+            default:
+                return new AuthenticationResultDto
+                {
+                    IsSuccessful = false,
+                    ErrorType = AuthenticationErrorType.InvalidCredentials,
+                    ErrorMessage = "Estado de usuario no válido."
+                };
+        }
     }
 }

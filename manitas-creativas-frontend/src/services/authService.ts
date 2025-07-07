@@ -56,13 +56,25 @@ export const getCurrentUserId = (): number => {
   return userId ? parseInt(userId, 10) : 0;
 };
 
-// Check if user is logged in
+// Check if user is logged in and has valid status
 export const isAuthenticated = (): boolean => {
   if (isSessionExpired()) {
     signOut();
     return false;
   }
-  return localStorage.getItem(USER_KEY) !== null;
+  
+  const user = getCurrentUser();
+  if (!user) {
+    return false;
+  }
+  
+  // Check if user status is active (assuming 'Activo' means active)
+  if (user.estadoUsuario !== 'Activo') {
+    signOut(); // Sign out users who are no longer active
+    return false;
+  }
+  
+  return true;
 };
 
 // Check if current user is an admin
@@ -95,8 +107,27 @@ export const signIn = async (codigoUsuario: string, password: string): Promise<U
     storeUser(user);
     
     return user;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error signing in:', error);
+    
+    // Handle specific HTTP status codes for better error messages
+    if (error && typeof error === 'object' && 'response' in error) {
+      const httpError = error as { response: { status: number; data?: { message?: string } } };
+      const status = httpError.response.status;
+      const errorData = httpError.response.data;
+      
+      switch (status) {
+        case 401:
+          // Invalid credentials
+          throw new Error(errorData?.message || 'Credenciales inválidas. Verifique su código de usuario y contraseña.');
+        case 403:
+          // User inactive or blocked
+          throw new Error(errorData?.message || 'Su cuenta no está disponible. Contacte al administrador.');
+        default:
+          throw new Error(errorData?.message || 'Error al iniciar sesión. Inténtelo de nuevo.');
+      }
+    }
+    
     throw error;
   }
 };

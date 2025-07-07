@@ -21,6 +21,11 @@ const UserRoleDebug: React.FC = () => {
             <Text strong>Role: </Text>
             <Text>{currentUser.rol}</Text>
             <br />
+            <Text strong>Status: </Text>
+            <Tag color={currentUser.estadoUsuario === 'Activo' ? 'green' : 'red'}>
+              {currentUser.estadoUsuario}
+            </Tag>
+            <br />
             <Text strong>Is Admin: </Text>
             <Tag color={currentUser.esAdmin ? 'green' : 'red'}>
               {currentUser.esAdmin ? 'Yes' : 'No'}

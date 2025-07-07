@@ -36,8 +36,24 @@ public static class UsuarioEndpoints
 
         app.MapPost("/usuarios/signin", async (UsuarioLoginDto loginDto, IUsuarioService usuarioService) =>
         {
-            var usuario = await usuarioService.GetUsuarioByCodigoUsuarioAsync(loginDto.CodigoUsuario, loginDto.Password);
-            return usuario is not null ? Results.Ok(usuario) : Results.NotFound();
+            var authResult = await usuarioService.AuthenticateUserAsync(loginDto.CodigoUsuario, loginDto.Password);
+            
+            if (authResult.IsSuccessful)
+            {
+                return Results.Ok(authResult.Usuario);
+            }
+            
+            // Return appropriate error response based on error type
+            return authResult.ErrorType switch
+            {
+                AuthenticationErrorType.InvalidCredentials => 
+                    Results.Json(new { message = authResult.ErrorMessage }, statusCode: 401),
+                AuthenticationErrorType.UserInactive => 
+                    Results.Json(new { message = authResult.ErrorMessage }, statusCode: 403),
+                AuthenticationErrorType.UserBlocked => 
+                    Results.Json(new { message = authResult.ErrorMessage }, statusCode: 403),
+                _ => Results.BadRequest(new { message = authResult.ErrorMessage })
+            };
         });
 
 

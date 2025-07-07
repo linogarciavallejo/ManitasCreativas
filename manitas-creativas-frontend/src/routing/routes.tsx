@@ -37,7 +37,6 @@ const TransportDebtorsReport = React.lazy(
 const RoutesAssignment = React.lazy(
   () => import("../components/RoutesAssignment")
 );
-const UserRoleDebug = React.lazy(() => import("../components/UserRoleDebug"));
 
 const AppRoutes: React.FC = () => {
   //userStore();
@@ -112,7 +111,6 @@ const AppRoutes: React.FC = () => {
             </AdminRoute>
           }
         />
-        <Route path="debug-role" element={<UserRoleDebug />} />
       </Route>
     </Routes>
   );
