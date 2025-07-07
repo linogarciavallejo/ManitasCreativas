@@ -829,7 +829,7 @@ public class PagoService : IPagoService
             
             // Student information
             AlumnoId = p.AlumnoId,
-            AlumnoNombre = $"{p.Alumno?.PrimerNombre} {p.Alumno?.SegundoNombre} {p.Alumno?.PrimerApellido} {p.Alumno?.SegundoApellido}".Trim(),
+            AlumnoNombre = $"{p.Alumno?.PrimerNombre} {p.Alumno?.SegundoNombre} {p.Alumno?.TercerNombre ?? ""} {p.Alumno?.PrimerApellido} {p.Alumno?.SegundoApellido}".Replace("  ", " ").Trim(),
             GradoNombre = p.Alumno?.Grado?.Nombre ?? "Unknown",
             Seccion = p.Alumno?.Seccion ?? "Sin Sección",
             NivelEducativo = p.Alumno?.Grado?.NivelEducativo?.Nombre ?? "Unknown",
