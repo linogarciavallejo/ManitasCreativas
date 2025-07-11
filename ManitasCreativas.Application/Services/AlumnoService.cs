@@ -30,6 +30,7 @@ public class AlumnoService : IAlumnoService
             Codigo = a.Codigo,
             PrimerNombre = a.PrimerNombre,
             SegundoNombre = a.SegundoNombre,
+            TercerNombre = a.TercerNombre,
             PrimerApellido = a.PrimerApellido,
             SegundoApellido = a.SegundoApellido,
             Seccion = a.Seccion, // Added Seccion property mapping
@@ -61,6 +62,7 @@ public class AlumnoService : IAlumnoService
             Codigo = alumno.Codigo,
             PrimerNombre = alumno.PrimerNombre,
             SegundoNombre = alumno.SegundoNombre,
+            TercerNombre = alumno.TercerNombre,
             PrimerApellido = alumno.PrimerApellido,
             SegundoApellido = alumno.SegundoApellido,
             Seccion = alumno.Seccion, // Added Seccion property mapping
@@ -114,6 +116,7 @@ public class AlumnoService : IAlumnoService
         {
             PrimerNombre = alumnoDto.PrimerNombre,
             SegundoNombre = alumnoDto.SegundoNombre,
+            TercerNombre = alumnoDto.TercerNombre,
             PrimerApellido = alumnoDto.PrimerApellido,
             SegundoApellido = alumnoDto.SegundoApellido,
             Codigo = alumnoDto.Codigo,
@@ -175,6 +178,7 @@ public class AlumnoService : IAlumnoService
         // Update the properties of the existing entity
         existingAlumno.PrimerNombre = alumnoDto.PrimerNombre;
         existingAlumno.SegundoNombre = alumnoDto.SegundoNombre;
+        existingAlumno.TercerNombre = alumnoDto.TercerNombre;
         existingAlumno.PrimerApellido = alumnoDto.PrimerApellido;
         existingAlumno.SegundoApellido = alumnoDto.SegundoApellido;
         existingAlumno.Codigo = alumnoDto.Codigo;
@@ -206,6 +210,7 @@ public class AlumnoService : IAlumnoService
             Id = alumno.Id,
             PrimerNombre = alumno.PrimerNombre,
             SegundoNombre = alumno.SegundoNombre,
+            TercerNombre = alumno.TercerNombre,
             PrimerApellido = alumno.PrimerApellido,
             SegundoApellido = alumno.SegundoApellido,
             Codigo = alumno.Codigo,
@@ -267,6 +272,7 @@ public class AlumnoService : IAlumnoService
             Codigo = alumno.Codigo,
             PrimerNombre = alumno.PrimerNombre,
             SegundoNombre = alumno.SegundoNombre,
+            TercerNombre = alumno.TercerNombre,
             PrimerApellido = alumno.PrimerApellido,
             SegundoApellido = alumno.SegundoApellido,
             SedeId = alumno.SedeId,
@@ -305,6 +311,7 @@ public class AlumnoService : IAlumnoService
             Codigo = a.Codigo,
             PrimerNombre = a.PrimerNombre,
             SegundoNombre = a.SegundoNombre,
+            TercerNombre = a.TercerNombre,
             PrimerApellido = a.PrimerApellido,
             SegundoApellido = a.SegundoApellido,
             SedeId = a.SedeId,
@@ -347,6 +354,7 @@ public class AlumnoService : IAlumnoService
             {
                 a.PrimerNombre,
                 a.SegundoNombre,
+                a.TercerNombre,
                 a.PrimerApellido,
                 a.SegundoApellido
             }.Where(s => !string.IsNullOrWhiteSpace(s)))
@@ -438,6 +446,7 @@ public class AlumnoService : IAlumnoService
             Codigo = a.Codigo,
             PrimerNombre = a.PrimerNombre,
             SegundoNombre = a.SegundoNombre,
+            TercerNombre = a.TercerNombre,
             PrimerApellido = a.PrimerApellido,
             SegundoApellido = a.SegundoApellido,
             Grado = a.Grado?.Nombre ?? "",

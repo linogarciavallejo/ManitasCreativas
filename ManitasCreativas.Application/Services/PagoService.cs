@@ -454,12 +454,10 @@ public class PagoService : IPagoService
             int ordinal = 1;
             foreach (var alumno in seccionGroup)
             {
-                // Format the full name as requested: "Primer Apellido Segundo Apellido, Primer Nombre Segundo Nombre"
-                string nombreCompleto = string.Format("{0} {1}, {2} {3}",
-                    alumno.PrimerApellido,
-                    alumno.SegundoApellido ?? string.Empty,
-                    alumno.PrimerNombre,
-                    alumno.SegundoNombre ?? string.Empty).Trim();
+                // Format the full name as requested: "Primer Apellido Segundo Apellido, Primer Nombre Segundo Nombre Tercer Nombre"
+                var apellidos = $"{alumno.PrimerApellido} {alumno.SegundoApellido ?? ""}".Trim();
+                var nombres = $"{alumno.PrimerNombre} {alumno.SegundoNombre ?? ""} {alumno.TercerNombre ?? ""}".Trim();
+                string nombreCompleto = $"{apellidos}, {nombres}".Replace("  ", " ").Trim();
                 
                 // Get all contactos for this alumno to extract NITs
                 var contactos = await _alumnoContactoRepository.GetByAlumnoIdAsync(alumno.Id);
@@ -733,11 +731,9 @@ public class PagoService : IPagoService
         foreach (var alumno in alumnos)
         {
             // Format full name: "Last Names, First Names"
-            string nombreCompleto = string.Format("{0} {1}, {2} {3}",
-                alumno.PrimerApellido?.Trim() ?? string.Empty,
-                alumno.SegundoApellido?.Trim() ?? string.Empty,
-                alumno.PrimerNombre?.Trim() ?? string.Empty,
-                alumno.SegundoNombre?.Trim() ?? string.Empty).Trim();
+            var apellidos = $"{alumno.PrimerApellido?.Trim() ?? ""} {alumno.SegundoApellido?.Trim() ?? ""}".Trim();
+            var nombres = $"{alumno.PrimerNombre?.Trim() ?? ""} {alumno.SegundoNombre?.Trim() ?? ""} {alumno.TercerNombre?.Trim() ?? ""}".Trim();
+            string nombreCompleto = $"{apellidos}, {nombres}".Replace("  ", " ").Trim();
 
             // Get contactos for this student
             var contactos = await _alumnoContactoRepository.GetByAlumnoIdAsync(alumno.Id);
@@ -905,7 +901,7 @@ public class PagoService : IPagoService
             
             // Student information
             AlumnoId = p.AlumnoId,
-            AlumnoNombre = $"{p.Alumno?.PrimerNombre} {p.Alumno?.SegundoNombre} {p.Alumno?.PrimerApellido} {p.Alumno?.SegundoApellido}".Trim(),
+            AlumnoNombre = $"{p.Alumno?.PrimerNombre} {p.Alumno?.SegundoNombre} {p.Alumno?.TercerNombre ?? ""} {p.Alumno?.PrimerApellido} {p.Alumno?.SegundoApellido}".Replace("  ", " ").Trim(),
             GradoNombre = p.Alumno?.Grado?.Nombre ?? "Unknown",
             Seccion = p.Alumno?.Seccion ?? "Sin Sección",
             NivelEducativo = p.Alumno?.Grado?.NivelEducativo?.Nombre ?? "Unknown",
@@ -1035,7 +1031,7 @@ public class PagoService : IPagoService
 
         // Get all tuition rubros (EsColegiatura = true)
         var rubros = await _rubroRepository.GetAllAsync();
-        var tuitionRubros = rubros.Where(r => r.EsColegiatura).ToList();        // Get all payments for tuition rubros
+        var tuitionRubros = rubros.Where(r => r.EsColegiatura && (r.Activo ?? false)).ToList();        // Get all payments for tuition rubros
         var pagos = await _pagoRepository.GetAllAsync();
         var tuitionPayments = pagos.Where(p => 
             tuitionRubros.Any(r => r.Id == p.RubroId) && 
@@ -1065,12 +1061,10 @@ public class PagoService : IPagoService
                     .OrderByDescending(p => p.Fecha)
                     .FirstOrDefault()?.Fecha ?? DateTime.MinValue;
 
-                var isCurrentMonthOverdue = IsCurrentMonthTuitionOverdue(asOfDate, tuitionPayments, alumno.Id);                // Format the full name as requested: "Primer Apellido Segundo Apellido, Primer Nombre Segundo Nombre"
-                string nombreCompleto = string.Format("{0} {1}, {2} {3}",
-                    alumno.PrimerApellido,
-                    alumno.SegundoApellido ?? string.Empty,
-                    alumno.PrimerNombre,
-                    alumno.SegundoNombre ?? string.Empty).Trim();
+                var isCurrentMonthOverdue = IsCurrentMonthTuitionOverdue(asOfDate, tuitionPayments, alumno.Id);                // Format the full name as requested: "Primer Apellido Segundo Apellido, Primer Nombre Segundo Nombre Tercer Nombre"
+                var apellidos = $"{alumno.PrimerApellido} {alumno.SegundoApellido ?? ""}".Trim();
+                var nombres = $"{alumno.PrimerNombre} {alumno.SegundoNombre ?? ""} {alumno.TercerNombre ?? ""}".Trim();
+                string nombreCompleto = $"{apellidos}, {nombres}".Replace("  ", " ").Trim();
                 
                 debtors.Add(new TuitionDebtorDto
                 {
@@ -1149,7 +1143,6 @@ public class PagoService : IPagoService
                     p.AlumnoId == alumno.Id &&
                     p.RubroId == rubro.Id &&
                     p.CicloEscolar == currentYear &&
-                    p.EsColegiatura && // Ensure it's marked as a tuition payment
                     p.MesColegiatura == month &&
                     p.AnioColegiatura == currentYear);
 
@@ -1191,7 +1184,7 @@ public class PagoService : IPagoService
             {
                 // Get applicable tuition rubros for this student
                 var rubros = _rubroRepository.GetAllAsync().Result;
-                var tuitionRubros = rubros.Where(r => r.EsColegiatura).ToList();
+                var tuitionRubros = rubros.Where(r => r.EsColegiatura && (r.Activo ?? false)).ToList();
                 var applicableRubros = tuitionRubros.Where(r => 
                     (r.GradoId == null && r.NivelEducativoId == alumno.Grado.NivelEducativoId) ||
                     (r.GradoId == alumno.GradoId)
@@ -1328,12 +1321,10 @@ public class PagoService : IPagoService
 
                 var isCurrentMonthOverdue = IsCurrentMonthTransportOverdueUsingAlumnoRuta(asOfDate, transportPayments, alumno.Id, activeRoutes);
 
-                // Format the full name as requested: "Primer Apellido Segundo Apellido, Primer Nombre Segundo Nombre"
-                string nombreCompleto = string.Format("{0} {1}, {2} {3}",
-                    alumno.PrimerApellido,
-                    alumno.SegundoApellido ?? string.Empty,
-                    alumno.PrimerNombre,
-                    alumno.SegundoNombre ?? string.Empty).Trim();
+                // Format the full name as requested: "Primer Apellido Segundo Apellido, Primer Nombre Segundo Nombre Tercer Nombre"
+                var apellidos = $"{alumno.PrimerApellido} {alumno.SegundoApellido ?? ""}".Trim();
+                var nombres = $"{alumno.PrimerNombre} {alumno.SegundoNombre ?? ""} {alumno.TercerNombre ?? ""}".Trim();
+                string nombreCompleto = $"{apellidos}, {nombres}".Replace("  ", " ").Trim();
 
                 // Get the transport route names - show multiple routes if applicable
                 var routeNames = activeRoutes.Select(ar => ar.RubroTransporte?.Descripcion ?? "N/A").Distinct().ToList();

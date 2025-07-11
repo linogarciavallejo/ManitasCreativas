@@ -3,6 +3,7 @@ using System;
 using ManitasCreativas.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ManitasCreativas.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250705233606_AddTercerNombreToAlumno")]
+    partial class AddTercerNombreToAlumno
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -75,12 +78,15 @@ namespace ManitasCreativas.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("SegundoApellido")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("SegundoNombre")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("TercerNombre")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int?>("UsuarioActualizacionId")
@@ -192,95 +198,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.ToTable("Contactos");
                 });
 
-            modelBuilder.Entity("ManitasCreativas.Domain.Entities.EntradaUniforme", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("EsEliminado")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("FechaActualizacion")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<DateTime?>("FechaEliminacion")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("FechaEntrada")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("MotivoEliminacion")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Notas")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<decimal>("Total")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<int?>("UsuarioActualizacionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UsuarioCreacionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("UsuarioEliminacionId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FechaEntrada")
-                        .HasDatabaseName("IX_EntradaUniforme_FechaEntrada");
-
-                    b.HasIndex("UsuarioActualizacionId");
-
-                    b.HasIndex("UsuarioCreacionId");
-
-                    b.HasIndex("UsuarioEliminacionId");
-
-                    b.ToTable("EntradaUniformes");
-                });
-
-            modelBuilder.Entity("ManitasCreativas.Domain.Entities.EntradaUniformeDetalle", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Cantidad")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("EntradaUniformeId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PrendaUniformeId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("Subtotal")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EntradaUniformeId");
-
-                    b.HasIndex("PrendaUniformeId");
-
-                    b.ToTable("EntradaUniformeDetalles");
-                });
-
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Grado", b =>
                 {
                     b.Property<int>("Id")
@@ -352,9 +269,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.Property<bool?>("EsPagoDeTransporte")
                         .HasColumnType("boolean");
 
-                    b.Property<bool?>("EsPagoDeUniforme")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("EstadoCarnet")
                         .HasColumnType("text");
 
@@ -414,40 +328,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.ToTable("Pagos");
                 });
 
-            modelBuilder.Entity("ManitasCreativas.Domain.Entities.PagoDetalle", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Cantidad")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PagoId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("PrecioUnitario")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<int>("RubroUniformeDetalleId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("Subtotal")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PagoId");
-
-                    b.HasIndex("RubroUniformeDetalleId");
-
-                    b.ToTable("PagoDetalles");
-                });
-
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.PagoImagen", b =>
                 {
                     b.Property<int>("Id")
@@ -489,111 +369,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.HasIndex("UsuarioCreacionId");
 
                     b.ToTable("PagoImagenes");
-                });
-
-            modelBuilder.Entity("ManitasCreativas.Domain.Entities.PrendaUniforme", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Descripcion")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<int>("Entradas")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("EsEliminado")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("ExistenciaInicial")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("FechaActualizacion")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<DateTime?>("FechaEliminacion")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("MotivoEliminacion")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Notas")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<decimal>("Precio")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<int>("Salidas")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Sexo")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
-
-                    b.Property<string>("Talla")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
-
-                    b.Property<int?>("UsuarioActualizacionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UsuarioCreacionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("UsuarioEliminacionId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Sexo")
-                        .HasDatabaseName("IX_PrendaUniforme_Sexo");
-
-                    b.HasIndex("Talla")
-                        .HasDatabaseName("IX_PrendaUniforme_Talla");
-
-                    b.HasIndex("UsuarioActualizacionId");
-
-                    b.HasIndex("UsuarioCreacionId");
-
-                    b.HasIndex("UsuarioEliminacionId");
-
-                    b.ToTable("PrendasUniforme");
-                });
-
-            modelBuilder.Entity("ManitasCreativas.Domain.Entities.PrendaUniformeImagen", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Imagen")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("PrendaUniformeId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PrendaUniformeId");
-
-                    b.ToTable("PrendaUniformeImagenes");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Rol", b =>
@@ -658,9 +433,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<bool?>("EsPagoDeTransporte")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool?>("EsPagoDeUniforme")
                         .HasColumnType("boolean");
 
                     b.Property<DateTime?>("FechaActualizacion")
@@ -729,63 +501,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.ToTable("Rubros");
                 });
 
-            modelBuilder.Entity("ManitasCreativas.Domain.Entities.RubroUniformeDetalle", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("EsEliminado")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("FechaActualizacion")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<DateTime?>("FechaEliminacion")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("MotivoEliminacion")
-                        .HasColumnType("text");
-
-                    b.Property<int>("PrendaUniformeId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("RubroId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("UsuarioActualizacionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UsuarioCreacionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("UsuarioEliminacionId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PrendaUniformeId");
-
-                    b.HasIndex("UsuarioActualizacionId");
-
-                    b.HasIndex("UsuarioCreacionId");
-
-                    b.HasIndex("UsuarioEliminacionId");
-
-                    b.HasIndex("RubroId", "PrendaUniformeId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_RubroUniformeDetalle_RubroId_PrendaUniformeId");
-
-                    b.ToTable("RubroUniformeDetalles");
-                });
-
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Sede", b =>
                 {
                     b.Property<int>("Id")
@@ -840,12 +555,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("PasswordResetExpires")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("PasswordResetToken")
                         .HasColumnType("text");
 
                     b.Property<int>("RolId")
@@ -930,49 +639,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.Navigation("RubroTransporte");
                 });
 
-            modelBuilder.Entity("ManitasCreativas.Domain.Entities.EntradaUniforme", b =>
-                {
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "UsuarioActualizacion")
-                        .WithMany()
-                        .HasForeignKey("UsuarioActualizacionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "UsuarioCreacion")
-                        .WithMany()
-                        .HasForeignKey("UsuarioCreacionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "UsuarioEliminacion")
-                        .WithMany()
-                        .HasForeignKey("UsuarioEliminacionId");
-
-                    b.Navigation("UsuarioActualizacion");
-
-                    b.Navigation("UsuarioCreacion");
-
-                    b.Navigation("UsuarioEliminacion");
-                });
-
-            modelBuilder.Entity("ManitasCreativas.Domain.Entities.EntradaUniformeDetalle", b =>
-                {
-                    b.HasOne("ManitasCreativas.Domain.Entities.EntradaUniforme", "EntradaUniforme")
-                        .WithMany("EntradaUniformeDetalles")
-                        .HasForeignKey("EntradaUniformeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ManitasCreativas.Domain.Entities.PrendaUniforme", "PrendaUniforme")
-                        .WithMany("EntradaUniformeDetalles")
-                        .HasForeignKey("PrendaUniformeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("EntradaUniforme");
-
-                    b.Navigation("PrendaUniforme");
-                });
-
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Grado", b =>
                 {
                     b.HasOne("ManitasCreativas.Domain.Entities.NivelEducativo", "NivelEducativo")
@@ -1024,25 +690,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.Navigation("UsuarioCreacion");
                 });
 
-            modelBuilder.Entity("ManitasCreativas.Domain.Entities.PagoDetalle", b =>
-                {
-                    b.HasOne("ManitasCreativas.Domain.Entities.Pago", "Pago")
-                        .WithMany("PagoDetalles")
-                        .HasForeignKey("PagoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ManitasCreativas.Domain.Entities.RubroUniformeDetalle", "RubroUniformeDetalle")
-                        .WithMany("PagoDetalles")
-                        .HasForeignKey("RubroUniformeDetalleId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Pago");
-
-                    b.Navigation("RubroUniformeDetalle");
-                });
-
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.PagoImagen", b =>
                 {
                     b.HasOne("ManitasCreativas.Domain.Entities.Pago", "Pago")
@@ -1066,41 +713,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.Navigation("UsuarioActualizacion");
 
                     b.Navigation("UsuarioCreacion");
-                });
-
-            modelBuilder.Entity("ManitasCreativas.Domain.Entities.PrendaUniforme", b =>
-                {
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "UsuarioActualizacion")
-                        .WithMany()
-                        .HasForeignKey("UsuarioActualizacionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "UsuarioCreacion")
-                        .WithMany()
-                        .HasForeignKey("UsuarioCreacionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "UsuarioEliminacion")
-                        .WithMany()
-                        .HasForeignKey("UsuarioEliminacionId");
-
-                    b.Navigation("UsuarioActualizacion");
-
-                    b.Navigation("UsuarioCreacion");
-
-                    b.Navigation("UsuarioEliminacion");
-                });
-
-            modelBuilder.Entity("ManitasCreativas.Domain.Entities.PrendaUniformeImagen", b =>
-                {
-                    b.HasOne("ManitasCreativas.Domain.Entities.PrendaUniforme", "PrendaUniforme")
-                        .WithMany("ImagenesPrenda")
-                        .HasForeignKey("PrendaUniformeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PrendaUniforme");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Rubro", b =>
@@ -1132,46 +744,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.Navigation("UsuarioCreacion");
                 });
 
-            modelBuilder.Entity("ManitasCreativas.Domain.Entities.RubroUniformeDetalle", b =>
-                {
-                    b.HasOne("ManitasCreativas.Domain.Entities.PrendaUniforme", "PrendaUniforme")
-                        .WithMany("RubroUniformeDetalles")
-                        .HasForeignKey("PrendaUniformeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ManitasCreativas.Domain.Entities.Rubro", "Rubro")
-                        .WithMany("RubroUniformeDetalles")
-                        .HasForeignKey("RubroId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "UsuarioActualizacion")
-                        .WithMany()
-                        .HasForeignKey("UsuarioActualizacionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "UsuarioCreacion")
-                        .WithMany()
-                        .HasForeignKey("UsuarioCreacionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ManitasCreativas.Domain.Entities.Usuario", "UsuarioEliminacion")
-                        .WithMany()
-                        .HasForeignKey("UsuarioEliminacionId");
-
-                    b.Navigation("PrendaUniforme");
-
-                    b.Navigation("Rubro");
-
-                    b.Navigation("UsuarioActualizacion");
-
-                    b.Navigation("UsuarioCreacion");
-
-                    b.Navigation("UsuarioEliminacion");
-                });
-
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Usuario", b =>
                 {
                     b.HasOne("ManitasCreativas.Domain.Entities.Rol", "Rol")
@@ -1195,11 +767,6 @@ namespace ManitasCreativas.Infrastructure.Migrations
                     b.Navigation("AlumnosContacto");
                 });
 
-            modelBuilder.Entity("ManitasCreativas.Domain.Entities.EntradaUniforme", b =>
-                {
-                    b.Navigation("EntradaUniformeDetalles");
-                });
-
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Grado", b =>
                 {
                     b.Navigation("Rubros");
@@ -1213,29 +780,11 @@ namespace ManitasCreativas.Infrastructure.Migrations
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Pago", b =>
                 {
                     b.Navigation("ImagenesPago");
-
-                    b.Navigation("PagoDetalles");
-                });
-
-            modelBuilder.Entity("ManitasCreativas.Domain.Entities.PrendaUniforme", b =>
-                {
-                    b.Navigation("EntradaUniformeDetalles");
-
-                    b.Navigation("ImagenesPrenda");
-
-                    b.Navigation("RubroUniformeDetalles");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Rubro", b =>
                 {
                     b.Navigation("Pagos");
-
-                    b.Navigation("RubroUniformeDetalles");
-                });
-
-            modelBuilder.Entity("ManitasCreativas.Domain.Entities.RubroUniformeDetalle", b =>
-                {
-                    b.Navigation("PagoDetalles");
                 });
 
             modelBuilder.Entity("ManitasCreativas.Domain.Entities.Sede", b =>

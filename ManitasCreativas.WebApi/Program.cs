@@ -3,6 +3,7 @@ using ManitasCreativas.Application.Interfaces.Services;
 using ManitasCreativas.Application.Interfaces.Repositories;
 using ManitasCreativas.Infrastructure;
 using ManitasCreativas.Infrastructure.Repositories;
+using ManitasCreativas.Infrastructure.Shared.Services;
 using Amazon.S3;
 using Microsoft.Extensions.Options;
 using ManitasCreativas.Application.DTOs;
@@ -67,10 +68,13 @@ builder.Services.AddScoped<IRubroUniformeDetalleRepository, RubroUniformeDetalle
 builder.Services.AddScoped<IPagoDetalleRepository, PagoDetalleRepository>();
 
 // Dependency Injection for Services
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>(sp => {
     var usuarioRepository = sp.GetRequiredService<IUsuarioRepository>();
     var rolRepository = sp.GetRequiredService<IRolRepository>();
-    return new UsuarioService(usuarioRepository, rolRepository);
+    var emailService = sp.GetRequiredService<IEmailService>();
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    return new UsuarioService(usuarioRepository, rolRepository, emailService, configuration);
 });
 builder.Services.AddScoped<IRubroService, RubroService>();
 builder.Services.AddScoped<INivelEducativoService, NivelEducativoService>();
@@ -149,6 +153,7 @@ app.UseCors("AllowAllOrigins");
 // Map Endpoints
 app.UseDefaultFiles();
 app.UseStaticFiles();
+app.MapAuthEndpoints();
 app.MapUsuarioEndpoints();
 app.MapAlumnoEndpoints();
 app.MapPagoEndpoints();

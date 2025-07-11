@@ -179,7 +179,7 @@ const Statement: React.FC = () => {
         id: alumno.id,
         codigo: alumno.codigo,
         fullName:
-          `${alumno.primerNombre} ${alumno.segundoNombre} ${alumno.primerApellido} ${alumno.segundoApellido}`.trim(),
+          `${alumno.primerNombre} ${alumno.segundoNombre} ${alumno.tercerNombre || ''} ${alumno.primerApellido} ${alumno.segundoApellido}`.replace(/\s+/g, ' ').trim(),
       };
       setSelectedAlumno(simpleAlumno);
 
@@ -507,7 +507,7 @@ const Statement: React.FC = () => {
             {/* PDF-only header */}
             <div style={{ display: 'none' }} className="print-only">
               <Title level={2} style={{ textAlign: 'center', marginBottom: '24px' }}>
-                Estado de Cuenta - {alumnoDetails.primerNombre} {alumnoDetails.segundoNombre} {alumnoDetails.primerApellido} {alumnoDetails.segundoApellido}
+                Estado de Cuenta - {alumnoDetails.primerNombre} {alumnoDetails.segundoNombre} {alumnoDetails.tercerNombre && `${alumnoDetails.tercerNombre} `}{alumnoDetails.primerApellido} {alumnoDetails.segundoApellido}
               </Title>
               <Text style={{ display: 'block', textAlign: 'center', marginBottom: '24px' }}>
                 Código: {alumnoDetails.codigo} | Sede: {alumnoDetails.sedeNombre} | Grado: {alumnoDetails.gradoNombre} - Sección: {alumnoDetails.seccion}
@@ -523,6 +523,7 @@ const Statement: React.FC = () => {
                     </Descriptions.Item>
                     <Descriptions.Item label="Nombre">
                       {alumnoDetails.primerNombre} {alumnoDetails.segundoNombre}{" "}
+                      {alumnoDetails.tercerNombre && `${alumnoDetails.tercerNombre} `}
                       {alumnoDetails.primerApellido}{" "}
                       {alumnoDetails.segundoApellido}
                     </Descriptions.Item>

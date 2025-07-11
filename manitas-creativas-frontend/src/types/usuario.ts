@@ -7,4 +7,5 @@ export interface Usuario {
   celular: string;
   estadoUsuario: string;
   rol: string;
+  esAdmin: boolean;
 }

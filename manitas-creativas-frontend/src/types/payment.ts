@@ -63,6 +63,7 @@ export interface AlumnoDto {
   codigo: string;
   primerNombre: string;
   segundoNombre: string;
+  tercerNombre: string;
   primerApellido: string;
   segundoApellido: string;
   sedeId: number;

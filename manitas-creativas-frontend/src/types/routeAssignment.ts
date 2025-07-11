@@ -29,6 +29,7 @@ export interface AlumnoOption {
   id: number;
   primerNombre: string;
   segundoNombre?: string;
+  tercerNombre?: string;
   primerApellido: string;
   segundoApellido?: string;
   grado: string;

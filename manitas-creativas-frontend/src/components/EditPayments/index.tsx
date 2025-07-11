@@ -51,6 +51,7 @@ interface AlumnoDetails {
   codigo: string;
   primerNombre: string;
   segundoNombre: string;
+  tercerNombre: string;
   primerApellido: string;
   segundoApellido: string;
   sedeId: number;
@@ -151,7 +152,9 @@ const EditPayments: React.FC = () => {
       );
       setAlumnoId(response.id.toString());
       setSelectedStudent(
-        `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim()
+        `${response.primerNombre} ${response.segundoNombre} ${response.tercerNombre} ${response.primerApellido} ${response.segundoApellido}`
+          .replace(/\s+/g, ' ')
+          .trim()
       );
       setSelectedStudentDetails(response);
       // Set active filter to "alumno" and clear grado selection

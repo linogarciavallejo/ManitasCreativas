@@ -53,4 +53,19 @@ public class UsuarioRepository : IUsuarioRepository
             .Include(u => u.Rol)
             .FirstOrDefaultAsync(u => u.CodigoUsuario == codigoUsuario && u.Password == password);
     }
+
+    public async Task<Usuario?> GetByEmailAsync(string email)
+    {
+        return await _context.Usuarios
+            .Include(u => u.Rol)
+            .FirstOrDefaultAsync(u => u.Email == email);
+    }
+
+    public async Task<Usuario?> GetByPasswordResetTokenAsync(string token)
+    {
+        return await _context.Usuarios
+            .Include(u => u.Rol)
+            .FirstOrDefaultAsync(u => u.PasswordResetToken == token && 
+                                    u.PasswordResetExpires > DateTime.UtcNow);
+    }
 }

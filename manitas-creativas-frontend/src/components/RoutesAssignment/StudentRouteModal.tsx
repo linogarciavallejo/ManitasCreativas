@@ -12,6 +12,7 @@ interface StudentByCodigoResponse {
   codigo: string;
   primerNombre: string;
   segundoNombre: string;
+  tercerNombre: string;
   primerApellido: string;
   segundoApellido: string;
   gradoNombre: string;
@@ -70,13 +71,16 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
           fechaInicio: parseUtcDate(initialData.fechaInicio),
           fechaFin: initialData.fechaFin ? parseUtcDate(initialData.fechaFin) : null,
           alumno: initialData.alumnoNombre
-        });setSelectedStudent({
+        });        setSelectedStudent({
           id: initialData.alumnoId,
           value: initialData.alumnoId.toString(),
           label: initialData.alumnoNombre,
           codigo: '',
           primerNombre: '',
+          segundoNombre: '',
+          tercerNombre: '',
           primerApellido: '',
+          segundoApellido: '',
           grado: '',
           seccion: '',
           sede: ''
@@ -160,10 +164,13 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
         const student: AlumnoOption = {
           id: response.id,
           value: response.id.toString(),
-          label: `${response.primerApellido} ${response.segundoApellido}, ${response.primerNombre} ${response.segundoNombre}`.trim(),
+          label: `${response.primerApellido} ${response.segundoApellido}, ${response.primerNombre} ${response.segundoNombre} ${response.tercerNombre}`
+            .replace(/\s+/g, ' ')
+            .trim(),
           codigo: response.codigo,
           primerNombre: response.primerNombre,
           segundoNombre: response.segundoNombre,
+          tercerNombre: response.tercerNombre,
           primerApellido: response.primerApellido,
           segundoApellido: response.segundoApellido,
           grado: response.gradoNombre,

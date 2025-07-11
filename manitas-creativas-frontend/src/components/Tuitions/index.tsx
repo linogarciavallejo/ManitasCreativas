@@ -51,6 +51,7 @@ interface AlumnoDetails {
   codigo: string;
   primerNombre: string;
   segundoNombre: string;
+  tercerNombre: string;
   primerApellido: string;
   segundoApellido: string;
   sedeId: number;
@@ -212,7 +213,9 @@ const Tuitions: React.FC = () => {
       setAlumnoId(response.id.toString());
       setSelectedCodigo(response.codigo);
       setSelectedStudent(
-        `${response.primerNombre} ${response.segundoNombre} ${response.primerApellido} ${response.segundoApellido}`.trim()
+        `${response.primerNombre} ${response.segundoNombre} ${response.tercerNombre} ${response.primerApellido} ${response.segundoApellido}`
+          .replace(/\s+/g, ' ')
+          .trim()
       );
       setSelectedStudentDetails(response);
 

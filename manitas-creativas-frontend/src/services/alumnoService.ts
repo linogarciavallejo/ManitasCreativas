@@ -5,6 +5,7 @@ export interface Alumno {
   codigo: string;
   primerNombre: string;
   segundoNombre: string;
+  tercerNombre: string;
   primerApellido: string;
   segundoApellido: string;
   sedeId: number;
@@ -25,6 +26,21 @@ export interface AlumnoSimple {
   id: number;
   codigo: string;
   fullName: string;
+}
+
+export interface AlumnoSearchDto {
+  id: number;
+  codigo: string;
+  primerNombre: string;
+  segundoNombre: string;
+  tercerNombre: string;
+  primerApellido: string;
+  segundoApellido: string;
+  grado: string;
+  seccion: string;
+  sede: string;
+  value: string;
+  label: string;
 }
 
 export interface AlumnoContacto {
@@ -76,6 +92,11 @@ export const alumnoService = {
   // Search students by name or surname
   searchAlumnosByName: async (nombre: string, apellido: string): Promise<Alumno[]> => {
     return await makeApiRequest<Alumno[]>(`/alumnos/search?nombre=${nombre}&apellido=${apellido}`);
+  },
+
+  // Generic search for students (for typeahead/autocomplete)
+  searchAlumnos: async (query: string): Promise<AlumnoSearchDto[]> => {
+    return await makeApiRequest<AlumnoSearchDto[]>(`/alumnos/search?query=${encodeURIComponent(query)}`);
   },
 
   // Get students with full name for dropdown/autocomplete

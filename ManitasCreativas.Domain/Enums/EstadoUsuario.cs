@@ -8,8 +8,8 @@ namespace ManitasCreativas.Domain.Enums
 {
     public enum EstadoUsuario
     {
-        Activo,
-        Inactivo,
-        Bloqueado
+        Activo = 1,
+        Inactivo = 2,
+        Bloqueado = 3
     }
 }

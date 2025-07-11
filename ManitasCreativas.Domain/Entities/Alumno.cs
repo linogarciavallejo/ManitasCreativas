@@ -14,9 +14,10 @@ namespace ManitasCreativas.Domain.Entities
         public int Id { get; set; }
         public required string Codigo { get; set; }
         public required string PrimerNombre { get; set; }
-        public string SegundoNombre { get; set; }
+        public string? SegundoNombre { get; set; }
+        public string? TercerNombre { get; set; }
         public required string PrimerApellido { get; set; }
-        public string SegundoApellido { get; set; }
+        public string? SegundoApellido { get; set; }
         public int SedeId { get; set; }
         public required Sede Sede { get; set; }
         public int GradoId { get; set; }
