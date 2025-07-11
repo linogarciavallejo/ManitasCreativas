@@ -2,7 +2,6 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 //import { userStore } from "../store";
 import PrivateRoute from "./PrivateRoute";
-import AdminRoute from "./AdminRoute";
 
 const SignIn = React.lazy(() => import("../components/SignIn"));
 const ForgotPassword = React.lazy(() => import("../components/ForgotPassword"));
@@ -36,6 +35,16 @@ const TransportDebtorsReport = React.lazy(
 );
 const RoutesAssignment = React.lazy(
   () => import("../components/RoutesAssignment")
+);
+const UniformsMain = React.lazy(() => import("../components/Uniforms"));
+const PrendaUniforme = React.lazy(
+  () => import("../components/Uniforms/Catalog")
+);
+const UniformsConfiguration = React.lazy(
+  () => import("../components/Uniforms/Configuration")
+);
+const UniformPayments = React.lazy(
+  () => import("../components/UniformPayments")
 );
 
 const AppRoutes: React.FC = () => {
@@ -111,6 +120,13 @@ const AppRoutes: React.FC = () => {
             </AdminRoute>
           }
         />
+        <Route path="uniforms" element={<UniformsMain />} />
+        <Route path="uniforms/catalog" element={<PrendaUniforme />} />
+        <Route
+          path="uniforms/configuration"
+          element={<UniformsConfiguration />}
+        />
+        <Route path="uniform-payments" element={<UniformPayments />} />
       </Route>
     </Routes>
   );

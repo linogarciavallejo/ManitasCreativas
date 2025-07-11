@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Form, Input, Button, Select, DatePicker, InputNumber, Switch, Modal, Space, Typography, Popconfirm, message, Card, Row, Col } from 'antd';
+import { Table, Form, Input, Button, Select, DatePicker, InputNumber, Switch, Modal, Space, Typography, Popconfirm, Card, Row, Col } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined, InfoCircleOutlined, SearchOutlined } from '@ant-design/icons';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import 'antd/dist/reset.css';
 import './Rubros.css';
 import dayjs from 'dayjs';
@@ -54,32 +56,8 @@ const Rubros: React.FC = () => {
     loadData();
   }, []);
 
-  // Apply filters when data or filter criteria change
-  useEffect(() => {
-    applyFilters();
-  }, [data, searchText, selectedNivelEducativo, montoMin, montoMax]);
-
-  // Function to fetch rubros from API
-  const fetchRubros = async () => {
-    try {
-      setFetchingData(true);
-      const rubros = await rubroService.getAllRubros();
-      // Sort the rubros alphabetically by descripcion by default
-      const sortedRubros = [...rubros].sort((a, b) => 
-        a.descripcion.localeCompare(b.descripcion)
-      );
-      setData(sortedRubros);
-      setFilteredData(sortedRubros);
-    } catch (error) {
-      console.error('Error fetching rubros:', error);
-      message.error('No se pudieron cargar los rubros');
-    } finally {
-      setFetchingData(false);
-    }
-  };
-
   // Function to apply filters to the data
-  const applyFilters = () => {
+  const applyFilters = React.useCallback(() => {
     let filtered = [...data];
     
     // Filter by descripcion (case-insensitive)
@@ -111,6 +89,30 @@ const Rubros: React.FC = () => {
     }
     
     setFilteredData(filtered);
+  }, [data, searchText, selectedNivelEducativo, montoMin, montoMax]);
+
+  // Apply filters when data or filter criteria change
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
+
+  // Function to fetch rubros from API
+  const fetchRubros = async () => {
+    try {
+      setFetchingData(true);
+      const rubros = await rubroService.getAllRubros();
+      // Sort the rubros alphabetically by descripcion by default
+      const sortedRubros = [...rubros].sort((a, b) => 
+        a.descripcion.localeCompare(b.descripcion)
+      );
+      setData(sortedRubros);
+      setFilteredData(sortedRubros);
+    } catch (error) {
+      console.error('Error fetching rubros:', error);
+      toast.error('No se pudieron cargar los rubros');
+    } finally {
+      setFetchingData(false);
+    }
   };
 
   // Handle search form reset
@@ -130,7 +132,7 @@ const Rubros: React.FC = () => {
       setNivelesEducativos(nivelesData);
     } catch (error) {
       console.error('Error fetching niveles educativos:', error);
-      message.error('No se pudieron cargar los niveles educativos');
+      toast.error('No se pudieron cargar los niveles educativos');
     } finally {
       setLoadingNivelesEducativos(false);
     }
@@ -151,7 +153,7 @@ const Rubros: React.FC = () => {
       setGrados(gradosData);
     } catch (error) {
       console.error('Error fetching grados:', error);
-      message.error('No se pudieron cargar los grados');
+      toast.error('No se pudieron cargar los grados');
     } finally {
       setLoadingGrados(false);
     }
@@ -365,17 +367,17 @@ const Rubros: React.FC = () => {
       const canDelete = await rubroService.canDeleteRubro(id);
       
       if (!canDelete) {
-        message.error('No se puede eliminar el rubro porque tiene pagos asociados');
+        toast.error('No se puede eliminar el rubro porque tiene pagos asociados');
         return;
       }
       
       // If it can be deleted, proceed with deletion
       await rubroService.deleteRubro(id);
       setData(data.filter(item => item.id !== id));
-      message.success('Rubro eliminado con éxito');
+      toast.success('Rubro eliminado con éxito');
     } catch (error) {
       console.error('Error al eliminar el rubro:', error);
-      message.error('Error al eliminar el rubro');
+      toast.error('Error al eliminar el rubro');
     } finally {
       setLoading(false);
     }
@@ -409,20 +411,20 @@ const Rubros: React.FC = () => {
         // Add new rubro
         const newRubro = await rubroService.createRubro(formattedValues);
         setData([...data, newRubro]);
-        message.success('Rubro creado con éxito');
+        toast.success('Rubro creado con éxito');
       } else {
         // Update existing rubro
         await rubroService.updateRubro(editingId, { ...formattedValues, id: editingId });
         
         // Refresh the data to get the updated version
         await fetchRubros();
-        message.success('Rubro actualizado con éxito');      }
+        toast.success('Rubro actualizado con éxito');      }
 
       setModalVisible(false);
       setIsFormValid(false);
     } catch (error) {
       console.error('Error al guardar:', error);
-      message.error('Error al guardar el rubro');
+      toast.error('Error al guardar el rubro');
     } finally {
       setLoading(false);
     }  };
@@ -584,6 +586,18 @@ const Rubros: React.FC = () => {
 
   return (
     <div className="rubros-container">
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <div className="rubros-header">
         <Title level={2}>Gestión de Rubros</Title>
         <Space>

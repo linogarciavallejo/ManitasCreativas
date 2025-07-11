@@ -46,6 +46,7 @@ public class RubroService : IRubroService
             FechaFinPromocion = r.FechaFinPromocion,
             EsPagoDeCarnet = r.EsPagoDeCarnet,
             EsPagoDeTransporte = r.EsPagoDeTransporte,
+            EsPagoDeUniforme = r.EsPagoDeUniforme,
             Notas = r.Notas,
             Activo = r.Activo ?? true,
             OrdenVisualizacionGrid = r.OrdenVisualizacionGrid,
@@ -81,6 +82,7 @@ public class RubroService : IRubroService
             FechaFinPromocion = rubro.FechaFinPromocion,
             EsPagoDeCarnet = rubro.EsPagoDeCarnet,
             EsPagoDeTransporte = rubro.EsPagoDeTransporte,
+            EsPagoDeUniforme = rubro.EsPagoDeUniforme,
             Notas = rubro.Notas,
             Activo = rubro.Activo ?? true,
             OrdenVisualizacionGrid = rubro.OrdenVisualizacionGrid
@@ -142,6 +144,7 @@ public class RubroService : IRubroService
                 : rubroDto.FechaFinPromocion?.ToUniversalTime(),
             EsPagoDeCarnet = rubroDto.EsPagoDeCarnet,
             EsPagoDeTransporte = rubroDto.EsPagoDeTransporte,
+            EsPagoDeUniforme = rubroDto.EsPagoDeUniforme,
             Notas = rubroDto.Notas,
             Activo = rubroDto.Activo,
             OrdenVisualizacionGrid = rubroDto.OrdenVisualizacionGrid,
@@ -208,6 +211,7 @@ public class RubroService : IRubroService
             : rubroDto.FechaFinPromocion?.ToUniversalTime();
         existingRubro.EsPagoDeCarnet = rubroDto.EsPagoDeCarnet;
         existingRubro.EsPagoDeTransporte = rubroDto.EsPagoDeTransporte;
+        existingRubro.EsPagoDeUniforme = rubroDto.EsPagoDeUniforme;
         existingRubro.Notas = rubroDto.Notas;
         existingRubro.Activo = rubroDto.Activo;
         existingRubro.OrdenVisualizacionGrid = rubroDto.OrdenVisualizacionGrid;
@@ -246,6 +250,7 @@ public class RubroService : IRubroService
             FechaFinPromocion = r.FechaFinPromocion,
             EsPagoDeCarnet = r.EsPagoDeCarnet,
             EsPagoDeTransporte = r.EsPagoDeTransporte,
+            EsPagoDeUniforme = r.EsPagoDeUniforme,
             Notas = r.Notas,
             Activo = r.Activo ?? true,
             OrdenVisualizacionGrid = r.OrdenVisualizacionGrid
@@ -294,6 +299,7 @@ public class RubroService : IRubroService
             UsuarioActualizacionId = p.UsuarioActualizacionId,
             EsPagoDeCarnet = p.Rubro?.EsPagoDeCarnet,
             EsPagoDeTransporte = p.Rubro?.EsPagoDeTransporte,
+            EsPagoDeUniforme = p.Rubro?.EsPagoDeUniforme,
         });
     }
 

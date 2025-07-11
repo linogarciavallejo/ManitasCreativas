@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import useSessionExpiration from "../../hooks/useSessionExpiration";
-import { signOut, hasAdminAccess } from "../../services/authService";
+import { signOut } from "../../services/authService";
 import "antd/dist/reset.css"; // Import Ant Design styles
 import {
   MenuFoldOutlined,
@@ -16,6 +16,7 @@ import {
   BarChartOutlined,
   //PieChartOutlined,
   CarOutlined,
+  AppstoreOutlined,
 } from "@ant-design/icons";
 import { Button, Layout, Menu, theme } from "antd";
 import { Link, Outlet, useNavigate } from "react-router-dom";
@@ -26,7 +27,6 @@ const Main: React.FC = () => {
   useSessionExpiration();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
-  const isAdmin = hasAdminAccess();
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -34,7 +34,6 @@ const Main: React.FC = () => {
     signOut();
     navigate("/"); // Redirect to login page after signing out
   };
-
   // Build menu items conditionally based on admin access
   const menuItems = [
     {
@@ -79,9 +78,7 @@ const Main: React.FC = () => {
       key: "6",
       icon: <FileTextOutlined />,
       label: (
-        <Link to="transport-payments-report">
-          Reporte de Pagos de Bus
-        </Link>
+        <Link to="transport-payments-report">Reporte de Pagos de Bus</Link>
       ),
     },
     {
@@ -95,54 +92,61 @@ const Main: React.FC = () => {
       label: <Link to="statement">Estado de Cuenta</Link>,
     },
     // Admin-only section
-    ...(isAdmin ? [
-      {
-        key: "divider-2",
-        disabled: true,
-        label: (
-          <div
-            style={{
-              borderTop: "1px solid #F99F1F",
-              margin: "8px 0",
-              opacity: 0.6,
-            }}
-          ></div>
-        ),
-      },
-      {
-        key: "9",
-        icon: <TagOutlined />,
-        label: <Link to="rubros">Rubros</Link>,
-      },
-      {
-        key: "10",
-        icon: <IdcardOutlined />,
-        label: <Link to="students">Alumnos</Link>,
-      },
-      {
-        key: "11",
-        icon: <CarOutlined />,
-        label: <Link to="routes-assignment">Asignación de Rutas</Link>,
-      },
-      {
-        key: "divider-3",
-        disabled: true,
-        label: (
-          <div
-            style={{
-              borderTop: "1px solid #F99F1F",
-              margin: "8px 0",
-              opacity: 0.6,
-            }}
-          ></div>
-        ),
-      },
-      {
-        key: "12",
-        icon: <UserOutlined />,
-        label: <Link to="users">Usuarios</Link>,
-      },
-    ] : []),
+    ...(isAdmin
+      ? [
+          {
+            key: "divider-2",
+            disabled: true,
+            label: (
+              <div
+                style={{
+                  borderTop: "1px solid #F99F1F",
+                  margin: "8px 0",
+                  opacity: 0.6,
+                }}
+              ></div>
+            ),
+          },
+          {
+            key: "9",
+            icon: <TagOutlined />,
+            label: <Link to="rubros">Rubros</Link>,
+          },
+          {
+            key: "10",
+            icon: <IdcardOutlined />,
+            label: <Link to="students">Alumnos</Link>,
+          },
+          {
+            key: "11",
+            icon: <CarOutlined />,
+            label: <Link to="routes-assignment">Asignación de Rutas</Link>,
+          },
+          {
+            key: "11.5",
+            icon: <AppstoreOutlined />,
+            label: <Link to="uniforms">Gestión de Uniformes</Link>,
+          },
+          {
+            key: "divider-3",
+            disabled: true,
+            label: (
+              <div
+                style={{
+                  borderTop: "1px solid #F99F1F",
+                  margin: "8px 0",
+                  opacity: 0.6,
+                }}
+              ></div>
+            ),
+          },
+          {
+            key: "12",
+            icon: <UserOutlined />,
+            label: <Link to="users">Usuarios</Link>,
+          },
+        ]
+      : []),
     {
       key: "13",
       icon: <LogoutOutlined />,
@@ -154,11 +158,7 @@ const Main: React.FC = () => {
     <Layout style={{ minHeight: "100vh", width: "100%" }}>
       <Sider trigger={null} collapsible collapsed={collapsed}>
         <div className="demo-logo-vertical" />
-        <Menu
-          theme="dark"
-          mode="inline"
-          items={menuItems}
-        />
+        <Menu theme="dark" mode="inline" items={menuItems} />
       </Sider>
       <Layout>
         <Header style={{ padding: 0, background: colorBgContainer }}>

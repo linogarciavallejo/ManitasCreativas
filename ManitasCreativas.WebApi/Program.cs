@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using ManitasCreativas.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using ManitasCreativas.Application.Services;
+using ManitasCreativas.WebApi.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,6 +59,14 @@ builder.Services.AddScoped<IContactoRepository, ContactoRepository>();
 builder.Services.AddScoped<IAlumnoContactoRepository, AlumnoContactoRepository>();
 builder.Services.AddScoped<IAlumnoRutaRepository, AlumnoRutaRepository>();
 
+// Uniform Management Repositories
+builder.Services.AddScoped<IPrendaUniformeRepository, PrendaUniformeRepository>();
+builder.Services.AddScoped<IPrendaUniformeImagenRepository, PrendaUniformeImagenRepository>();
+builder.Services.AddScoped<IEntradaUniformeRepository, EntradaUniformeRepository>();
+builder.Services.AddScoped<IEntradaUniformeDetalleRepository, EntradaUniformeDetalleRepository>();
+builder.Services.AddScoped<IRubroUniformeDetalleRepository, RubroUniformeDetalleRepository>();
+builder.Services.AddScoped<IPagoDetalleRepository, PagoDetalleRepository>();
+
 // Dependency Injection for Services
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>(sp => {
@@ -101,12 +110,18 @@ builder.Services.AddScoped<IPagoService, PagoService>(sp =>
     var pagoImagenRepository = sp.GetRequiredService<IPagoImagenRepository>();
     var alumnoContactoRepository = sp.GetRequiredService<IAlumnoContactoRepository>();
     var alumnoRutaRepository = sp.GetRequiredService<IAlumnoRutaRepository>();
+    var pagoDetalleRepository = sp.GetRequiredService<IPagoDetalleRepository>();
 
     // Return a new instance of PagoService
-    return new PagoService(pagoRepository, s3Service, alumnoRepository, rubroRepository, usuarioRepository, pagoImagenRepository, alumnoContactoRepository, alumnoRutaRepository);
+    return new PagoService(pagoRepository, s3Service, alumnoRepository, rubroRepository, usuarioRepository, pagoImagenRepository, alumnoContactoRepository, alumnoRutaRepository, pagoDetalleRepository);
 });
 // Inject S3Service into PagoService
 builder.Services.AddScoped<S3Service>();
+
+// Uniform Management Services
+builder.Services.AddScoped<IPrendaUniformeService, PrendaUniformeService>();
+builder.Services.AddScoped<IEntradaUniformeService, EntradaUniformeService>();
+builder.Services.AddScoped<IRubroUniformeDetalleService, RubroUniformeDetalleService>();
 
 // Add DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -149,6 +164,11 @@ app.MapSedeEndpoints();
 app.MapContactoEndpoints();
 app.MapAlumnoContactoEndpoints();
 app.MapAlumnoRutaEndpoints();
+
+// Uniform Management Endpoints
+app.MapPrendaUniformeEndpoints();
+app.MapEntradaUniformeEndpoints();
+app.MapRubroUniformeDetalleEndpoints();
 
 app.MapFallbackToFile("index.html"); // Serve the SPA
 

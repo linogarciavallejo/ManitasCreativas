@@ -1,0 +1,109 @@
+.prenda-uniforme-container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.prenda-uniforme-container .ant-table-thead > tr > th {
+  background-color: #fafafa;
+  font-weight: 600;
+}
+
+.prenda-uniforme-container .ant-table-tbody > tr:hover > td {
+  background-color: #e6f7ff;
+}
+
+.prenda-uniforme-container .ant-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.prenda-uniforme-container .ant-form-item-label > label {
+  font-weight: 500;
+}
+
+.prenda-uniforme-container .ant-btn-primary {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+.prenda-uniforme-container .ant-btn-primary:hover {
+  background-color: #40a9ff;
+  border-color: #40a9ff;
+}
+
+.prenda-uniforme-container .ant-tag {
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.prenda-uniforme-container .ant-input-number {
+  width: 100%;
+}
+
+.prenda-uniforme-container .ant-upload-list-picture-card .ant-upload-list-item {
+  border-radius: 8px;
+}
+
+.prenda-uniforme-container .ant-upload-select-picture-card {
+  border-radius: 8px;
+  border: 2px dashed #d9d9d9;
+  transition: border-color 0.3s;
+}
+
+.prenda-uniforme-container .ant-upload-select-picture-card:hover {
+  border-color: #1890ff;
+}
+
+.prenda-uniforme-container .stock-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.prenda-uniforme-container .search-panel {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.prenda-uniforme-container .action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.prenda-uniforme-container .image-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.prenda-uniforme-container .image-preview-item {
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.prenda-uniforme-container .image-preview-item:hover {
+  transform: scale(1.05);
+}
+
+/* Custom responsive adjustments */
+@media (max-width: 768px) {
+  .prenda-uniforme-container .ant-table-wrapper {
+    overflow-x: auto;
+  }
+  
+  .prenda-uniforme-container .search-panel .ant-row {
+    flex-direction: column;
+  }
+  
+  .prenda-uniforme-container .search-panel .ant-col {
+    width: 100% !important;
+    margin-bottom: 8px;
+  }
+}
