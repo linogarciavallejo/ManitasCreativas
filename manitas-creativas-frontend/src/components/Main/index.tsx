@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import useSessionExpiration from "../../hooks/useSessionExpiration";
-import { signOut } from "../../services/authService";
+import { signOut, hasAdminAccess  } from "../../services/authService";
 import "antd/dist/reset.css"; // Import Ant Design styles
 import {
   MenuFoldOutlined,
@@ -27,6 +27,7 @@ const Main: React.FC = () => {
   useSessionExpiration();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+  const isAdmin = hasAdminAccess();
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();

@@ -2,6 +2,7 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 //import { userStore } from "../store";
 import PrivateRoute from "./PrivateRoute";
+import AdminRoute from "./AdminRoute";
 
 const SignIn = React.lazy(() => import("../components/SignIn"));
 const ForgotPassword = React.lazy(() => import("../components/ForgotPassword"));
