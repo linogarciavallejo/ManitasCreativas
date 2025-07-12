@@ -14,6 +14,11 @@ public class RubroUniformeDetalleDto
     public decimal PrendaUniformePrecio { get; set; }
     public string? PrendaUniformeImagenUrl { get; set; } = string.Empty;
 
+    // Inventory fields
+    public int PrendaUniformeExistenciaInicial { get; set; }
+    public int PrendaUniformeEntradas { get; set; }
+    public int PrendaUniformeSalidas { get; set; }
+
     // Audit fields
     public DateTime FechaCreacion { get; set; }
     public DateTime? FechaActualizacion { get; set; }

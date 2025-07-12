@@ -38,7 +38,7 @@ const UniformsMain: React.FC = () => {
       title: 'Ventas de Uniformes',
       description: 'Registro y gestión de ventas de uniformes a estudiantes',
       icon: <ShoppingCartOutlined style={{ fontSize: '32px', color: '#eb2f96' }} />,
-      link: '/main/uniforms/sales',
+      link: '/main/uniforms/uniform-payments',
       color: '#fff0f6'
     },
     {

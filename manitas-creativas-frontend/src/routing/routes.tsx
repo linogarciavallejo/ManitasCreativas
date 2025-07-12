@@ -127,7 +127,7 @@ const AppRoutes: React.FC = () => {
           path="uniforms/configuration"
           element={<UniformsConfiguration />}
         />
-        <Route path="uniform-payments" element={<UniformPayments />} />
+        <Route path="uniforms/uniform-payments" element={<UniformPayments />} />
       </Route>
     </Routes>
   );

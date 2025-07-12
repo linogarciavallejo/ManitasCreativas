@@ -220,12 +220,11 @@ const UniformPayments: React.FC = () => {
       form.setFieldsValue({ 
         rubroId: rubroId,
         monto: selected.montoPreestablecido || 0
-      });
-
-      // Fetch available uniform items for this rubro
-      try {
-        const uniformDetails = await rubroUniformeDetalleService.getRubroUniformeDetallesByRubroId(parseInt(rubroId));
-        setAvailableUniformItems(uniformDetails);
+      });        // Fetch available uniform items for this rubro
+        try {
+          const uniformDetails = await rubroUniformeDetalleService.getRubroUniformeDetallesByRubroId(parseInt(rubroId));
+          console.log('Fetched uniform details:', uniformDetails); // Debug log
+          setAvailableUniformItems(uniformDetails);
         
         if (payFullUniform) {
           // Calculate total amount for full uniform
@@ -265,6 +264,13 @@ const UniformPayments: React.FC = () => {
     setUniformItems([]);
     
     if (payFull && selectedRubro && availableUniformItems.length > 0) {
+      // Check if all items have inventory when paying full uniform
+      const itemsWithoutInventory = availableUniformItems.filter(item => getCurrentInventory(item) <= 0);
+      
+      if (itemsWithoutInventory.length > 0) {
+        toast.warning(`Algunos artículos no tienen inventario disponible: ${itemsWithoutInventory.map(item => item.prendaUniformeDescripcion).join(', ')}`);
+      }
+      
       const total = availableUniformItems.reduce((sum, item) => sum + item.prendaUniformePrecio, 0);
       setTotalAmount(total);
       form.setFieldsValue({ monto: total });
@@ -272,6 +278,26 @@ const UniformPayments: React.FC = () => {
       setTotalAmount(0);
       form.setFieldsValue({ monto: 0 });
     }
+  };
+
+  // Helper function to get current inventory for an item
+  const getCurrentInventory = (item: RubroUniformeDetalle): number => {
+    // Debug logging to see what values we're getting
+    console.log('Inventory calculation for item:', {
+      description: item.prendaUniformeDescripcion,
+      existenciaInicial: item.prendaUniformeExistenciaInicial,
+      entradas: item.prendaUniformeEntradas,
+      salidas: item.prendaUniformeSalidas
+    });
+
+    const existencia = item.prendaUniformeExistenciaInicial || 0;
+    const entradas = item.prendaUniformeEntradas || 0;
+    const salidas = item.prendaUniformeSalidas || 0;
+    
+    const inventory = existencia + entradas - salidas;
+    console.log('Calculated inventory:', inventory);
+    
+    return inventory;
   };
 
   // Calculate total when uniform items change
@@ -309,6 +335,27 @@ const UniformPayments: React.FC = () => {
         return;
       }
 
+      // Calculate current inventory (initial + entries - exits)
+      const currentInventory = getCurrentInventory(selectedDetail);
+
+      // Check if there's enough inventory
+      if (editingItem) {
+        // When editing, calculate the net change in quantity
+        const previousQuantity = editingItem.cantidad;
+        const netQuantityChange = values.cantidad - previousQuantity;
+        
+        if (netQuantityChange > 0 && netQuantityChange > currentInventory) {
+          toast.error(`No hay suficiente inventario para el incremento. Disponible: ${currentInventory}, Incremento solicitado: ${netQuantityChange}`);
+          return;
+        }
+      } else {
+        // When adding new item, check if requested quantity exceeds inventory
+        if (values.cantidad > currentInventory) {
+          toast.error(`No hay suficiente inventario. Disponible: ${currentInventory}, Solicitado: ${values.cantidad}`);
+          return;
+        }
+      }
+
       const subtotal = selectedDetail.prendaUniformePrecio * values.cantidad;
       
       const newItem: UniformItem = {
@@ -326,6 +373,7 @@ const UniformPayments: React.FC = () => {
 
       if (editingItem) {
         setUniformItems(items => items.map(item => item.key === editingItem.key ? newItem : item));
+        toast.success('Artículo actualizado correctamente');
       } else {
         // Check if item already exists
         const existingItem = uniformItems.find(item => item.rubroUniformeDetalleId === selectedDetail.id);
@@ -334,11 +382,13 @@ const UniformPayments: React.FC = () => {
           return;
         }
         setUniformItems(items => [...items, newItem]);
+        toast.success('Artículo agregado correctamente');
       }
 
       setItemModalVisible(false);
     } catch (error) {
       console.error('Error saving uniform item:', error);
+      toast.error('Error al guardar el artículo');
     }
   };
 
@@ -569,6 +619,25 @@ const UniformPayments: React.FC = () => {
       return;
     }
 
+    // Validate inventory before submitting
+    if (payFullUniform) {
+      const inventoryErrors = availableUniformItems.filter(item => getCurrentInventory(item) <= 0);
+      if (inventoryErrors.length > 0) {
+        toast.error(`No hay inventario suficiente para: ${inventoryErrors.map(item => item.prendaUniformeDescripcion).join(', ')}`);
+        return;
+      }
+    } else {
+      const inventoryErrors = uniformItems.filter(item => {
+        const uniformItem = availableUniformItems.find(ui => ui.id === item.rubroUniformeDetalleId);
+        return !uniformItem || getCurrentInventory(uniformItem) < item.cantidad;
+      });
+
+      if (inventoryErrors.length > 0) {
+        toast.error('No hay inventario suficiente para algunos artículos seleccionados');
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const formData = new FormData();
@@ -792,18 +861,51 @@ const UniformPayments: React.FC = () => {
             rules={[{ required: true, message: 'Seleccione un artículo' }]}
           >
             <Select placeholder="Seleccione un artículo">
-              {availableUniformItems.map(item => (
-                <Option key={item.id} value={item.id}>
-                  {item.prendaUniformeDescripcion} - {item.prendaUniformeSexo} - {item.prendaUniformeTalla === '*' ? 'Todas' : item.prendaUniformeTalla} - Q{item.prendaUniformePrecio.toFixed(2)}
-                </Option>
-              ))}
+              {availableUniformItems.map(item => {
+                const currentInventory = getCurrentInventory(item);
+                return (
+                  <Option key={item.id} value={item.id}>
+                    {item.prendaUniformeDescripcion} - {item.prendaUniformeSexo} - {item.prendaUniformeTalla === '*' ? 'Todas' : item.prendaUniformeTalla} - Q{item.prendaUniformePrecio.toFixed(2)}
+                    {currentInventory <= 0 && <span style={{ color: 'red' }}> (Sin inventario)</span>}
+                    {currentInventory > 0 && currentInventory <= 5 && <span style={{ color: 'orange' }}> (Bajo inventario: {currentInventory})</span>}
+                    {currentInventory > 5 && <span style={{ color: 'green' }}> (Disponible: {currentInventory})</span>}
+                  </Option>
+                );
+              })}
             </Select>
           </Form.Item>
           
           <Form.Item
             label="Cantidad"
             name="cantidad"
-            rules={[{ required: true, message: 'Ingrese la cantidad' }]}
+            rules={[
+              { required: true, message: 'Ingrese la cantidad' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  const selectedId = getFieldValue('rubroUniformeDetalleId');
+                  if (selectedId && value) {
+                    const selectedItem = availableUniformItems.find(item => item.id === selectedId);
+                    if (selectedItem) {
+                      const currentInventory = getCurrentInventory(selectedItem);
+                      
+                      if (editingItem) {
+                        // For editing, check net change
+                        const netChange = value - editingItem.cantidad;
+                        if (netChange > 0 && netChange > currentInventory) {
+                          return Promise.reject(new Error(`Incremento excede inventario disponible (${currentInventory})`));
+                        }
+                      } else {
+                        // For new items, check absolute value
+                        if (value > currentInventory) {
+                          return Promise.reject(new Error(`Cantidad excede el inventario disponible (${currentInventory})`));
+                        }
+                      }
+                    }
+                  }
+                  return Promise.resolve();
+                },
+              }),
+            ]}
             initialValue={1}
           >
             <InputNumber min={1} style={{ width: '100%' }} />

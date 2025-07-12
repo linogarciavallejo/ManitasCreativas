@@ -11,6 +11,9 @@ export interface RubroUniformeDetalle {
   prendaUniformeTalla: string;
   prendaUniformePrecio: number;
   prendaUniformeImagenUrl?: string;
+  prendaUniformeExistenciaInicial: number;
+  prendaUniformeEntradas: number;
+  prendaUniformeSalidas: number;
   fechaCreacion: string;
   fechaActualizacion?: string;
   usuarioCreacionId: number;
