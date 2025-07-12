@@ -652,7 +652,7 @@ const UniformPayments: React.FC = () => {
       formData.append("MesColegiatura", currentMonth.toString());
       formData.append("RubroId", values.rubroId);
       formData.append("AlumnoId", alumnoId);
-      formData.append("EsColegiatura", "true");
+      formData.append("EsColegiatura", "false");
       formData.append("AnioColegiatura", new Date().getFullYear().toString());
       formData.append("EsPagoDeUniforme", "true");
 

@@ -376,7 +376,7 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
           </Col>
         </Row>
 
-        {(payment.esColegiatura || payment.esPagoDeTransporte) && !payment.esPagoDeUniforme && (
+        {(payment.esColegiatura || payment.esPagoDeTransporte) && (
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item 

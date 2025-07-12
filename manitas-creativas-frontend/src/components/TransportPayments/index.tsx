@@ -263,7 +263,7 @@ const TransportPayments: React.FC = () => {
       formData.append("MesColegiatura", values.mes.toString());
       formData.append("RubroId", values.rubroId);
       formData.append("AlumnoId", alumnoId);
-      formData.append("EsColegiatura", "true");
+      formData.append("EsColegiatura", "false");
       formData.append("AnioColegiatura", new Date().getFullYear().toString());
 
       // Set transport payment flag to true
