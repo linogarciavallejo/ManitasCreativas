@@ -864,8 +864,71 @@ const UniformPayments: React.FC = () => {
             <Upload 
               beforeUpload={() => false} 
               multiple 
-              listType="picture"
+              listType="picture-card"
               accept="image/*"
+              onPreview={(file) => {
+                console.log("Preview clicked for file:", file); // Debug log
+                console.log("file.url:", file.url); // Debug file URL
+                console.log("file.originFileObj:", file.originFileObj); // Debug originFileObj
+                console.log("file keys:", Object.keys(file)); // Debug all file properties
+                
+                // Create a preview URL for the file
+                let url = '';
+                let createdUrl = false;
+                
+                try {
+                  if (file.url) {
+                    url = file.url;
+                    console.log("Using existing file.url:", url);
+                  } else if (file.originFileObj) {
+                    console.log("Creating URL from originFileObj...");
+                    url = URL.createObjectURL(file.originFileObj);
+                    createdUrl = true;
+                    console.log("Created URL from originFileObj:", url);
+                  } else if (file instanceof File) {
+                    console.log("Creating URL from file directly...");
+                    url = URL.createObjectURL(file);
+                    createdUrl = true;
+                    console.log("Created URL from file:", url);
+                  }
+                } catch (error) {
+                  console.error("Error creating object URL:", error);
+                }
+                
+                console.log("Final generated URL:", url); // Debug generated URL
+                
+                if (url) {
+                  console.log("Opening image in new tab...");
+                  window.open(url, '_blank');
+                  
+                  // Clean up the URL after a short delay
+                  if (createdUrl && url) {
+                    setTimeout(() => {
+                      console.log("Cleaning up URL:", url);
+                      URL.revokeObjectURL(url);
+                    }, 2000);
+                  }
+                } else {
+                  console.error("No URL available for preview", file);
+                  // Try window.open as a fallback
+                  if (file.originFileObj) {
+                    const fallbackUrl = URL.createObjectURL(file.originFileObj);
+                    window.open(fallbackUrl, '_blank');
+                    // Clean up after a delay
+                    setTimeout(() => URL.revokeObjectURL(fallbackUrl), 1000);
+                  } else {
+                    Modal.error({
+                      title: 'Error',
+                      content: 'No se pudo generar una vista previa de la imagen.',
+                    });
+                  }
+                }
+              }}
+              showUploadList={{
+                showPreviewIcon: true,
+                showRemoveIcon: true,
+                showDownloadIcon: false,
+              }}
               onChange={(info) => {
                 // Update form field with file list
                 form.setFieldsValue({
