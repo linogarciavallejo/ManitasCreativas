@@ -26,6 +26,10 @@ export interface Pago {
   // Carnet payment fields
   esPagoDeCarnet?: boolean;
   estadoCarnet?: string;
+  // Transport payment fields
+  esPagoDeTransporte?: boolean;
+  // Uniform payment fields
+  esPagoDeUniforme?: boolean;
   // Student information
   alumnoId?: number;
   alumnoNombre?: string;

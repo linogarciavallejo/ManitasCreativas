@@ -118,6 +118,20 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
       formData.append("Notas", values.notas || "");
       formData.append("EsColegiatura", payment.esColegiatura.toString());
 
+      // Handle transport payment flag
+      if (payment.esPagoDeTransporte) {
+        formData.append("EsPagoDeTransporte", "true");
+      } else {
+        formData.append("EsPagoDeTransporte", "false");
+      }
+
+      // Handle uniform payment flag
+      if (payment.esPagoDeUniforme) {
+        formData.append("EsPagoDeUniforme", "true");
+      } else {
+        formData.append("EsPagoDeUniforme", "false");
+      }
+
       // Handle carnet payment fields
       if (payment.esPagoDeCarnet) {
         formData.append("EsPagoDeCarnet", "true");
@@ -130,7 +144,21 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
         formData.append("EstadoCarnet", "");
       }
 
-      if (payment.esColegiatura) {
+      if (payment.esColegiatura && !payment.esPagoDeUniforme) {
+        formData.append(
+          "MesColegiatura",
+          (values.mesColegiatura || payment.mesColegiatura || 0).toString()
+        );
+        formData.append(
+          "AnioColegiatura",
+          (
+            values.anioColegiatura ||
+            payment.anioColegiatura ||
+            new Date().getFullYear()
+          ).toString()
+        );
+      } else if (payment.esPagoDeTransporte && !payment.esPagoDeUniforme) {
+        // Transport payments also use the same fields but different context
         formData.append(
           "MesColegiatura",
           (values.mesColegiatura || payment.mesColegiatura || 0).toString()
@@ -348,10 +376,13 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
           </Col>
         </Row>
 
-        {payment.esColegiatura && (
+        {(payment.esColegiatura || payment.esPagoDeTransporte) && !payment.esPagoDeUniforme && (
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item label="Mes de Colegiatura" name="mesColegiatura">
+              <Form.Item 
+                label={payment.esColegiatura ? "Mes de Colegiatura" : "Mes Pago"} 
+                name="mesColegiatura"
+              >
                 <Select placeholder="Seleccione el mes">
                   <Option value={1}>Enero</Option>
                   <Option value={2}>Febrero</Option>
@@ -369,10 +400,13 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item label="Año de Colegiatura" name="anioColegiatura">
+              <Form.Item 
+                label={payment.esColegiatura ? "Año de Colegiatura" : "Año"} 
+                name="anioColegiatura"
+              >
                 <InputNumber
                   style={{ width: "100%" }}
-                  placeholder="Año de colegiatura"
+                  placeholder={payment.esColegiatura ? "Año de colegiatura" : "Año"}
                   min={2020}
                   max={2030}
                 />

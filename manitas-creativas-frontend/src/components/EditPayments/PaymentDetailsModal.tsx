@@ -21,13 +21,15 @@ const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({
   if (!payment) return null;
   // Debug logging
   console.log("PaymentDetailsModal - payment:", payment);
-  console.log("PaymentDetailsModal - activeFilter:", activeFilter);
-  console.log("PaymentDetailsModal - gradoNombre:", payment.gradoNombre);
-  console.log("PaymentDetailsModal - seccion:", payment.seccion);
-  console.log("PaymentDetailsModal - seccion type:", typeof payment.seccion);
-  console.log(
-    "PaymentDetailsModal - condition check:",
-    activeFilter === "alumno" && (payment.gradoNombre || payment.seccion)
+  console.log("PaymentDetailsModal - esColegiatura:", payment.esColegiatura);
+  console.log("PaymentDetailsModal - esPagoDeTransporte:", payment.esPagoDeTransporte);
+  console.log("PaymentDetailsModal - esPagoDeUniforme:", payment.esPagoDeUniforme);
+  console.log("PaymentDetailsModal - rubroDescripcion:", payment.rubroDescripcion);
+  console.log("PaymentDetailsModal - tipoRubroDescripcion:", payment.tipoRubroDescripcion);
+  console.log("PaymentDetailsModal - mesColegiatura:", payment.mesColegiatura);
+  console.log("PaymentDetailsModal - anioColegiatura:", payment.anioColegiatura);
+  console.log("PaymentDetailsModal - condition result:", 
+    (payment.esColegiatura || payment.esPagoDeTransporte) && !payment.esPagoDeUniforme && payment.mesColegiatura
   );
 
   return (
@@ -92,15 +94,21 @@ const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({
         <Descriptions.Item label="Medio de Pago">
           {payment.medioPagoDescripcion}
         </Descriptions.Item>
-        {payment.esColegiatura && payment.mesColegiatura && (
-          <Descriptions.Item label="Mes Colegiatura">
+        {(payment.esColegiatura || payment.esPagoDeTransporte) && 
+         !payment.esPagoDeUniforme && 
+         payment.tipoRubroDescripcion !== "Uniformes" &&
+         payment.mesColegiatura && (
+          <Descriptions.Item label={payment.esColegiatura ? "Mes Colegiatura" : "Mes Pago"}>
             {new Date(0, payment.mesColegiatura - 1).toLocaleString("es-ES", {
               month: "long",
             })}
           </Descriptions.Item>
         )}
-        {payment.esColegiatura && payment.anioColegiatura && (
-          <Descriptions.Item label="Año Colegiatura">
+        {(payment.esColegiatura || payment.esPagoDeTransporte) && 
+         !payment.esPagoDeUniforme && 
+         payment.tipoRubroDescripcion !== "Uniformes" &&
+         payment.anioColegiatura && (
+          <Descriptions.Item label={payment.esColegiatura ? "Año de Colegiatura" : "Año"}>
             {payment.anioColegiatura}
           </Descriptions.Item>
         )}
