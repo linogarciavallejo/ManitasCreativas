@@ -194,26 +194,39 @@ public class PagoService : IPagoService
                     ? (pagoDto.FechaAnulacion.HasValue ? DateTime.SpecifyKind(pagoDto.FechaAnulacion.Value, DateTimeKind.Utc) : null)
                     : pagoDto.FechaAnulacion?.ToUniversalTime(),
             UsuarioAnulacionId = pagoDto.UsuarioAnulacionId
-        };await _pagoRepository.AddAsync(pago);
+        };
+
+        // Save the pago first to get the ID
+        await _pagoRepository.AddAsync(pago);
 
         // Handle images - both uploaded files and existing URLs
-        var pagoImagenes = new List<PagoImagen>();        // Handle uploaded files
+        var pagoImagenes = new List<PagoImagen>();
+        
+        // Handle uploaded files
         if (pagoDto.ImagenesPago != null && pagoDto.ImagenesPago.Any())
         {
             foreach (var file in pagoDto.ImagenesPago)
             {
-                // Upload to S3 and get the URL (with year/month folder structure based on payment date)
-                var fileName = $"payment-{pago.Id}-{Guid.NewGuid()}-{file.FileName}";
-                var imageUrl = await _s3Service.UploadFileAsync(file.OpenReadStream(), fileName, file.ContentType, pago.Fecha);
-                
-                var pagoImagen = new PagoImagen
+                try
                 {
-                    PagoId = pago.Id,
-                    ImagenUrl = new Uri(imageUrl),
-                    FechaCreacion = DateTime.UtcNow,
-                    UsuarioCreacionId = pagoDto.UsuarioCreacionId
-                };
-                pagoImagenes.Add(pagoImagen);
+                    // Upload to S3 and get the URL (with year/month folder structure based on payment date)
+                    var fileName = $"payment-{pago.Id}-{Guid.NewGuid()}-{file.FileName}";
+                    var imageUrl = await _s3Service.UploadFileAsync(file.OpenReadStream(), fileName, file.ContentType, pago.Fecha);
+                    
+                    var pagoImagen = new PagoImagen
+                    {
+                        PagoId = pago.Id,
+                        ImagenUrl = new Uri(imageUrl),
+                        FechaCreacion = DateTime.UtcNow,
+                        UsuarioCreacionId = pagoDto.UsuarioCreacionId
+                    };
+                    pagoImagenes.Add(pagoImagen);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[PagoService] Error uploading file {file.FileName}: {ex.Message}");
+                    throw; // Re-throw to maintain error handling
+                }
             }
         }
 

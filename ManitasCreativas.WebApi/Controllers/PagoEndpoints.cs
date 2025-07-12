@@ -38,6 +38,7 @@ public static class PagoEndpoints
             }
         )
         .DisableAntiforgery();        // New endpoint for payment report
+
         app.MapGet(
             "/pagos/report",
             async (int cicloEscolar, int gradoId, IPagoService pagoService) =>
@@ -102,6 +103,7 @@ public static class PagoEndpoints
             }
         )
         .DisableAntiforgery();        // Endpoint for voiding a payment
+        
         app.MapPost(
             "/pagos/{id}/void",
             async (int id, VoidPagoDto voidDto, IPagoService pagoService) =>
@@ -253,7 +255,9 @@ public static class PagoEndpoints
                     return Results.BadRequest(ex.Message);
                 }
             }
-        );        // Transport debtors report endpoint
+        );        
+        
+        // Transport debtors report endpoint
         app.MapGet(
             "/pagos/transport-debtors-report",
             async (

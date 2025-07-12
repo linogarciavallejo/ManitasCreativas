@@ -640,6 +640,9 @@ const UniformPayments: React.FC = () => {
 
     setLoading(true);
     try {
+      console.log("Form values received:", values);
+      console.log("Images from form:", values.imagenesPago);
+      
       const formData = new FormData();
       formData.append("Id", "0");
       formData.append("Fecha", values.fechaPago.toISOString());
@@ -681,12 +684,23 @@ const UniformPayments: React.FC = () => {
       });
 
       // Handle image uploads
+      console.log("Processing images for upload:", values.imagenesPago);
       if (values.imagenesPago && Array.isArray(values.imagenesPago)) {
-        values.imagenesPago.forEach((file) => {
+        console.log(`Found ${values.imagenesPago.length} images to upload`);
+        values.imagenesPago.forEach((file, index) => {
+          console.log(`Processing file ${index}:`, file);
           if (file.originFileObj) {
+            console.log(`Appending file to FormData: ${file.originFileObj.name}`);
             formData.append("ImagenesPago", file.originFileObj);
+          } else if (file instanceof File) {
+            console.log(`Appending direct file to FormData: ${file.name}`);
+            formData.append("ImagenesPago", file);
+          } else {
+            console.log("File object structure:", file);
           }
         });
+      } else {
+        console.log("No images found or not an array:", values.imagenesPago);
       }
 
       await makeApiRequest<{ id: number }>("/pagos", "POST", formData);
@@ -816,6 +830,27 @@ const UniformPayments: React.FC = () => {
                     size="small"
                     scroll={{ x: 800 }}
                   />
+                  
+                  {/* Total Display */}
+                  {uniformItems.length > 0 && (
+                    <div style={{ 
+                      marginTop: 16, 
+                      padding: '16px', 
+                      backgroundColor: '#f0f9ff', 
+                      border: '1px solid #91d5ff',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div>
+                        <strong>Total de Artículos: {uniformItems.length}</strong>
+                      </div>
+                      <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1890ff' }}>
+                        <strong>Total a Pagar: Q{totalAmount.toFixed(2)}</strong>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </Card>
@@ -826,7 +861,18 @@ const UniformPayments: React.FC = () => {
           </Form.Item>
 
           <Form.Item label="Imágenes de Pago" name="imagenesPago">
-            <Upload beforeUpload={() => false} multiple listType="picture">
+            <Upload 
+              beforeUpload={() => false} 
+              multiple 
+              listType="picture"
+              accept="image/*"
+              onChange={(info) => {
+                // Update form field with file list
+                form.setFieldsValue({
+                  imagenesPago: info.fileList
+                });
+              }}
+            >
               <Button icon={<UploadOutlined />}>Subir Imágenes de Pago</Button>
             </Upload>
           </Form.Item>
