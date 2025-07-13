@@ -101,6 +101,7 @@ const PrendaUniforme: React.FC = () => {
   const [viewModalVisible, setViewModalVisible] = useState<boolean>(false);
   const [viewingPrenda, setViewingPrenda] = useState<PrendaUniforme | null>(null);
   const [editingPrenda, setEditingPrenda] = useState<PrendaUniforme | null>(null);
+  const [deletedImageIds, setDeletedImageIds] = useState<Set<number>>(new Set());
 
   // Fetch data on component mount
   useEffect(() => {
@@ -433,6 +434,7 @@ const PrendaUniforme: React.FC = () => {
       const prenda = await uniformService.getPrendaUniformeById(record.id);
       setEditingId(record.id);
       setEditingPrenda(prenda);
+      setDeletedImageIds(new Set()); // Reset deleted images tracking
       form.setFieldsValue({
         descripcion: prenda.descripcion,
         sexo: prenda.sexo,
@@ -469,6 +471,7 @@ const PrendaUniforme: React.FC = () => {
   const handleAdd = () => {
     setEditingId(null);
     setEditingPrenda(null);
+    setDeletedImageIds(new Set()); // Reset deleted images tracking
     form.resetFields();
     setFileList([]);
     setModalVisible(true);
@@ -535,6 +538,40 @@ const PrendaUniforme: React.FC = () => {
     setPreviewImage(file.base64 ? `data:${file.type};base64,${file.base64}` : file.url || '');
     setPreviewVisible(true);
     setPreviewTitle(file.name || file.url?.substring(file.url.lastIndexOf('/') + 1) || '');
+  };
+
+  // Handle deletion of existing images
+  const handleDeleteExistingImage = async (imagen: { id?: number; imagen: string }, index: number) => {
+    try {
+      // For now, just hide the image from UI (local deletion)
+      // The actual deletion will happen when the uniform is saved
+      if (imagen.id) {
+        setDeletedImageIds(prev => new Set(prev).add(imagen.id!));
+      }
+      
+      // Update the editingPrenda object to remove the image locally
+      if (editingPrenda && editingPrenda.imagenesPrenda) {
+        const updatedImages = editingPrenda.imagenesPrenda.filter((_, i) => i !== index);
+        setEditingPrenda({
+          ...editingPrenda,
+          imagenesPrenda: updatedImages
+        });
+      }
+      
+      toast.success("Imagen marcada para eliminación");
+    } catch (error) {
+      console.error("Error deleting image:", error);
+      toast.error("Error al eliminar la imagen");
+      
+      // If deletion failed, restore the image in UI
+      if (imagen.id) {
+        setDeletedImageIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(imagen.id!);
+          return newSet;
+        });
+      }
+    }
   };
 
   return (
@@ -686,13 +723,15 @@ const PrendaUniforme: React.FC = () => {
               </Col>
               
               {/* Existing Images Section - Only show when editing */}
-              {editingId && editingPrenda && editingPrenda.imagenesPrenda && editingPrenda.imagenesPrenda.length > 0 && (
+              {editingId && editingPrenda && editingPrenda.imagenesPrenda && editingPrenda.imagenesPrenda.filter(img => !deletedImageIds.has(img.id || 0)).length > 0 && (
                 <Col span={24}>
                   <Form.Item label="Imágenes Actuales">
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginBottom: "16px" }}>
-                      {editingPrenda.imagenesPrenda.map((img, index) => (
+                      {editingPrenda.imagenesPrenda
+                        .filter(img => !deletedImageIds.has(img.id || 0))
+                        .map((img, index) => (
                         <div 
-                          key={index} 
+                          key={img.id || index} 
                           style={{ 
                             position: "relative", 
                             display: "inline-block",
@@ -714,6 +753,36 @@ const PrendaUniforme: React.FC = () => {
                               mask: "Ver imagen"
                             }}
                           />
+                          <div 
+                            style={{ 
+                              position: "absolute", 
+                              top: "8px", 
+                              right: "8px",
+                              backgroundColor: "rgba(0, 0, 0, 0.6)",
+                              borderRadius: "4px",
+                              padding: "4px"
+                            }}
+                          >
+                            <Popconfirm
+                              title="¿Eliminar imagen?"
+                              description="Esta acción no se puede deshacer."
+                              onConfirm={() => handleDeleteExistingImage(img, index)}
+                              okText="Sí, eliminar"
+                              cancelText="Cancelar"
+                              okType="danger"
+                            >
+                              <Button 
+                                type="text" 
+                                icon={<DeleteOutlined />} 
+                                size="small"
+                                style={{ 
+                                  color: '#fff',
+                                  border: 'none',
+                                  padding: '4px'
+                                }}
+                              />
+                            </Popconfirm>
+                          </div>
                         </div>
                       ))}
                     </div>
