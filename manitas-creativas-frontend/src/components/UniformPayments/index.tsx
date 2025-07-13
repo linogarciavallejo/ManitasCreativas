@@ -566,12 +566,20 @@ const UniformPayments: React.FC = () => {
     setAlumnoId(null);
     setSelectedCodigo(null);
     setAutoCompleteValue("");
+    setTypeaheadOptions([]);
     setDinamicRubroId("1");
     setSelectedRubro(null);
     setPayFullUniform(true);
     setUniformItems([]);
     setAvailableUniformItems([]);
     setTotalAmount(0);
+    setIsFormValid(false);
+    
+    // Reset modal states for completeness
+    setItemModalVisible(false);
+    setEditingItem(null);
+    setImageModalVisible(false);
+    setSelectedImageUrl("");
   };
 
   // Search by codigo
@@ -813,6 +821,15 @@ const UniformPayments: React.FC = () => {
                 {/* <p><strong>Sede:</strong> {selectedStudentDetails.sedeNombre}</p> */}
               </>
             )}
+            <Button
+              type="link"
+              style={{ marginLeft: "10px", padding: "0" }}
+              onClick={() => {
+                resetForm();
+              }}
+            >
+              Limpiar
+            </Button>
           </div>
         )}
       </Card>
