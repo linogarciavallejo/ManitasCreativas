@@ -126,6 +126,10 @@ const UniformPayments: React.FC = () => {
   const [editingItem, setEditingItem] = useState<UniformItem | null>(null);
   const [imageModalVisible, setImageModalVisible] = useState<boolean>(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>("");
+  const [previewVisible, setPreviewVisible] = useState<boolean>(false);
+  const [previewImage, setPreviewImage] = useState<string>('');
+  const [previewTitle, setPreviewTitle] = useState<string>('');
+  const [selectedItemForPreview, setSelectedItemForPreview] = useState<RubroUniformeDetalle | null>(null);
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
   
   const [form] = Form.useForm();
@@ -314,12 +318,16 @@ const UniformPayments: React.FC = () => {
   // Add/Edit uniform item
   const handleAddItem = () => {
     setEditingItem(null);
+    setSelectedItemForPreview(null);
     itemForm.resetFields();
     setItemModalVisible(true);
   };
 
   const handleEditItem = (item: UniformItem) => {
     setEditingItem(item);
+    // Set the preview item for editing
+    const previewItem = availableUniformItems.find(ui => ui.id === item.rubroUniformeDetalleId);
+    setSelectedItemForPreview(previewItem || null);
     itemForm.setFieldsValue({
       rubroUniformeDetalleId: item.rubroUniformeDetalleId,
       cantidad: item.cantidad
@@ -405,6 +413,28 @@ const UniformPayments: React.FC = () => {
     } else {
       toast.info('No hay imagen disponible para este artículo');
     }
+  };
+
+  // Handle image preview for upload component
+  const handlePreview = async (file: { base64?: string; type?: string; url?: string; name?: string; originFileObj?: File }) => {
+    let src = '';
+    if (file.url) {
+      src = file.url;
+    } else if (file.base64) {
+      src = file.base64.startsWith('data:') ? file.base64 : `data:${file.type};base64,${file.base64}`;
+    } else if (file.originFileObj) {
+      src = URL.createObjectURL(file.originFileObj);
+    }
+    
+    setPreviewImage(src);
+    setPreviewVisible(true);
+    setPreviewTitle(file.name || file.url?.substring(file.url.lastIndexOf('/') + 1) || 'Imagen');
+  };
+
+  // Handle uniform item selection in modal
+  const handleUniformItemSelect = (itemId: number) => {
+    const selectedItem = availableUniformItems.find(item => item.id === itemId);
+    setSelectedItemForPreview(selectedItem || null);
   };
 
   // Columns for uniform items table
@@ -969,64 +999,7 @@ const UniformPayments: React.FC = () => {
               multiple 
               listType="picture-card"
               accept="image/*"
-              onPreview={(file) => {
-                console.log("Preview clicked for file:", file); // Debug log
-                console.log("file.url:", file.url); // Debug file URL
-                console.log("file.originFileObj:", file.originFileObj); // Debug originFileObj
-                console.log("file keys:", Object.keys(file)); // Debug all file properties
-                
-                // Create a preview URL for the file
-                let url = '';
-                let createdUrl = false;
-                
-                try {
-                  if (file.url) {
-                    url = file.url;
-                    console.log("Using existing file.url:", url);
-                  } else if (file.originFileObj) {
-                    console.log("Creating URL from originFileObj...");
-                    url = URL.createObjectURL(file.originFileObj);
-                    createdUrl = true;
-                    console.log("Created URL from originFileObj:", url);
-                  } else if (file instanceof File) {
-                    console.log("Creating URL from file directly...");
-                    url = URL.createObjectURL(file);
-                    createdUrl = true;
-                    console.log("Created URL from file:", url);
-                  }
-                } catch (error) {
-                  console.error("Error creating object URL:", error);
-                }
-                
-                console.log("Final generated URL:", url); // Debug generated URL
-                
-                if (url) {
-                  console.log("Opening image in new tab...");
-                  window.open(url, '_blank');
-                  
-                  // Clean up the URL after a short delay
-                  if (createdUrl && url) {
-                    setTimeout(() => {
-                      console.log("Cleaning up URL:", url);
-                      URL.revokeObjectURL(url);
-                    }, 2000);
-                  }
-                } else {
-                  console.error("No URL available for preview", file);
-                  // Try window.open as a fallback
-                  if (file.originFileObj) {
-                    const fallbackUrl = URL.createObjectURL(file.originFileObj);
-                    window.open(fallbackUrl, '_blank');
-                    // Clean up after a delay
-                    setTimeout(() => URL.revokeObjectURL(fallbackUrl), 1000);
-                  } else {
-                    Modal.error({
-                      title: 'Error',
-                      content: 'No se pudo generar una vista previa de la imagen.',
-                    });
-                  }
-                }
-              }}
+              onPreview={handlePreview}
               showUploadList={{
                 showPreviewIcon: true,
                 showRemoveIcon: true,
@@ -1062,9 +1035,13 @@ const UniformPayments: React.FC = () => {
         title={editingItem ? 'Editar Artículo' : 'Agregar Artículo'}
         open={itemModalVisible}
         onOk={handleSaveItem}
-        onCancel={() => setItemModalVisible(false)}
+        onCancel={() => {
+          setItemModalVisible(false);
+          setSelectedItemForPreview(null);
+        }}
         okText="Guardar"
         cancelText="Cancelar"
+        width={600}
       >
         <Form form={itemForm} layout="vertical">
           <Form.Item
@@ -1072,7 +1049,10 @@ const UniformPayments: React.FC = () => {
             name="rubroUniformeDetalleId"
             rules={[{ required: true, message: 'Seleccione un artículo' }]}
           >
-            <Select placeholder="Seleccione un artículo">
+            <Select 
+              placeholder="Seleccione un artículo"
+              onChange={handleUniformItemSelect}
+            >
               {availableUniformItems.map(item => {
                 const currentInventory = getCurrentInventory(item);
                 return (
@@ -1086,6 +1066,53 @@ const UniformPayments: React.FC = () => {
               })}
             </Select>
           </Form.Item>
+
+          {/* Image Preview Section */}
+          {selectedItemForPreview && (
+            <Form.Item label="Vista Previa del Artículo">
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                padding: '16px',
+                border: '1px solid #d9d9d9',
+                borderRadius: '6px',
+                backgroundColor: '#fafafa'
+              }}>
+                {selectedItemForPreview.prendaUniformeImagenUrl ? (
+                  <Image
+                    width={200}
+                    height={200}
+                    src={selectedItemForPreview.prendaUniformeImagenUrl}
+                    alt={selectedItemForPreview.prendaUniformeDescripcion}
+                    style={{ 
+                      objectFit: 'cover',
+                      borderRadius: '4px'
+                    }}
+                    fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
+                  />
+                ) : (
+                  <div style={{
+                    width: 200,
+                    height: 200,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: '#f0f0f0',
+                    borderRadius: '4px',
+                    color: '#999'
+                  }}>
+                    Sin imagen disponible
+                  </div>
+                )}
+                <div style={{ marginLeft: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <p><strong>Descripción:</strong> {selectedItemForPreview.prendaUniformeDescripcion}</p>
+                  <p><strong>Sexo:</strong> {selectedItemForPreview.prendaUniformeSexo}</p>
+                  <p><strong>Talla:</strong> {selectedItemForPreview.prendaUniformeTalla === '*' ? 'Talla Única' : selectedItemForPreview.prendaUniformeTalla}</p>
+                  <p><strong>Precio:</strong> Q{selectedItemForPreview.prendaUniformePrecio.toFixed(2)}</p>
+                </div>
+              </div>
+            </Form.Item>
+          )}
           
           <Form.Item
             label="Cantidad"
@@ -1138,6 +1165,18 @@ const UniformPayments: React.FC = () => {
           src={selectedImageUrl}
           fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
         />
+      </Modal>
+
+      {/* Preview Modal for Payment Images */}
+      <Modal
+        open={previewVisible}
+        title={previewTitle}
+        footer={null}
+        onCancel={() => setPreviewVisible(false)}
+        width={800}
+        centered
+      >
+        <img alt="preview" style={{ width: '100%' }} src={previewImage} />
       </Modal>
     </div>
   );
