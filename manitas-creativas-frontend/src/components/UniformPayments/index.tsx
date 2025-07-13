@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Form,
   Input,
@@ -126,6 +126,7 @@ const UniformPayments: React.FC = () => {
   const [editingItem, setEditingItem] = useState<UniformItem | null>(null);
   const [imageModalVisible, setImageModalVisible] = useState<boolean>(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>("");
+  const [isFormValid, setIsFormValid] = useState<boolean>(false);
   
   const [form] = Form.useForm();
   const [itemForm] = Form.useForm();
@@ -250,11 +251,12 @@ const UniformPayments: React.FC = () => {
     const hasStudent = !!selectedStudentDetails;
     const hasUniform = !!selectedRubro && dinamicRubroId !== "";
     const hasValidAmount = totalAmount > 0;
+    const hasValidForm = isFormValid; // Include form validation
     
     if (payFullUniform) {
-      return hasStudent && hasUniform && hasValidAmount;
+      return hasStudent && hasUniform && hasValidAmount && hasValidForm;
     } else {
-      return hasStudent && hasUniform && uniformItems.length > 0 && hasValidAmount;
+      return hasStudent && hasUniform && uniformItems.length > 0 && hasValidAmount && hasValidForm;
     }
   };
 
@@ -487,6 +489,65 @@ const UniformPayments: React.FC = () => {
   useEffect(() => {
     form.setFieldsValue({ rubroId: dinamicRubroId });
   }, [dinamicRubroId, form]);
+
+  // Function to check if all required form fields are filled
+  const checkFormValidity = useCallback(() => {
+    try {
+      const values = form.getFieldsValue();
+      const required = ['cicloEscolar', 'fechaPago', 'monto'];
+      
+      // Check if all required fields have values
+      const hasAllRequiredFields = required.every(field => {
+        const value = values[field];
+        
+        if (field === 'fechaPago') {
+          // For DatePicker, be very strict about what constitutes a valid value
+          if (!value) return false;
+          if (value === null || value === undefined) return false;
+          if (typeof value !== 'object') return false;
+          if (!value.isValid || typeof value.isValid !== 'function') return false;
+          return value.isValid();
+        }
+        
+        // For other fields, check they have meaningful values
+        if (value === undefined || value === null || value === '') return false;
+        if (typeof value === 'string' && value.trim() === '') return false;
+        return true;
+      });
+      
+      const isValid = hasAllRequiredFields && !!selectedStudentDetails && !!selectedRubro && totalAmount > 0;
+      
+      // Force update if the validity state has changed
+      if (isValid !== isFormValid) {
+        setIsFormValid(isValid);
+      }
+      
+      return isValid;
+    } catch (error) {
+      console.error('Error in form validation:', error);
+      setIsFormValid(false);
+      return false;
+    }
+  }, [form, selectedStudentDetails, selectedRubro, totalAmount, isFormValid]);
+
+  // Watch for form field changes
+  useEffect(() => {
+    checkFormValidity();
+    
+    // Set up a polling mechanism to check form validity every 100ms
+    // This ensures we catch any changes that might not trigger the normal events
+    const interval = setInterval(() => {
+      checkFormValidity();
+    }, 100);
+    
+    return () => clearInterval(interval);
+  }, [checkFormValidity]);
+
+  // Additional effect to watch specifically for form changes
+  useEffect(() => {
+    // Force a validation check whenever dependencies change
+    checkFormValidity();
+  }, [selectedStudentDetails, selectedRubro, totalAmount, checkFormValidity]);
 
   // Reset form function
   const resetForm = () => {
@@ -758,14 +819,39 @@ const UniformPayments: React.FC = () => {
 
       {/* Payment form */}
       <Card title="Información del Pago">
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+        <Form form={form} layout="vertical" onFinish={handleSubmit} onValuesChange={checkFormValidity}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
             <Form.Item label="Ciclo Escolar" name="cicloEscolar" initialValue={currentYear} rules={[{ required: true }]}>
               <InputNumber style={{ width: '100%' }} min={2020} max={2030} />
             </Form.Item>
 
-            <Form.Item label="Fecha de Pago" name="fechaPago" initialValue={dayjs()} rules={[{ required: true }]}>
-              <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+            <Form.Item label="Fecha de Pago" name="fechaPago" initialValue={dayjs().startOf('day')} rules={[{ required: true, message: '¡Por favor seleccione la fecha de pago!' }]}>
+              <DatePicker 
+                style={{ width: '100%' }} 
+                format="DD/MM/YYYY" 
+                defaultValue={dayjs().startOf('day')}
+                onChange={(date) => {
+                  // Immediately update the form field
+                  form.setFieldsValue({ fechaPago: date });
+                  
+                  // Trigger form field validation immediately
+                  form.validateFields(['fechaPago']).catch(() => {
+                    // Ignore validation errors, they will be shown in the UI
+                  });
+                  
+                  // Check validity immediately and with delays
+                  const checkWithDelay = () => {
+                    const isValid = checkFormValidity();
+                    console.log(`Form validity check: ${isValid}, date value:`, date);
+                  };
+                  
+                  checkWithDelay();
+                  setTimeout(checkWithDelay, 10);
+                  setTimeout(checkWithDelay, 50);
+                  setTimeout(checkWithDelay, 100);
+                  setTimeout(checkWithDelay, 200);
+                }}
+              />
             </Form.Item>
 
             <Form.Item label="Uniforme" name="rubroId" rules={[{ required: true, message: 'Seleccione un uniforme' }]}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Form,
   Input,
@@ -88,6 +88,7 @@ const Tuitions: React.FC = () => {
   const [codigoSearchValue, setCodigoSearchValue] = useState<string>("");
   const [contactos, setContactos] = useState<Contacto[]>([]);
   const [dinamicRubroId, setDinamicRubroId] = useState<string>("1"); // Default to "1" but will be updated
+  const [isFormValid, setIsFormValid] = useState<boolean>(false);
   // const [gradoId, setGradoId] = useState<number | null>(null); // Currently unused
   const [form] = Form.useForm(); // Add Form instance
 
@@ -115,6 +116,65 @@ const Tuitions: React.FC = () => {
   useEffect(() => {
     form.setFieldsValue({ rubroId: dinamicRubroId });
   }, [dinamicRubroId, form]);
+
+  // Function to check if all required form fields are filled
+  const checkFormValidity = useCallback(() => {
+    try {
+      const values = form.getFieldsValue();
+      const required = ['cicloEscolar', 'fechaPago', 'monto'];
+      
+      // Check if all required fields have values
+      const hasAllRequiredFields = required.every(field => {
+        const value = values[field];
+        
+        if (field === 'fechaPago') {
+          // For DatePicker, be very strict about what constitutes a valid value
+          if (!value) return false;
+          if (value === null || value === undefined) return false;
+          if (typeof value !== 'object') return false;
+          if (!value.isValid || typeof value.isValid !== 'function') return false;
+          return value.isValid();
+        }
+        
+        // For other fields, check they have meaningful values
+        if (value === undefined || value === null || value === '') return false;
+        if (typeof value === 'string' && value.trim() === '') return false;
+        return true;
+      });
+      
+      const isValid = hasAllRequiredFields && !!alumnoId;
+      
+      // Force update if the validity state has changed
+      if (isValid !== isFormValid) {
+        setIsFormValid(isValid);
+      }
+      
+      return isValid;
+    } catch (error) {
+      console.error('Error in form validation:', error);
+      setIsFormValid(false);
+      return false;
+    }
+  }, [form, alumnoId, isFormValid]);
+
+  // Watch for form field changes
+  useEffect(() => {
+    checkFormValidity();
+    
+    // Set up a polling mechanism to check form validity every 100ms
+    // This ensures we catch any changes that might not trigger the normal events
+    const interval = setInterval(() => {
+      checkFormValidity();
+    }, 100);
+    
+    return () => clearInterval(interval);
+  }, [checkFormValidity]);
+
+  // Additional effect to watch specifically for form changes
+  useEffect(() => {
+    // Force a validation check whenever dependencies change
+    checkFormValidity();
+  }, [alumnoId, checkFormValidity]);
 
   // Function to fetch the appropriate RubroId for a student's grade
   const fetchRubroIdForGrado = async (studentGradoId: number) => {
@@ -181,12 +241,12 @@ const Tuitions: React.FC = () => {
     } finally {
       setLoadingRubro(false);
     }
-  }; // Function to reset the form after a successful submission
+  };  // Function to reset the form after a successful submission
   const resetForm = () => {
     // Reset form but keep these fields
     form.setFieldsValue({
       cicloEscolar: currentYear,
-      fechaPago: dayjs(),
+      fechaPago: dayjs().startOf('day'),
       mes: currentMonth.toString(),
       medioPago: "1",
       notas: "",
@@ -484,12 +544,13 @@ const Tuitions: React.FC = () => {
         name="payments"
         layout="vertical"
         onFinish={handleSubmit}
+        onValuesChange={checkFormValidity}
         autoComplete="off"
         className="payments-form"
         initialValues={{
           cicloEscolar: currentYear,
           mes: currentMonth.toString(), // Convert to string to match Option values
-          fechaPago: dayjs(),
+          fechaPago: dayjs().startOf('day'),
           rubroId: dinamicRubroId, // Initialize with the dynamic RubroId
         }}
       >
@@ -515,6 +576,28 @@ const Tuitions: React.FC = () => {
           <DatePickerES
             style={{ width: "100%" }}
             placeholder="Seleccione la fecha de pago"
+            defaultValue={dayjs().startOf('day')}
+            onChange={(date) => {
+              // Immediately update the form field
+              form.setFieldsValue({ fechaPago: date });
+              
+              // Trigger form field validation immediately
+              form.validateFields(['fechaPago']).catch(() => {
+                // Ignore validation errors, they will be shown in the UI
+              });
+              
+              // Check validity immediately and with delays
+              const checkWithDelay = () => {
+                const isValid = checkFormValidity();
+                console.log(`Form validity check: ${isValid}, date value:`, date);
+              };
+              
+              checkWithDelay();
+              setTimeout(checkWithDelay, 10);
+              setTimeout(checkWithDelay, 50);
+              setTimeout(checkWithDelay, 100);
+              setTimeout(checkWithDelay, 200);
+            }}
           />
         </Form.Item>
         <Form.Item
@@ -667,7 +750,7 @@ const Tuitions: React.FC = () => {
             htmlType="submit"
             block
             loading={loading || loadingRubro}
-            disabled={!alumnoId}
+            disabled={!isFormValid}
           >
             {loadingRubro ? "Obteniendo rubro..." : "Enviar Pago"}
           </Button>{" "}

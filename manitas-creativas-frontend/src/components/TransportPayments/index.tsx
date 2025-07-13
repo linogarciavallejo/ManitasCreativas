@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Form,
   Input,
@@ -16,6 +16,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { makeApiRequest } from "../../services/apiHelper";
 import { getCurrentUserId } from "../../services/authService";
 import { rubroService } from "../../services/rubroService";
+import { routeAssignmentService } from "../../services/routeAssignmentService";
+import { AlumnoRuta } from "../../types/routeAssignment";
 import DatePickerES from "../common/DatePickerES"; // Import our custom DatePicker
 import "antd/dist/reset.css";
 
@@ -99,6 +101,9 @@ const TransportPayments: React.FC = () => {
   // Add state for selected rubro
   const [selectedRubro, setSelectedRubro] = useState<Rubro | null>(null);
   const [dinamicRubroId, setDinamicRubroId] = useState<string>("1"); // Default to "1" but will be updated
+  const [studentActiveRoutes, setStudentActiveRoutes] = useState<AlumnoRuta[]>([]);
+  const [studentHasValidRoute, setStudentHasValidRoute] = useState<boolean>(false);
+  const [isFormValid, setIsFormValid] = useState<boolean>(false);
   const [form] = Form.useForm(); // Add Form instance
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1; // 1-based month number
@@ -124,29 +129,170 @@ const TransportPayments: React.FC = () => {
     fetchTransportRubros();
   }, []);
 
-  // Add handler for rubro selection
-  const handleRubroChange = (rubroId: string) => {
-    const selected = transportRubros.find(
-      (rubro) => rubro.id.toString() === rubroId
-    );
-    setSelectedRubro(selected || null);
-    setDinamicRubroId(rubroId);
+  // Function to check if a route is currently active
+  const isRouteActive = (route: AlumnoRuta): boolean => {
+    const today = new Date();
+    const startDate = new Date(route.fechaInicio);
+    
+    // Route is active if:
+    // 1. Start date is <= today
+    // 2. End date is null/undefined (no end date) OR end date is >= today
+    const isAfterStart = startDate <= today;
+    const isBeforeEnd = !route.fechaFin || new Date(route.fechaFin) >= today;
+    
+    return isAfterStart && isBeforeEnd;
+  };
 
-    if (selected && selected.montoPreestablecido) {
-      form.setFieldsValue({ monto: selected.montoPreestablecido });
+  // Function to validate student route assignments and set active route
+  const validateAndSetStudentRoute = async (studentId: number) => {
+    try {
+      setLoadingRubro(true);
+      
+      // Get all route assignments for the student
+      const allRoutes = await routeAssignmentService.getStudentAllRouteAssignments(studentId);
+      console.log("All routes for student:", allRoutes);
+      
+      // Filter to get only active routes
+      const activeRoutes = allRoutes.filter(route => isRouteActive(route));
+      console.log("Active routes for student:", activeRoutes);
+      
+      setStudentActiveRoutes(activeRoutes);
+      console.log("Student active routes set:", studentActiveRoutes); // Use the state for logging
+      
+      if (activeRoutes.length === 0) {
+        // No active routes - student cannot make transport payment
+        setStudentHasValidRoute(false);
+        setSelectedRubro(null);
+        setDinamicRubroId("");
+        
+        toast.error(
+          "Este estudiante no tiene una ruta de transporte activa asignada. " +
+          "Por favor, asigne una ruta antes de realizar el pago."
+        );
+        return false;
+      }
+      
+      // Student has active routes - set the first active route as default
+      const primaryRoute = activeRoutes[0];
+      setStudentHasValidRoute(true);
+      setDinamicRubroId(primaryRoute.rubroTransporteId.toString());
+      
+      // Find the corresponding rubro in transportRubros
+      const matchingRubro = transportRubros.find(r => r.id === primaryRoute.rubroTransporteId);
+      if (matchingRubro) {
+        setSelectedRubro(matchingRubro);
+        
+        // Auto-fill the amount if available
+        if (matchingRubro.montoPreestablecido) {
+          form.setFieldsValue({ monto: matchingRubro.montoPreestablecido });
+        }
+        
+        // Set the route in the form
+        form.setFieldsValue({ rubroId: primaryRoute.rubroTransporteId.toString() });
+        
+        if (activeRoutes.length > 1) {
+          toast.info(
+            `Este estudiante tiene ${activeRoutes.length} rutas activas. ` +
+            `Se ha seleccionado automáticamente: ${matchingRubro.descripcion}`
+          );
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error validating student route:", error);
+      setStudentHasValidRoute(false);
+      toast.error("Error al validar las rutas del estudiante.");
+      return false;
+    } finally {
+      setLoadingRubro(false);
     }
   };
+  
+  // Add handler for rubro selection (kept for reference but not actively used since routes are auto-selected)
+  // const handleRubroChange = (rubroId: string) => {
+  //   const selected = transportRubros.find(
+  //     (rubro) => rubro.id.toString() === rubroId
+  //   );
+  //   setSelectedRubro(selected || null);
+  //   setDinamicRubroId(rubroId);
+  //
+  //   if (selected && selected.montoPreestablecido) {
+  //     form.setFieldsValue({ monto: selected.montoPreestablecido });
+  //   }
+  // };
 
   // Function to get month name for display
   // Update form values when dinamicRubroId changes
   useEffect(() => {
     form.setFieldsValue({ rubroId: dinamicRubroId });
-  }, [dinamicRubroId, form]); // Function to reset the form after a successful submission
+  }, [dinamicRubroId, form]);
+
+  // Function to check if all required form fields are filled
+  const checkFormValidity = useCallback(() => {
+    try {
+      const values = form.getFieldsValue();
+      const required = ['cicloEscolar', 'fechaPago', 'monto'];
+      
+      // Check if all required fields have values
+      const hasAllRequiredFields = required.every(field => {
+        const value = values[field];
+        
+        if (field === 'fechaPago') {
+          // For DatePicker, be very strict about what constitutes a valid value
+          if (!value) return false;
+          if (value === null || value === undefined) return false;
+          if (typeof value !== 'object') return false;
+          if (!value.isValid || typeof value.isValid !== 'function') return false;
+          return value.isValid();
+        }
+        
+        // For other fields, check they have meaningful values
+        if (value === undefined || value === null || value === '') return false;
+        if (typeof value === 'string' && value.trim() === '') return false;
+        return true;
+      });
+      
+      const isValid = hasAllRequiredFields && !!alumnoId && !!selectedRubro && studentHasValidRoute;
+      
+      // Force update if the validity state has changed
+      if (isValid !== isFormValid) {
+        setIsFormValid(isValid);
+      }
+      
+      return isValid;
+    } catch (error) {
+      console.error('Error in form validation:', error);
+      setIsFormValid(false);
+      return false;
+    }
+  }, [form, alumnoId, selectedRubro, studentHasValidRoute, isFormValid]);
+
+  // Watch for form field changes
+  useEffect(() => {
+    checkFormValidity();
+    
+    // Set up a polling mechanism to check form validity every 100ms
+    // This ensures we catch any changes that might not trigger the normal events
+    const interval = setInterval(() => {
+      checkFormValidity();
+    }, 100);
+    
+    return () => clearInterval(interval);
+  }, [checkFormValidity]);
+
+  // Additional effect to watch specifically for form changes
+  useEffect(() => {
+    // Force a validation check whenever dependencies change
+    checkFormValidity();
+  }, [alumnoId, selectedRubro, studentHasValidRoute, checkFormValidity]);
+
+  // Function to reset the form after a successful submission
   const resetForm = () => {
     // Reset form but keep these fields
     form.setFieldsValue({
       cicloEscolar: currentYear,
-      fechaPago: dayjs(),
+      fechaPago: dayjs().startOf('day'),
       mes: currentMonth.toString(),
       medioPago: "1",
       notas: "",
@@ -164,6 +310,9 @@ const TransportPayments: React.FC = () => {
     setContactos([]);
     setDinamicRubroId("1"); // Reset to default
     setSelectedRubro(null); // Clear selected rubro
+    setStudentActiveRoutes([]); // Clear active routes
+    setStudentHasValidRoute(false); // Reset route validation
+    setIsFormValid(false); // Reset form validation
   };
 
   // Search by codigo input
@@ -183,6 +332,9 @@ const TransportPayments: React.FC = () => {
       setSelectedStudentDetails(response);
       // Update contactos info from the response
       setContactos(response.contactos || []);
+
+      // Validate and set active route for the student
+      await validateAndSetStudentRoute(response.id);
 
       // No need for toast notification when student is found by code
     } catch (error: unknown) {
@@ -229,6 +381,9 @@ const TransportPayments: React.FC = () => {
       // Update contactos info from the response
       setContactos(response.contactos || []);
 
+      // Validate and set active route for the student
+      await validateAndSetStudentRoute(parseInt(value));
+
       // Success notification removed as it's not necessary
     } catch (error: unknown) {
       console.error("Error fetching student details:", error);
@@ -250,6 +405,11 @@ const TransportPayments: React.FC = () => {
 
     if (!alumnoId) {
       toast.error("Por favor seleccione un alumno antes de enviar el pago.");
+      return;
+    }
+
+    if (!studentHasValidRoute) {
+      toast.error("El estudiante seleccionado no tiene una ruta de transporte activa asignada.");
       return;
     }
 
@@ -413,17 +573,31 @@ const TransportPayments: React.FC = () => {
           </ul>
         </div>
       )}{" "}
+      
+      {/* Display warning if student has no valid routes */}
+      {selectedStudent && !studentHasValidRoute && (
+        <div style={{ marginBottom: "20px", padding: "12px", backgroundColor: "#fff2e8", border: "1px solid #ffb366", borderRadius: "6px" }}>
+          <div style={{ color: "#d46b08", fontWeight: "bold" }}>⚠️ Atención</div>
+          <div style={{ color: "#d46b08", marginTop: "4px" }}>
+            Este estudiante no tiene una ruta de transporte activa asignada. 
+            Para realizar un pago de transporte, primero debe asignar al estudiante a una ruta activa.
+          </div>
+        </div>
+      )}
+      
       <Form
         form={form}
         name="payments"
         layout="vertical"
         onFinish={handleSubmit}
+        onValuesChange={checkFormValidity}
         autoComplete="off"
         className="payments-form"
         initialValues={{
           cicloEscolar: currentYear,
           mes: currentMonth.toString(), // Convert to string to match Option values
-          fechaPago: dayjs(),
+          fechaPago: dayjs().startOf('day'),
+          medioPago: "1",
           // Remove rubroId from initial values since it will be selected manually
         }}
       >
@@ -449,30 +623,122 @@ const TransportPayments: React.FC = () => {
           <DatePickerES
             style={{ width: "100%" }}
             placeholder="Seleccione la fecha de pago"
+            defaultValue={dayjs()}
+            onChange={(date) => {
+              // Immediately update the form field
+              form.setFieldsValue({ fechaPago: date });
+              
+              // Trigger form field validation immediately
+              form.validateFields(['fechaPago']).catch(() => {
+                // Ignore validation errors, they will be shown in the UI
+              });
+              
+              // Check validity immediately and with delays
+              const checkWithDelay = () => {
+                const isValid = checkFormValidity();
+                console.log(`Form validity check: ${isValid}, date value:`, date);
+              };
+              
+              checkWithDelay();
+              setTimeout(checkWithDelay, 10);
+              setTimeout(checkWithDelay, 50);
+              setTimeout(checkWithDelay, 100);
+              setTimeout(checkWithDelay, 200);
+            }}
           />{" "}
         </Form.Item>
-        <Form.Item
-          label="Rubro de Transporte"
-          name="rubroId"
-          rules={[
-            {
-              required: true,
-              message: "Por favor seleccione un rubro de transporte",
-            },
-          ]}
-        >
-          <Select
-            placeholder="Seleccione el rubro de transporte"
-            onChange={handleRubroChange}
-            loading={loadingRubro}
-            disabled={loadingRubro}
-          >
-            {transportRubros.map((rubro) => (
-              <Option key={rubro.id} value={rubro.id.toString()}>
-                {rubro.descripcion}
-              </Option>
-            ))}
-          </Select>{" "}
+        
+        {/* Display assigned route as static text instead of dropdown */}
+        {studentHasValidRoute && selectedRubro ? (
+          <div style={{ marginBottom: "24px" }}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "500",
+              color: "#262626",
+              fontSize: "14px"
+            }}>
+              Ruta de Bus
+            </label>
+            <div style={{
+              padding: "8px 12px",
+              backgroundColor: "#f5f5f5",
+              border: "1px solid #d9d9d9",
+              borderRadius: "6px",
+              color: "#595959",
+              fontSize: "14px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px"
+            }}>
+              <span style={{ color: "#52c41a", fontSize: "16px" }}>✓</span>
+              <span><strong>{selectedRubro.descripcion}</strong></span>
+              <span style={{ color: "#8c8c8c", fontSize: "12px" }}>
+                (Asignada automáticamente)
+              </span>
+            </div>
+            <div style={{ 
+              marginTop: "4px", 
+              fontSize: "12px", 
+              color: "#8c8c8c" 
+            }}>
+              Ruta asignada basada en las asignaciones activas del estudiante
+            </div>
+          </div>
+        ) : !studentHasValidRoute && selectedStudent ? (
+          <div style={{ marginBottom: "24px" }}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "500",
+              color: "#262626",
+              fontSize: "14px"
+            }}>
+              Ruta de Bus
+            </label>
+            <div style={{
+              padding: "8px 12px",
+              backgroundColor: "#fff2e8",
+              border: "1px solid #ffb366",
+              borderRadius: "6px",
+              color: "#d46b08",
+              fontSize: "14px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px"
+            }}>
+              <span style={{ fontSize: "16px" }}>⚠️</span>
+              <span>No hay ruta de bus asignada</span>
+            </div>
+          </div>
+        ) : (
+          <div style={{ marginBottom: "24px" }}>
+            <label style={{ 
+              display: "block", 
+              marginBottom: "8px", 
+              fontWeight: "500",
+              color: "#262626",
+              fontSize: "14px"
+            }}>
+              Ruta de Bus
+            </label>
+            <div style={{
+              padding: "8px 12px",
+              backgroundColor: "#fafafa",
+              border: "1px solid #d9d9d9",
+              borderRadius: "6px",
+              color: "#bfbfbf",
+              fontSize: "14px",
+              fontStyle: "italic"
+            }}>
+              Seleccione un estudiante para ver la ruta asignada
+            </div>
+          </div>
+        )}
+        
+        {/* Hidden field to store the selected route ID */}
+        <Form.Item name="rubroId" style={{ display: "none" }}>
+          <Input type="hidden" />
         </Form.Item>        <Form.Item label="Mes" name="mes" rules={[{ required: false }]}>
           <Select>
             <Option value="1">Enero</Option>
@@ -615,9 +881,9 @@ const TransportPayments: React.FC = () => {
             htmlType="submit"
             block
             loading={loading || loadingRubro}
-            disabled={!alumnoId || !selectedRubro}
+            disabled={!isFormValid}
           >
-            {loadingRubro ? "Cargando rubros..." : "Enviar Pago"}
+            {loadingRubro ? "Validando ruta..." : "Enviar Pago"}
           </Button>{" "}
         </Form.Item>
       </Form>
