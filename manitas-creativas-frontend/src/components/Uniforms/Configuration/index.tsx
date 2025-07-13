@@ -245,7 +245,7 @@ const UniformsConfiguration: React.FC = () => {
       key: 'prendaUniformeTalla',
       width: '8%',
       align: 'center',
-      render: (talla: string) => talla === '*' ? 'Todas' : talla,
+      render: (talla: string) => talla === '*' ? 'Talla Única' : talla,
       sorter: (a, b) => a.prendaUniformeTalla.localeCompare(b.prendaUniformeTalla),
     },
     {
@@ -348,7 +348,7 @@ const UniformsConfiguration: React.FC = () => {
             <Form.Item label="Talla" name="talla">
               <Select placeholder="Talla" allowClear>
                 {getUniqueTallas().map(talla => (
-                  <Option key={talla} value={talla}>{talla === '*' ? 'Todas' : talla}</Option>
+                  <Option key={talla} value={talla}>{talla === '*' ? 'Talla Única' : talla}</Option>
                 ))}
               </Select>
             </Form.Item>
@@ -576,7 +576,7 @@ const UniformsConfiguration: React.FC = () => {
               >
                 {getAvailablePrendas().map(prenda => (
                   <Option key={prenda.id} value={prenda.id}>
-                    {prenda.descripcion} - {prenda.sexo} - {prenda.talla === '*' ? 'Todas' : prenda.talla} - Q{prenda.precio.toFixed(2)}
+                    {prenda.descripcion} - {prenda.sexo} - {prenda.talla === '*' ? 'Talla Única' : prenda.talla} - Q{prenda.precio.toFixed(2)}
                   </Option>
                 ))}
               </Select>

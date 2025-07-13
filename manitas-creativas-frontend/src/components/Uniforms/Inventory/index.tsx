@@ -213,6 +213,7 @@ const UniformInventory: React.FC = () => {
       title: 'Talla',
       dataIndex: 'talla',
       key: 'talla',
+      render: (talla: string) => talla === '*' ? 'Talla Única' : talla,
     },
     {
       title: 'Precio Unitario',
@@ -542,6 +543,7 @@ const UniformInventory: React.FC = () => {
                   title: 'Talla',
                   dataIndex: 'prendaUniformeTalla',
                   key: 'talla',
+                  render: (talla: string) => talla === '*' ? 'Talla Única' : talla,
                 },
                 {
                   title: 'Precio Unit.',

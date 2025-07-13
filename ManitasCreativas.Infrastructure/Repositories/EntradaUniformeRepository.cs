@@ -66,6 +66,8 @@ public class EntradaUniformeRepository : IEntradaUniformeRepository
     public async Task<IEnumerable<EntradaUniforme>> GetActiveAsync()
     {
         return await _context.EntradaUniformes
+            .Include(eu => eu.EntradaUniformeDetalles)
+                .ThenInclude(eud => eud.PrendaUniforme)
             .Include(eu => eu.UsuarioCreacion)
             .Where(eu => !eu.EsEliminado)
             .OrderByDescending(eu => eu.FechaEntrada)

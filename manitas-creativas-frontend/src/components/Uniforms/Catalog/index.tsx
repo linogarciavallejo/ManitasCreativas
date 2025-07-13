@@ -54,7 +54,7 @@ const sexoOptions = [
 
 // Size options
 const tallaOptions = [
-  { value: '*', label: 'Todas' },
+  { value: '*', label: 'Talla Única' },
   { value: 'XXS', label: 'XXS' },
   { value: 'XS', label: 'XS' },
   { value: 'S', label: 'S' },
@@ -98,6 +98,9 @@ const PrendaUniforme: React.FC = () => {
   const [previewImage, setPreviewImage] = useState<string>('');
   const [previewTitle, setPreviewTitle] = useState<string>('');
   const [fileList, setFileList] = useState<ImageFile[]>([]);
+  const [viewModalVisible, setViewModalVisible] = useState<boolean>(false);
+  const [viewingPrenda, setViewingPrenda] = useState<PrendaUniforme | null>(null);
+  const [editingPrenda, setEditingPrenda] = useState<PrendaUniforme | null>(null);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -239,7 +242,7 @@ const PrendaUniforme: React.FC = () => {
       key: 'talla',
       width: '8%',
       align: 'center',
-      render: (talla: string) => talla === '*' ? 'Todas' : talla,
+      render: (talla: string) => talla === '*' ? 'Talla Única' : talla,
       sorter: (a, b) => a.talla.localeCompare(b.talla),
     },
     {
@@ -371,7 +374,7 @@ const PrendaUniforme: React.FC = () => {
               <Select placeholder="Seleccionar talla" allowClear>
                 {tallaOptions.map(option => (
                   <Option key={option.value} value={option.value}>
-                    {option.label}
+                    {option.value === '*' ? 'Talla Única' : option.label}
                   </Option>
                 ))}
               </Select>
@@ -417,37 +420,8 @@ const PrendaUniforme: React.FC = () => {
   const handleView = async (record: PrendaUniformeSimple) => {
     try {
       const prenda = await uniformService.getPrendaUniformeById(record.id);
-      Modal.info({
-        title: `Detalles de ${prenda.descripcion}`,
-        width: 600,
-        content: (
-          <div style={{ marginTop: 16 }}>
-            <p><strong>Sexo:</strong> {prenda.sexo}</p>
-            <p><strong>Talla:</strong> {prenda.talla}</p>
-            <p><strong>Precio:</strong> Q{prenda.precio.toFixed(2)}</p>
-            <p><strong>Stock Inicial:</strong> {prenda.existenciaInicial}</p>
-            <p><strong>Entradas:</strong> {prenda.entradas}</p>
-            <p><strong>Salidas:</strong> {prenda.salidas}</p>
-            <p><strong>Stock Actual:</strong> {prenda.existenciaInicial + prenda.entradas - prenda.salidas}</p>
-            {prenda.notas && <p><strong>Notas:</strong> {prenda.notas}</p>}
-            <p><strong>Fecha de Creación:</strong> {new Date(prenda.fechaCreacion).toLocaleDateString()}</p>
-            {prenda.imagenesPrenda && prenda.imagenesPrenda.length > 0 && (
-              <div>
-                <p><strong>Imágenes:</strong></p>
-                {prenda.imagenesPrenda.map((img, index) => (
-                  <Image
-                    key={index}
-                    width={100}
-                    height={100}
-                    src={img.imagen}
-                    style={{ marginRight: 8, marginBottom: 8 }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        ),
-      });
+      setViewingPrenda(prenda);
+      setViewModalVisible(true);
     } catch (error) {
       console.error('Error fetching uniform details:', error);
       toast.error('Error al cargar los detalles de la prenda');
@@ -458,6 +432,7 @@ const PrendaUniforme: React.FC = () => {
     try {
       const prenda = await uniformService.getPrendaUniformeById(record.id);
       setEditingId(record.id);
+      setEditingPrenda(prenda);
       form.setFieldsValue({
         descripcion: prenda.descripcion,
         sexo: prenda.sexo,
@@ -466,6 +441,8 @@ const PrendaUniforme: React.FC = () => {
         existenciaInicial: prenda.existenciaInicial,
         notas: prenda.notas,
       });
+      
+      // Reset fileList for new uploads only
       setFileList([]);
       setModalVisible(true);
       validateForm();
@@ -491,6 +468,7 @@ const PrendaUniforme: React.FC = () => {
 
   const handleAdd = () => {
     setEditingId(null);
+    setEditingPrenda(null);
     form.resetFields();
     setFileList([]);
     setModalVisible(true);
@@ -706,15 +684,52 @@ const PrendaUniforme: React.FC = () => {
                   />
                 </Form.Item>
               </Col>
+              
+              {/* Existing Images Section - Only show when editing */}
+              {editingId && editingPrenda && editingPrenda.imagenesPrenda && editingPrenda.imagenesPrenda.length > 0 && (
+                <Col span={24}>
+                  <Form.Item label="Imágenes Actuales">
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginBottom: "16px" }}>
+                      {editingPrenda.imagenesPrenda.map((img, index) => (
+                        <div 
+                          key={index} 
+                          style={{ 
+                            position: "relative", 
+                            display: "inline-block",
+                            border: "1px solid #d9d9d9",
+                            borderRadius: "6px",
+                            overflow: "hidden"
+                          }}
+                        >
+                          <Image
+                            src={img.imagen}
+                            alt={`Imagen de prenda ${index + 1}`}
+                            style={{ 
+                              width: 100, 
+                              height: 100, 
+                              objectFit: "cover",
+                              display: "block"
+                            }}
+                            preview={{
+                              mask: "Ver imagen"
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </Form.Item>
+                </Col>
+              )}
+              
               <Col span={24}>
-                <Form.Item label="Imágenes">
+                <Form.Item label={editingId ? "Agregar Nuevas Imágenes" : "Imágenes"}>
                   <Upload
                     listType="picture-card"
                     fileList={fileList.map(file => ({
                       uid: file.uid,
                       name: file.name,
                       status: 'done' as const,
-                      url: `data:${file.type};base64,${file.base64}`
+                      url: file.base64.startsWith('data:') ? file.base64 : `data:${file.type};base64,${file.base64}`
                     }))}
                     beforeUpload={handleImageUpload}
                     onPreview={handlePreview}
@@ -733,6 +748,53 @@ const PrendaUniforme: React.FC = () => {
               </Col>
             </Row>
           </Form>
+        </Modal>
+
+        {/* View Details Modal */}
+        <Modal
+          title={viewingPrenda ? `Detalles de ${viewingPrenda.descripcion}` : 'Detalles de Prenda'}
+          open={viewModalVisible}
+          onCancel={() => {
+            setViewModalVisible(false);
+            setViewingPrenda(null);
+          }}
+          footer={[
+            <Button key="close" onClick={() => {
+              setViewModalVisible(false);
+              setViewingPrenda(null);
+            }}>
+              Cerrar
+            </Button>
+          ]}
+          width={600}
+        >
+          {viewingPrenda && (
+            <div style={{ marginTop: 16 }}>
+              <p><strong>Sexo:</strong> {viewingPrenda.sexo}</p>
+              <p><strong>Talla:</strong> {viewingPrenda.talla === '*' ? 'Talla Única' : viewingPrenda.talla}</p>
+              <p><strong>Precio:</strong> Q{viewingPrenda.precio.toFixed(2)}</p>
+              <p><strong>Stock Inicial:</strong> {viewingPrenda.existenciaInicial}</p>
+              <p><strong>Entradas:</strong> {viewingPrenda.entradas}</p>
+              <p><strong>Salidas:</strong> {viewingPrenda.salidas}</p>
+              <p><strong>Stock Actual:</strong> {viewingPrenda.existenciaInicial + viewingPrenda.entradas - viewingPrenda.salidas}</p>
+              {viewingPrenda.notas && <p><strong>Notas:</strong> {viewingPrenda.notas}</p>}
+              <p><strong>Fecha de Creación:</strong> {new Date(viewingPrenda.fechaCreacion).toLocaleDateString()}</p>
+              {viewingPrenda.imagenesPrenda && viewingPrenda.imagenesPrenda.length > 0 && (
+                <div>
+                  <p><strong>Imágenes:</strong></p>
+                  {viewingPrenda.imagenesPrenda.map((img, index) => (
+                    <Image
+                      key={index}
+                      width={100}
+                      height={100}
+                      src={img.imagen}
+                      style={{ marginRight: 8, marginBottom: 8 }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </Modal>
 
         <Modal
