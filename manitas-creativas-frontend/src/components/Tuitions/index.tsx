@@ -88,6 +88,7 @@ const Tuitions: React.FC = () => {
   const [codigoSearchValue, setCodigoSearchValue] = useState<string>("");
   const [contactos, setContactos] = useState<Contacto[]>([]);
   const [dinamicRubroId, setDinamicRubroId] = useState<string>("1"); // Default to "1" but will be updated
+  const [hasValidRubro, setHasValidRubro] = useState<boolean>(false); // Track if student has valid tuition rubro
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
   // const [gradoId, setGradoId] = useState<number | null>(null); // Currently unused
   const [form] = Form.useForm(); // Add Form instance
@@ -142,7 +143,7 @@ const Tuitions: React.FC = () => {
         return true;
       });
       
-      const isValid = hasAllRequiredFields && !!alumnoId;
+      const isValid = hasAllRequiredFields && !!alumnoId && hasValidRubro;
       
       // Force update if the validity state has changed
       if (isValid !== isFormValid) {
@@ -155,7 +156,7 @@ const Tuitions: React.FC = () => {
       setIsFormValid(false);
       return false;
     }
-  }, [form, alumnoId, isFormValid]);
+  }, [form, alumnoId, hasValidRubro, isFormValid]);
 
   // Watch for form field changes
   useEffect(() => {
@@ -174,7 +175,7 @@ const Tuitions: React.FC = () => {
   useEffect(() => {
     // Force a validation check whenever dependencies change
     checkFormValidity();
-  }, [alumnoId, checkFormValidity]);
+  }, [alumnoId, hasValidRubro, checkFormValidity]);
 
   // Function to fetch the appropriate RubroId for a student's grade
   const fetchRubroIdForGrado = async (studentGradoId: number) => {
@@ -210,8 +211,10 @@ const Tuitions: React.FC = () => {
           "No matching tuition Rubro found for NivelEducativoId:",
           nivelEducativoId
         );
-        toast.warning(
-          "No se encontró un rubro de colegiatura para este estudiante. Se usará el valor predeterminado."
+        setHasValidRubro(false);
+        setDinamicRubroId(""); // Clear the rubro ID
+        toast.error(
+          "No se encontró un rubro de colegiatura para este estudiante. No se puede procesar el pago."
         );
         return;
       }
@@ -223,6 +226,7 @@ const Tuitions: React.FC = () => {
 
       // Step 4: Update the RubroId state and form value
       setDinamicRubroId(selectedRubro.id.toString());
+      setHasValidRubro(true); // Mark that we found a valid rubro
       console.log("Selected RubroId for tuition payment:", selectedRubro.id);
 
       // Update the form's rubroId field with the dynamic value
@@ -235,8 +239,10 @@ const Tuitions: React.FC = () => {
       }
     } catch (error) {
       console.error("Error fetching appropriate RubroId:", error);
+      setHasValidRubro(false);
+      setDinamicRubroId(""); // Clear the rubro ID
       toast.error(
-        "Error al obtener el rubro de colegiatura. Se usará el valor predeterminado."
+        "Error al obtener el rubro de colegiatura. No se puede procesar el pago."
       );
     } finally {
       setLoadingRubro(false);
@@ -261,6 +267,7 @@ const Tuitions: React.FC = () => {
     setTypeaheadOptions([]);
     setContactos([]);
     setDinamicRubroId("1"); // Reset to default
+    setHasValidRubro(false); // Reset valid rubro state
     form.setFieldsValue({ rubroId: "1" });
   };
 
@@ -378,6 +385,11 @@ const Tuitions: React.FC = () => {
       return;
     }
 
+    if (!hasValidRubro) {
+      toast.error("No se puede procesar el pago: no hay un rubro de colegiatura válido para este estudiante.");
+      return;
+    }
+
     setLoading(true);
     try {
       const formData = new FormData();
@@ -472,6 +484,7 @@ const Tuitions: React.FC = () => {
               setAlumnoId(null);
               setSelectedStudent(null);
               setSelectedStudentDetails(null);
+              setHasValidRubro(false); // Reset valid rubro state
             }}
             fieldNames={{ label: "label", value: "value" }}
           />
@@ -525,6 +538,24 @@ const Tuitions: React.FC = () => {
           />
         )}
       </div>
+      
+      {/* Display error when student doesn't have valid rubro */}
+      {selectedStudent && !hasValidRubro && (
+        <div style={{ 
+          marginBottom: "20px", 
+          padding: "12px", 
+          backgroundColor: "#fff2e8", 
+          border: "1px solid #ffb366", 
+          borderRadius: "6px" 
+        }}>
+          <div style={{ color: "#d46b08", fontWeight: "bold" }}>⚠️ Error de Configuración</div>
+          <div style={{ color: "#d46b08", marginTop: "4px" }}>
+            No se encontró un rubro de colegiatura válido para este estudiante. 
+            No se puede procesar el pago hasta que se configure correctamente el rubro para su grado académico.
+          </div>
+        </div>
+      )}
+      
       {/* Display contacts info above the Ciclo Escolar input */}
       {contactos.length > 0 && (
         <div style={{ marginBottom: "20px" }}>
