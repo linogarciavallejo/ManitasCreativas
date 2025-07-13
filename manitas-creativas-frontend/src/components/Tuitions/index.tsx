@@ -95,23 +95,6 @@ const Tuitions: React.FC = () => {
 
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1; // 1-based month number  // Function to get month name for display
-  // const getMonthNameByNumber = (monthNumber: number): string => {
-  //   const monthNames = [
-  //     "Enero",
-  //     "Febrero",
-  //     "Marzo",
-  //     "Abril",
-  //     "Mayo",
-  //     "Junio",
-  //     "Julio",
-  //     "Agosto",
-  //     "Septiembre",
-  //     "Octubre",
-  //     "Noviembre",
-  //     "Diciembre",
-  //   ];
-  //   return monthNames[(monthNumber - 1) % 12]; // Convert 1-based to 0-based index with safety check
-  // };
 
   // Update form values when dinamicRubroId changes
   useEffect(() => {

@@ -64,7 +64,11 @@ public class EntradaUniformeService : IEntradaUniformeService
     {
         var entrada = new EntradaUniforme
         {
-            FechaEntrada = createDto.FechaEntrada,
+            FechaEntrada = createDto.FechaEntrada.Kind == DateTimeKind.Utc 
+                ? createDto.FechaEntrada 
+                : createDto.FechaEntrada.Kind == DateTimeKind.Unspecified 
+                    ? DateTime.SpecifyKind(createDto.FechaEntrada, DateTimeKind.Utc)
+                    : createDto.FechaEntrada.ToUniversalTime(),
             Notas = createDto.Notas,
             Total = createDto.Detalles.Sum(d => d.Subtotal),
             UsuarioCreacionId = usuarioCreacionId,
@@ -109,7 +113,11 @@ public class EntradaUniformeService : IEntradaUniformeService
         await _entradaUniformeDetalleRepository.DeleteByEntradaUniformeIdAsync(id);
 
         // Update main entity
-        entrada.FechaEntrada = updateDto.FechaEntrada;
+        entrada.FechaEntrada = updateDto.FechaEntrada.Kind == DateTimeKind.Utc 
+            ? updateDto.FechaEntrada 
+            : updateDto.FechaEntrada.Kind == DateTimeKind.Unspecified 
+                ? DateTime.SpecifyKind(updateDto.FechaEntrada, DateTimeKind.Utc)
+                : updateDto.FechaEntrada.ToUniversalTime();
         entrada.Notas = updateDto.Notas;
         entrada.Total = updateDto.Detalles.Sum(d => d.Subtotal);
         entrada.FechaActualizacion = DateTime.UtcNow;

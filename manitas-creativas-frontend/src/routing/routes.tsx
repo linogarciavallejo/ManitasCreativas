@@ -47,6 +47,9 @@ const UniformsConfiguration = React.lazy(
 const UniformPayments = React.lazy(
   () => import("../components/UniformPayments")
 );
+const UniformInventory = React.lazy(
+  () => import("../components/Uniforms/Inventory")
+);
 
 const AppRoutes: React.FC = () => {
   //userStore();
@@ -128,6 +131,7 @@ const AppRoutes: React.FC = () => {
           element={<UniformsConfiguration />}
         />
         <Route path="uniforms/uniform-payments" element={<UniformPayments />} />
+        <Route path="uniforms/inventory" element={<UniformInventory />} />
       </Route>
     </Routes>
   );
