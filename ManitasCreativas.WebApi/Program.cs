@@ -67,6 +67,9 @@ builder.Services.AddScoped<IEntradaUniformeDetalleRepository, EntradaUniformeDet
 builder.Services.AddScoped<IRubroUniformeDetalleRepository, RubroUniformeDetalleRepository>();
 builder.Services.AddScoped<IPagoDetalleRepository, PagoDetalleRepository>();
 
+// QR Code Repositories
+builder.Services.AddScoped<ICodigosQRPagosRepository, CodigosQRPagosRepository>();
+
 // Dependency Injection for Services
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>(sp => {
@@ -123,6 +126,9 @@ builder.Services.AddScoped<IPrendaUniformeService, PrendaUniformeService>();
 builder.Services.AddScoped<IEntradaUniformeService, EntradaUniformeService>();
 builder.Services.AddScoped<IRubroUniformeDetalleService, RubroUniformeDetalleService>();
 
+// QR Code Services
+builder.Services.AddScoped<IQRCodeService, QRCodeService>();
+
 // Add DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -169,6 +175,9 @@ app.MapAlumnoRutaEndpoints();
 app.MapPrendaUniformeEndpoints();
 app.MapEntradaUniformeEndpoints();
 app.MapRubroUniformeDetalleEndpoints();
+
+// QR Code Endpoints
+app.MapQRCodeEndpoints();
 
 app.MapFallbackToFile("index.html"); // Serve the SPA
 
