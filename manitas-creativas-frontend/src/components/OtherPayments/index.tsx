@@ -8,10 +8,8 @@ import {
   Select,
   InputNumber,
   Modal,
-  Table,
-  Typography,
 } from "antd";
-import { UploadOutlined, QrcodeOutlined } from "@ant-design/icons";
+import { UploadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -21,6 +19,7 @@ import { gradoService } from "../../services/gradoService";
 import { rubroService, Rubro } from "../../services/rubroService";
 import DatePickerES from "../common/DatePickerES"; // Import our custom DatePicker
 import QRCodeModal from "../shared/QRCodeModal";
+import PaymentHistoryTable from "../shared/PaymentHistoryTable";
 import "antd/dist/reset.css";
 
 interface Alumno {
@@ -80,7 +79,6 @@ interface AlumnoDetails {
 }
 
 const { Option } = Select;
-const { Title } = Typography;
 
 const OtherPayments: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -570,56 +568,11 @@ const OtherPayments: React.FC = () => {
       )}
 
       {/* Payment History Section */}
-      {selectedStudentDetails && selectedStudentDetails.pagos && selectedStudentDetails.pagos.length > 0 && (
-        <div style={{ marginBottom: "20px" }}>
-          <Title level={4}>Historial de Pagos</Title>
-          <Table
-            dataSource={selectedStudentDetails.pagos}
-            columns={[
-              {
-                title: "ID",
-                dataIndex: "id",
-                key: "id",
-                width: 80,
-              },
-              {
-                title: "Fecha",
-                dataIndex: "fecha",
-                key: "fecha",
-                render: (fecha: string) => dayjs(fecha).format("DD/MM/YYYY"),
-              },
-              {
-                title: "Concepto",
-                dataIndex: "rubroDescripcion",
-                key: "rubroDescripcion",
-              },
-              {
-                title: "Monto",
-                dataIndex: "monto",
-                key: "monto",
-                render: (monto: number) => `Q${monto.toLocaleString()}`,
-              },
-              {
-                title: "Acciones",
-                key: "actions",
-                render: (_, record) => (
-                  <Button
-                    type="link"
-                    icon={<QrcodeOutlined />}
-                    onClick={() => handleShowQRCode(record)}
-                    disabled={record.esAnulado}
-                  >
-                    {record.esAnulado ? "Anulado" : "Ver QR"}
-                  </Button>
-                ),
-              },
-            ]}
-            pagination={false}
-            size="small"
-            rowKey="id"
-          />
-        </div>
-      )}
+      <PaymentHistoryTable
+        payments={selectedStudentDetails?.pagos || []}
+        onShowQRCode={handleShowQRCode}
+        title="Historial de Pagos"
+      />
 
       <Form
         name="payments"

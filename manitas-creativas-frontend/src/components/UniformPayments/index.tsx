@@ -23,7 +23,6 @@ import {
   DeleteOutlined,
   EditOutlined,
   EyeOutlined,
-  QrcodeOutlined,
   PlusOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -33,6 +32,7 @@ import { makeApiRequest } from '../../services/apiHelper';
 import { getCurrentUserId } from '../../services/authService';
 import { rubroUniformeDetalleService, RubroUniformeDetalle } from '../../services/rubroUniformeDetalleService';
 import QRCodeModal from '../shared/QRCodeModal';
+import PaymentHistoryTable from '../shared/PaymentHistoryTable';
 import { ColumnsType } from 'antd/es/table';
 
 const { Title } = Typography;
@@ -950,55 +950,12 @@ const UniformPayments: React.FC = () => {
       </Card>
 
       {/* Payment History Section */}
-      {selectedStudentDetails && selectedStudentDetails.pagos && selectedStudentDetails.pagos.length > 0 && (
-        <Card title="Historial de Pagos" style={{ marginBottom: 20 }}>
-          <Table
-            dataSource={selectedStudentDetails.pagos}
-            columns={[
-              {
-                title: "ID",
-                dataIndex: "id",
-                key: "id",
-                width: 80,
-              },
-              {
-                title: "Fecha",
-                dataIndex: "fecha",
-                key: "fecha",
-                render: (fecha: string) => dayjs(fecha).format("DD/MM/YYYY"),
-              },
-              {
-                title: "Concepto",
-                dataIndex: "rubroDescripcion",
-                key: "rubroDescripcion",
-              },
-              {
-                title: "Monto",
-                dataIndex: "monto",
-                key: "monto",
-                render: (monto: number) => `Q${monto.toLocaleString()}`,
-              },
-              {
-                title: "Acciones",
-                key: "actions",
-                render: (_, record) => (
-                  <Button
-                    type="link"
-                    icon={<QrcodeOutlined />}
-                    onClick={() => handleShowQRCode(record)}
-                    disabled={record.esAnulado}
-                  >
-                    {record.esAnulado ? "Anulado" : "Ver QR"}
-                  </Button>
-                ),
-              },
-            ]}
-            pagination={false}
-            size="small"
-            rowKey="id"
-          />
-        </Card>
-      )}
+      <PaymentHistoryTable
+        payments={selectedStudentDetails?.pagos || []}
+        onShowQRCode={handleShowQRCode}
+        title="Historial de Pagos"
+        useCard={true}
+      />
 
       {/* Payment form */}
       <Card title="Información del Pago">

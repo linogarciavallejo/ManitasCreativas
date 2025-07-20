@@ -8,12 +8,8 @@ import {
   Select,
   InputNumber,
   Modal,
-  Table,
-  Space,
-  Tag,
-  Divider,
 } from "antd";
-import { UploadOutlined, QrcodeOutlined } from "@ant-design/icons";
+import { UploadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -23,6 +19,7 @@ import { gradoService } from "../../services/gradoService";
 import { rubroService } from "../../services/rubroService";
 import DatePickerES from "../common/DatePickerES"; // Import our custom DatePicker
 import QRCodeModal from "../shared/QRCodeModal";
+import PaymentHistoryTable from "../shared/PaymentHistoryTable";
 import "antd/dist/reset.css";
 
 interface Alumno {
@@ -263,6 +260,7 @@ const Tuitions: React.FC = () => {
     setSelectedStudent(null);
     setAlumnoId(null);
     setSelectedCodigo(null);
+    setSelectedStudentDetails(null); // Explicitly clear student details
     setAutoCompleteValue("");
     setCodigoSearchValue("");
     setTypeaheadOptions([]);
@@ -617,105 +615,18 @@ const Tuitions: React.FC = () => {
       )}
 
       {/* Display recent tuition payments */}
-      {selectedStudentDetails && selectedStudentDetails.pagos && selectedStudentDetails.pagos.length > 0 && (
-        <div style={{ marginBottom: "20px" }}>
-          <Divider />
-          <h3>Pagos de Colegiatura Recientes</h3>
-          {(() => {
-            const tuitionPayments = selectedStudentDetails.pagos
-              .filter(pago => 
-                pago.rubroDescripcion?.toLowerCase().includes('colegiatura') ||
-                pago.rubroDescripcion?.toLowerCase().includes('tuition') ||
-                pago.rubroDescripcion?.toLowerCase().includes('mensualidad')
-              );
-            console.log("All payments:", selectedStudentDetails.pagos);
-            console.log("Filtered tuition payments:", tuitionPayments);
-            return null;
-          })()}
-          <Table
-            dataSource={selectedStudentDetails.pagos
-              .filter(pago => 
-                pago.rubroDescripcion?.toLowerCase().includes('colegiatura') ||
-                pago.rubroDescripcion?.toLowerCase().includes('tuition') ||
-                pago.rubroDescripcion?.toLowerCase().includes('mensualidad')
-              )
-              .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()) // Sort by newest first
-              .slice(0, 5) // Show only last 5 payments
-              .map(pago => ({ ...pago, key: pago.id }))}
-            columns={[
-              {
-                title: 'ID',
-                dataIndex: 'id',
-                key: 'id',
-                width: 80,
-              },
-              {
-                title: 'Fecha',
-                dataIndex: 'fecha',
-                key: 'fecha',
-                render: (fecha: string) => dayjs(fecha).format('DD/MM/YYYY'),
-                width: 120,
-              },
-              {
-                title: 'Monto',
-                dataIndex: 'monto',
-                key: 'monto',
-                render: (monto: number) => `Q ${monto.toLocaleString()}`,
-                width: 120,
-              },
-              {
-                title: 'Tipo',
-                dataIndex: 'rubroDescripcion',
-                key: 'rubroDescripcion',
-                width: 150,
-              },
-              {
-                title: 'Estado',
-                dataIndex: 'esAnulado',
-                key: 'esAnulado',
-                render: (esAnulado: boolean) => (
-                  <Tag color={esAnulado ? "red" : "green"}>
-                    {esAnulado ? "Anulado" : "Activo"}
-                  </Tag>
-                ),
-                width: 100,
-              },
-              {
-                title: 'Acciones',
-                key: 'actions',
-                render: (_, record: {
-                  id: number;
-                  fecha: string;
-                  monto: number;
-                  rubroDescripcion: string;
-                  esAnulado?: boolean;
-                  notas?: string;
-                }) => (
-                  <Space size="small">
-                    {!record.esAnulado && (
-                      <Button
-                        size="small"
-                        icon={<QrcodeOutlined />}
-                        onClick={() => handleShowQRCode({
-                          id: record.id,
-                          fecha: record.fecha,
-                          monto: record.monto,
-                          rubroDescripcion: record.rubroDescripcion,
-                          esAnulado: record.esAnulado,
-                          notas: record.notas
-                        })}
-                        title="Código QR"
-                      />
-                    )}
-                  </Space>
-                ),
-                width: 100,
-              },
-            ]}
-            pagination={false}
-            size="small"
-          />
-        </div>
+      {selectedStudent && selectedStudentDetails && selectedStudentDetails.pagos && selectedStudentDetails.pagos.length > 0 && (
+        <PaymentHistoryTable
+          payments={selectedStudentDetails.pagos}
+          onShowQRCode={handleShowQRCode}
+          title="Pagos de Colegiatura Recientes"
+          showStatusColumn={true}
+          filterFunction={(pago) => 
+            pago.rubroDescripcion?.toLowerCase().includes('colegiatura') ||
+            pago.rubroDescripcion?.toLowerCase().includes('tuition') ||
+            pago.rubroDescripcion?.toLowerCase().includes('mensualidad')
+          }
+        />
       )}{" "}
       <Form
         form={form}
