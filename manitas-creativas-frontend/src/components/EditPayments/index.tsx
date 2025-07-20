@@ -30,7 +30,7 @@ import { getCurrentUserId } from "../../services/authService";
 import PaymentDetailsModal from "./PaymentDetailsModal";
 import VoidPaymentModal from "./VoidPaymentModal";
 import PaymentEditModal from "./PaymentEditModal";
-import QRCodeModal from "./QRCodeModal";
+import QRCodeModal from "../shared/QRCodeModal";
 
 const { Option } = Select;
 const { Title } = Typography;

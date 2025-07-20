@@ -22,7 +22,7 @@ import { getCurrentUserId } from "../../services/authService";
 import { gradoService } from "../../services/gradoService";
 import { rubroService } from "../../services/rubroService";
 import DatePickerES from "../common/DatePickerES"; // Import our custom DatePicker
-import QRCodeModal from "./QRCodeModal";
+import QRCodeModal from "../shared/QRCodeModal";
 import "antd/dist/reset.css";
 
 interface Alumno {
