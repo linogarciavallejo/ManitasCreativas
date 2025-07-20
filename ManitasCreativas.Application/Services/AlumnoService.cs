@@ -230,7 +230,10 @@ public class AlumnoService : IAlumnoService
                 Monto = p.Monto,
                 Fecha = p.Fecha,
                 CicloEscolar = p.CicloEscolar,                MedioPago = p.MedioPago,
+                RubroId = p.RubroId,
                 RubroDescripcion = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
+                EsAnulado = p.EsAnulado,
+                Notas = p.Notas ?? string.Empty,
                 ImagenesPago = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
                     .Where(i => i.EsImagenEliminada != true)
                     .Select(i => new PagoImagenDto

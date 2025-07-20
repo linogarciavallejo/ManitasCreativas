@@ -19,6 +19,8 @@ import { rubroService } from "../../services/rubroService";
 import { routeAssignmentService } from "../../services/routeAssignmentService";
 import { AlumnoRuta } from "../../types/routeAssignment";
 import DatePickerES from "../common/DatePickerES"; // Import our custom DatePicker
+import QRCodeModal from "../shared/QRCodeModal";
+import PaymentHistoryTable from "../shared/PaymentHistoryTable";
 import "antd/dist/reset.css";
 
 interface Alumno {
@@ -78,7 +80,8 @@ interface AlumnoDetails {
     fecha: string;
     monto: number;
     rubroDescripcion: string;
-    // Add other payment fields as needed
+    esAnulado?: boolean;
+    notas?: string;
   }>;
   contactos: Contacto[];
 }
@@ -105,6 +108,18 @@ const TransportPayments: React.FC = () => {
   const [studentHasValidRoute, setStudentHasValidRoute] = useState<boolean>(false);
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
   const [form] = Form.useForm(); // Add Form instance
+
+  // QR Code modal state
+  const [qrModalVisible, setQrModalVisible] = useState<boolean>(false);
+  const [selectedPayment, setSelectedPayment] = useState<{
+    id: number;
+    fecha: string;
+    monto: number;
+    rubroDescripcion: string;
+    esAnulado?: boolean;
+    notas?: string;
+  } | null>(null);
+
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1; // 1-based month number
 
@@ -315,6 +330,39 @@ const TransportPayments: React.FC = () => {
     setIsFormValid(false); // Reset form validation
   };
 
+  // Function to reset only form fields but keep student information
+  const resetFormKeepStudent = () => {
+    // Reset form fields but preserve student data
+    form.setFieldsValue({
+      cicloEscolar: currentYear,
+      fechaPago: dayjs().startOf('day'),
+      mes: currentMonth.toString(),
+      medioPago: "1",
+      notas: "",
+      monto: selectedRubro?.montoPreestablecido || undefined,
+      rubroId: dinamicRubroId,
+      imagenesPago: [],
+    });
+    setIsFormValid(false); // Reset form validation to require user to fill fields again
+  };
+
+  // Function to refresh student details to get updated payment history
+  const refreshStudentDetails = async () => {
+    if (!selectedStudentDetails) return;
+    
+    try {
+      const response = await makeApiRequest<AlumnoDetails>(
+        `/alumnos/codigo/${selectedStudentDetails.codigo}`,
+        "GET"
+      );
+      setSelectedStudentDetails(response);
+      console.log("Student details refreshed after payment submission");
+    } catch (error) {
+      console.error("Error refreshing student details:", error);
+      // Don't show error to user as this is just for refreshing data
+    }
+  };
+
   // Search by codigo input
   const handleCodigoSearch = async (codigo: string) => {
     try {
@@ -466,14 +514,37 @@ const TransportPayments: React.FC = () => {
       toast.success("¡Pago enviado con éxito!");
       console.log("Pago enviado:", response);
 
-      // Reset the form after successful submission
-      resetForm();
+      // Reset form fields but keep student information
+      resetFormKeepStudent();
+      
+      // Refresh student details to show the new payment in history
+      await refreshStudentDetails();
     } catch (err: unknown) {
       console.error("Error details:", err); // Add detailed error logging
       toast.error("Error al enviar el pago. Por favor, inténtelo de nuevo.");
     } finally {
       setLoading(false);
     }
+  };
+
+  // QR Code modal handlers
+  const handleShowQRCode = (payment: {
+    id: number;
+    fecha: string;
+    monto: number;
+    rubroDescripcion: string;
+    esAnulado?: boolean;
+    notas?: string;
+  }) => {
+    console.log('[TransportPayments] handleShowQRCode called with payment:', payment);
+    setSelectedPayment(payment);
+    setQrModalVisible(true);
+    console.log('[TransportPayments] QR modal opened for payment ID:', payment.id);
+  };
+
+  const handleCloseQRModal = () => {
+    setQrModalVisible(false);
+    setSelectedPayment(null);
   };
 
   return (
@@ -573,6 +644,13 @@ const TransportPayments: React.FC = () => {
           </ul>
         </div>
       )}{" "}
+
+      {/* Payment History Section */}
+      <PaymentHistoryTable
+        payments={selectedStudentDetails?.pagos || []}
+        onShowQRCode={handleShowQRCode}
+        title="Historial de Pagos"
+      />{" "}
       
       {/* Display warning if student has no valid routes */}
       {selectedStudent && !studentHasValidRoute && (
@@ -887,6 +965,14 @@ const TransportPayments: React.FC = () => {
           </Button>{" "}
         </Form.Item>
       </Form>
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        payment={selectedPayment}
+        studentName={selectedStudent || undefined}
+        visible={qrModalVisible}
+        onClose={handleCloseQRModal}
+      />
     </div>
   );
 };

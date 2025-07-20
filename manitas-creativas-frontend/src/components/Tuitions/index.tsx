@@ -18,6 +18,8 @@ import { getCurrentUserId } from "../../services/authService";
 import { gradoService } from "../../services/gradoService";
 import { rubroService } from "../../services/rubroService";
 import DatePickerES from "../common/DatePickerES"; // Import our custom DatePicker
+import QRCodeModal from "../shared/QRCodeModal";
+import PaymentHistoryTable from "../shared/PaymentHistoryTable";
 import "antd/dist/reset.css";
 
 interface Alumno {
@@ -68,6 +70,8 @@ interface AlumnoDetails {
     fecha: string;
     monto: number;
     rubroDescripcion: string;
+    esAnulado?: boolean;
+    notas?: string;
     // Add other payment fields as needed
   }>;
   contactos: Contacto[];
@@ -92,6 +96,17 @@ const Tuitions: React.FC = () => {
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
   // const [gradoId, setGradoId] = useState<number | null>(null); // Currently unused
   const [form] = Form.useForm(); // Add Form instance
+
+  // QR Code modal state
+  const [qrModalVisible, setQrModalVisible] = useState<boolean>(false);
+  const [selectedPayment, setSelectedPayment] = useState<{
+    id: number;
+    fecha: string;
+    monto: number;
+    rubroDescripcion: string;
+    esAnulado?: boolean;
+    notas?: string;
+  } | null>(null);
 
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1; // 1-based month number  // Function to get month name for display
@@ -245,6 +260,7 @@ const Tuitions: React.FC = () => {
     setSelectedStudent(null);
     setAlumnoId(null);
     setSelectedCodigo(null);
+    setSelectedStudentDetails(null); // Explicitly clear student details
     setAutoCompleteValue("");
     setCodigoSearchValue("");
     setTypeaheadOptions([]);
@@ -419,17 +435,61 @@ const Tuitions: React.FC = () => {
         formData
       );
 
-      toast.success("¡Pago enviado con éxito!");
+      toast.success("¡Pago enviado con éxito! Puedes generar tu código QR desde la tabla de pagos abajo.");
       console.log("Pago enviado:", response);
 
-      // Reset the form after successful submission
-      resetForm();
+      // Refresh student data to show the new payment
+      if (selectedStudentDetails && selectedCodigo) {
+        try {
+          console.log("Refreshing student data after payment submission...");
+          const updatedResponse = await makeApiRequest<AlumnoDetails>(
+            `/alumnos/codigo/${selectedCodigo}`,
+            "GET"
+          );
+          console.log("Updated student data:", updatedResponse);
+          console.log("Updated payments:", updatedResponse.pagos);
+          setSelectedStudentDetails(updatedResponse);
+        } catch (error) {
+          console.error("Error refreshing student data:", error);
+        }
+      }
+
+      // Reset the form after successful submission but keep student selected
+      form.setFieldsValue({
+        cicloEscolar: currentYear,
+        fechaPago: dayjs().startOf('day'),
+        mes: currentMonth.toString(),
+        medioPago: "1",
+        notas: "",
+        monto: undefined, // Clear the amount field
+        imagenesPago: [],
+      });
     } catch (err: unknown) {
       console.error("Error details:", err); // Add detailed error logging
       toast.error("Error al enviar el pago. Por favor, inténtelo de nuevo.");
     } finally {
       setLoading(false);
     }
+  };
+
+  // QR Code modal handlers
+  const handleShowQRCode = (payment: {
+    id: number;
+    fecha: string;
+    monto: number;
+    rubroDescripcion: string;
+    esAnulado?: boolean;
+    notas?: string;
+  }) => {
+    console.log('[Tuitions] handleShowQRCode called with payment:', payment);
+    setSelectedPayment(payment);
+    setQrModalVisible(true);
+    console.log('[Tuitions] QR modal opened for payment ID:', payment.id);
+  };
+
+  const handleCloseQRModal = () => {
+    setQrModalVisible(false);
+    setSelectedPayment(null);
   };
 
   return (
@@ -552,6 +612,21 @@ const Tuitions: React.FC = () => {
             ))}
           </ul>
         </div>
+      )}
+
+      {/* Display recent tuition payments */}
+      {selectedStudent && selectedStudentDetails && selectedStudentDetails.pagos && selectedStudentDetails.pagos.length > 0 && (
+        <PaymentHistoryTable
+          payments={selectedStudentDetails.pagos}
+          onShowQRCode={handleShowQRCode}
+          title="Pagos de Colegiatura Recientes"
+          showStatusColumn={true}
+          filterFunction={(pago) => 
+            pago.rubroDescripcion?.toLowerCase().includes('colegiatura') ||
+            pago.rubroDescripcion?.toLowerCase().includes('tuition') ||
+            pago.rubroDescripcion?.toLowerCase().includes('mensualidad')
+          }
+        />
       )}{" "}
       <Form
         form={form}
@@ -770,6 +845,14 @@ const Tuitions: React.FC = () => {
           </Button>{" "}
         </Form.Item>
       </Form>
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        payment={selectedPayment}
+        studentName={selectedStudent || undefined}
+        visible={qrModalVisible}
+        onClose={handleCloseQRModal}
+      />
     </div>
   );
 };

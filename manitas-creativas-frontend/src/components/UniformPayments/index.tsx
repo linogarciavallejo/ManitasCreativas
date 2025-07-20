@@ -31,6 +31,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import { makeApiRequest } from '../../services/apiHelper';
 import { getCurrentUserId } from '../../services/authService';
 import { rubroUniformeDetalleService, RubroUniformeDetalle } from '../../services/rubroUniformeDetalleService';
+import QRCodeModal from '../shared/QRCodeModal';
+import PaymentHistoryTable from '../shared/PaymentHistoryTable';
 import { ColumnsType } from 'antd/es/table';
 
 const { Title } = Typography;
@@ -79,6 +81,8 @@ interface AlumnoDetails {
     fecha: string;
     monto: number;
     rubroDescripcion: string;
+    esAnulado?: boolean;
+    notas?: string;
   }>;
 }
 
@@ -131,6 +135,17 @@ const UniformPayments: React.FC = () => {
   const [previewTitle, setPreviewTitle] = useState<string>('');
   const [selectedItemForPreview, setSelectedItemForPreview] = useState<RubroUniformeDetalle | null>(null);
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
+  
+  // QR Code modal state
+  const [qrModalVisible, setQrModalVisible] = useState<boolean>(false);
+  const [selectedPayment, setSelectedPayment] = useState<{
+    id: number;
+    fecha: string;
+    monto: number;
+    rubroDescripcion: string;
+    esAnulado?: boolean;
+    notas?: string;
+  } | null>(null);
   
   const [form] = Form.useForm();
   const [itemForm] = Form.useForm();
@@ -612,6 +627,51 @@ const UniformPayments: React.FC = () => {
     setSelectedImageUrl("");
   };
 
+  // Function to reset only form fields but keep student information
+  const resetFormKeepStudent = () => {
+    // Reset form fields but preserve student data
+    form.setFieldsValue({
+      cicloEscolar: currentYear,
+      fechaPago: dayjs(),
+      medioPago: "1",
+      notas: "",
+      monto: payFullUniform ? (selectedRubro?.montoPreestablecido || totalAmount) : totalAmount,
+      rubroId: dinamicRubroId,
+      imagenesPago: [],
+    });
+    
+    // Reset uniform items if not paying full uniform
+    if (!payFullUniform) {
+      setUniformItems([]);
+      setTotalAmount(0);
+    }
+    
+    setIsFormValid(false); // Reset form validation to require user to fill fields again
+    
+    // Reset modal states
+    setItemModalVisible(false);
+    setEditingItem(null);
+    setImageModalVisible(false);
+    setSelectedImageUrl("");
+  };
+
+  // Function to refresh student details to get updated payment history
+  const refreshStudentDetails = async () => {
+    if (!selectedStudentDetails) return;
+    
+    try {
+      const response = await makeApiRequest<AlumnoDetails>(
+        `/alumnos/codigo/${selectedStudentDetails.codigo}`,
+        "GET"
+      );
+      setSelectedStudentDetails(response);
+      console.log("Student details refreshed after payment submission");
+    } catch (error) {
+      console.error("Error refreshing student details:", error);
+      // Don't show error to user as this is just for refreshing data
+    }
+  };
+
   // Search by codigo
   const handleCodigoSearch = async (codigo: string) => {
     try {
@@ -805,13 +865,38 @@ const UniformPayments: React.FC = () => {
       await makeApiRequest<{ id: number }>("/pagos", "POST", formData);
 
       toast.success("¡Pago de uniforme enviado con éxito!");
-      resetForm();
+      
+      // Reset form fields but keep student information
+      resetFormKeepStudent();
+      
+      // Refresh student details to show the new payment in history
+      await refreshStudentDetails();
     } catch (err: unknown) {
       console.error("Error details:", err);
       toast.error("Error al enviar el pago. Por favor, inténtelo de nuevo.");
     } finally {
       setLoading(false);
     }
+  };
+
+  // QR Code modal handlers
+  const handleShowQRCode = (payment: {
+    id: number;
+    fecha: string;
+    monto: number;
+    rubroDescripcion: string;
+    esAnulado?: boolean;
+    notas?: string;
+  }) => {
+    console.log('[UniformPayments] handleShowQRCode called with payment:', payment);
+    setSelectedPayment(payment);
+    setQrModalVisible(true);
+    console.log('[UniformPayments] QR modal opened for payment ID:', payment.id);
+  };
+
+  const handleCloseQRModal = () => {
+    setQrModalVisible(false);
+    setSelectedPayment(null);
   };
 
   return (
@@ -863,6 +948,14 @@ const UniformPayments: React.FC = () => {
           </div>
         )}
       </Card>
+
+      {/* Payment History Section */}
+      <PaymentHistoryTable
+        payments={selectedStudentDetails?.pagos || []}
+        onShowQRCode={handleShowQRCode}
+        title="Historial de Pagos"
+        useCard={true}
+      />
 
       {/* Payment form */}
       <Card title="Información del Pago">
@@ -1178,6 +1271,14 @@ const UniformPayments: React.FC = () => {
       >
         <img alt="preview" style={{ width: '100%' }} src={previewImage} />
       </Modal>
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        payment={selectedPayment}
+        studentName={selectedStudent || undefined}
+        visible={qrModalVisible}
+        onClose={handleCloseQRModal}
+      />
     </div>
   );
 };

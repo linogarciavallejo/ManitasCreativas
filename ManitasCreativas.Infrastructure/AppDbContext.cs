@@ -29,6 +29,9 @@ namespace ManitasCreativas.Infrastructure
         public DbSet<EntradaUniforme> EntradaUniformes { get; set; }
         public DbSet<EntradaUniformeDetalle> EntradaUniformeDetalles { get; set; }
         public DbSet<RubroUniformeDetalle> RubroUniformeDetalles { get; set; }
+        
+        // QR Code entities
+        public DbSet<CodigosQRPagos> CodigosQRPagos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -150,6 +153,13 @@ namespace ManitasCreativas.Infrastructure
                 .HasOne(pd => pd.Pago)
                 .WithMany(p => p.PagoDetalles)
                 .HasForeignKey(pd => pd.PagoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure Pago -> CodigosQRPagos (one-to-one)
+            modelBuilder.Entity<CodigosQRPagos>()
+                .HasOne(qr => qr.Pago)
+                .WithOne(p => p.CodigoQR)
+                .HasForeignKey<CodigosQRPagos>(qr => qr.PagoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Configure audit user relationships for uniform entities
@@ -309,6 +319,11 @@ namespace ManitasCreativas.Infrastructure
                 
             modelBuilder.Entity<RubroUniformeDetalle>()
                 .Property(rud => rud.FechaCreacion)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                
+            // Configure QR code audit fields
+            modelBuilder.Entity<CodigosQRPagos>()
+                .Property(qr => qr.FechaCreacion)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
                 
         }

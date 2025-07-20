@@ -18,6 +18,7 @@ import {
   EyeOutlined,
   EditOutlined,
   StopOutlined,
+  QrcodeOutlined,
 } from "@ant-design/icons";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -29,6 +30,7 @@ import { getCurrentUserId } from "../../services/authService";
 import PaymentDetailsModal from "./PaymentDetailsModal";
 import VoidPaymentModal from "./VoidPaymentModal";
 import PaymentEditModal from "./PaymentEditModal";
+import QRCodeModal from "../shared/QRCodeModal";
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -124,6 +126,9 @@ const EditPayments: React.FC = () => {
   // Add state for editing payments
   const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
+
+  // Add state for QR Code modal
+  const [qrModalVisible, setQrModalVisible] = useState<boolean>(false);
 
   // Fetch grados on component mount
   useEffect(() => {
@@ -340,6 +345,20 @@ const EditPayments: React.FC = () => {
   // Handle closing edit modal
   const handleCloseEditModal = () => {
     setEditModalVisible(false);
+    setSelectedPayment(null);
+  };
+
+  // Handle opening QR code modal
+  const handleShowQRCode = (payment: Pago) => {
+    console.log('[EditPayments] handleShowQRCode called with payment:', payment);
+    setSelectedPayment(payment);
+    setQrModalVisible(true);
+    console.log('[EditPayments] QR modal opened for payment ID:', payment.id);
+  };
+
+  // Handle closing QR code modal
+  const handleCloseQRModal = () => {
+    setQrModalVisible(false);
     setSelectedPayment(null);
   };
 
@@ -718,6 +737,12 @@ const EditPayments: React.FC = () => {
                           <>
                             <Button
                               size="small"
+                              icon={<QrcodeOutlined />}
+                              onClick={() => handleShowQRCode(record)}
+                              title="Código QR"
+                            />{" "}
+                            <Button
+                              size="small"
                               icon={<EditOutlined />}
                               onClick={() => handleEditPayment(record)}
                               title="Editar pago"
@@ -764,6 +789,12 @@ const EditPayments: React.FC = () => {
         onVoidReasonChange={setVoidReason}
         onCancel={handleCancelVoid}
         onConfirm={handleConfirmVoidPayment}
+      />
+      {/* QR Code Modal */}
+      <QRCodeModal
+        payment={selectedPayment}
+        visible={qrModalVisible}
+        onClose={handleCloseQRModal}
       />
     </div>
   );

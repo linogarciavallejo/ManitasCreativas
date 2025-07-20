@@ -62,6 +62,9 @@ public class AlumnoRepository : IAlumnoRepository
             .Include(a => a.Sede)
             .Include(a => a.Grado)
             .Include(a => a.Pagos)
+                .ThenInclude(p => p.Rubro)
+            .Include(a => a.Pagos)
+                .ThenInclude(p => p.ImagenesPago)
             .Include(a => a.AlumnoContactos)
                 .ThenInclude(ac => ac.Contacto)
             .FirstOrDefaultAsync(a => a.Codigo == codigo);

@@ -50,6 +50,9 @@ const UniformPayments = React.lazy(
 const UniformInventory = React.lazy(
   () => import("../components/Uniforms/Inventory")
 );
+const QRValidation = React.lazy(
+  () => import("../components/QRValidation")
+);
 
 const AppRoutes: React.FC = () => {
   //userStore();
@@ -61,6 +64,11 @@ const AppRoutes: React.FC = () => {
       <Route path="/signin" element={<SignIn />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      {/* Public QR validation routes */}
+      <Route path="/validate-qr/:token" element={<QRValidation />} />
+      <Route path="/validate-qr" element={<QRValidation />} />
+      <Route path="/qr-validation/:token" element={<QRValidation />} />
+      <Route path="/qr-validation" element={<QRValidation />} />
       <Route
         path="/main"
         element={
