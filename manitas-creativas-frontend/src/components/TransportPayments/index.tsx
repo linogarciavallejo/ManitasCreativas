@@ -8,8 +8,10 @@ import {
   Select,
   InputNumber,
   Modal,
+  Table,
+  Typography,
 } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import { UploadOutlined, QrcodeOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -19,6 +21,7 @@ import { rubroService } from "../../services/rubroService";
 import { routeAssignmentService } from "../../services/routeAssignmentService";
 import { AlumnoRuta } from "../../types/routeAssignment";
 import DatePickerES from "../common/DatePickerES"; // Import our custom DatePicker
+import QRCodeModal from "../shared/QRCodeModal";
 import "antd/dist/reset.css";
 
 interface Alumno {
@@ -78,12 +81,14 @@ interface AlumnoDetails {
     fecha: string;
     monto: number;
     rubroDescripcion: string;
-    // Add other payment fields as needed
+    esAnulado?: boolean;
+    notas?: string;
   }>;
   contactos: Contacto[];
 }
 
 const { Option } = Select;
+const { Title } = Typography;
 
 const TransportPayments: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -105,6 +110,18 @@ const TransportPayments: React.FC = () => {
   const [studentHasValidRoute, setStudentHasValidRoute] = useState<boolean>(false);
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
   const [form] = Form.useForm(); // Add Form instance
+
+  // QR Code modal state
+  const [qrModalVisible, setQrModalVisible] = useState<boolean>(false);
+  const [selectedPayment, setSelectedPayment] = useState<{
+    id: number;
+    fecha: string;
+    monto: number;
+    rubroDescripcion: string;
+    esAnulado?: boolean;
+    notas?: string;
+  } | null>(null);
+
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1; // 1-based month number
 
@@ -315,6 +332,39 @@ const TransportPayments: React.FC = () => {
     setIsFormValid(false); // Reset form validation
   };
 
+  // Function to reset only form fields but keep student information
+  const resetFormKeepStudent = () => {
+    // Reset form fields but preserve student data
+    form.setFieldsValue({
+      cicloEscolar: currentYear,
+      fechaPago: dayjs().startOf('day'),
+      mes: currentMonth.toString(),
+      medioPago: "1",
+      notas: "",
+      monto: selectedRubro?.montoPreestablecido || undefined,
+      rubroId: dinamicRubroId,
+      imagenesPago: [],
+    });
+    setIsFormValid(false); // Reset form validation to require user to fill fields again
+  };
+
+  // Function to refresh student details to get updated payment history
+  const refreshStudentDetails = async () => {
+    if (!selectedStudentDetails) return;
+    
+    try {
+      const response = await makeApiRequest<AlumnoDetails>(
+        `/alumnos/codigo/${selectedStudentDetails.codigo}`,
+        "GET"
+      );
+      setSelectedStudentDetails(response);
+      console.log("Student details refreshed after payment submission");
+    } catch (error) {
+      console.error("Error refreshing student details:", error);
+      // Don't show error to user as this is just for refreshing data
+    }
+  };
+
   // Search by codigo input
   const handleCodigoSearch = async (codigo: string) => {
     try {
@@ -466,14 +516,37 @@ const TransportPayments: React.FC = () => {
       toast.success("¡Pago enviado con éxito!");
       console.log("Pago enviado:", response);
 
-      // Reset the form after successful submission
-      resetForm();
+      // Reset form fields but keep student information
+      resetFormKeepStudent();
+      
+      // Refresh student details to show the new payment in history
+      await refreshStudentDetails();
     } catch (err: unknown) {
       console.error("Error details:", err); // Add detailed error logging
       toast.error("Error al enviar el pago. Por favor, inténtelo de nuevo.");
     } finally {
       setLoading(false);
     }
+  };
+
+  // QR Code modal handlers
+  const handleShowQRCode = (payment: {
+    id: number;
+    fecha: string;
+    monto: number;
+    rubroDescripcion: string;
+    esAnulado?: boolean;
+    notas?: string;
+  }) => {
+    console.log('[TransportPayments] handleShowQRCode called with payment:', payment);
+    setSelectedPayment(payment);
+    setQrModalVisible(true);
+    console.log('[TransportPayments] QR modal opened for payment ID:', payment.id);
+  };
+
+  const handleCloseQRModal = () => {
+    setQrModalVisible(false);
+    setSelectedPayment(null);
   };
 
   return (
@@ -571,6 +644,58 @@ const TransportPayments: React.FC = () => {
               </li>
             ))}
           </ul>
+        </div>
+      )}{" "}
+
+      {/* Payment History Section */}
+      {selectedStudentDetails && selectedStudentDetails.pagos && selectedStudentDetails.pagos.length > 0 && (
+        <div style={{ marginBottom: "20px" }}>
+          <Title level={4}>Historial de Pagos</Title>
+          <Table
+            dataSource={selectedStudentDetails.pagos}
+            columns={[
+              {
+                title: "ID",
+                dataIndex: "id",
+                key: "id",
+                width: 80,
+              },
+              {
+                title: "Fecha",
+                dataIndex: "fecha",
+                key: "fecha",
+                render: (fecha: string) => dayjs(fecha).format("DD/MM/YYYY"),
+              },
+              {
+                title: "Concepto",
+                dataIndex: "rubroDescripcion",
+                key: "rubroDescripcion",
+              },
+              {
+                title: "Monto",
+                dataIndex: "monto",
+                key: "monto",
+                render: (monto: number) => `Q${monto.toLocaleString()}`,
+              },
+              {
+                title: "Acciones",
+                key: "actions",
+                render: (_, record) => (
+                  <Button
+                    type="link"
+                    icon={<QrcodeOutlined />}
+                    onClick={() => handleShowQRCode(record)}
+                    disabled={record.esAnulado}
+                  >
+                    {record.esAnulado ? "Anulado" : "Ver QR"}
+                  </Button>
+                ),
+              },
+            ]}
+            pagination={false}
+            size="small"
+            rowKey="id"
+          />
         </div>
       )}{" "}
       
@@ -887,6 +1012,14 @@ const TransportPayments: React.FC = () => {
           </Button>{" "}
         </Form.Item>
       </Form>
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        payment={selectedPayment}
+        studentName={selectedStudent || undefined}
+        visible={qrModalVisible}
+        onClose={handleCloseQRModal}
+      />
     </div>
   );
 };

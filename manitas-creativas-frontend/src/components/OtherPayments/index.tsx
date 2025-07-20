@@ -8,8 +8,10 @@ import {
   Select,
   InputNumber,
   Modal,
+  Table,
+  Typography,
 } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import { UploadOutlined, QrcodeOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -18,6 +20,7 @@ import { getCurrentUserId } from "../../services/authService";
 import { gradoService } from "../../services/gradoService";
 import { rubroService, Rubro } from "../../services/rubroService";
 import DatePickerES from "../common/DatePickerES"; // Import our custom DatePicker
+import QRCodeModal from "../shared/QRCodeModal";
 import "antd/dist/reset.css";
 
 interface Alumno {
@@ -65,11 +68,19 @@ interface AlumnoDetails {
   becado: boolean | null;
   becaParcialPorcentaje: number | null;
   observaciones?: string;
-  pagos: Record<string, unknown>[];
+  pagos: Array<{
+    id: number;
+    fecha: string;
+    monto: number;
+    rubroDescripcion: string;
+    esAnulado?: boolean;
+    notas?: string;
+  }>;
   contactos: Contacto[];
 }
 
 const { Option } = Select;
+const { Title } = Typography;
 
 const OtherPayments: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -89,6 +100,18 @@ const OtherPayments: React.FC = () => {
   const [selectedRubro, setSelectedRubro] = useState<Rubro | null>(null);
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
   const [form] = Form.useForm();
+
+  // QR Code modal state
+  const [qrModalVisible, setQrModalVisible] = useState<boolean>(false);
+  const [selectedPayment, setSelectedPayment] = useState<{
+    id: number;
+    fecha: string;
+    monto: number;
+    rubroDescripcion: string;
+    esAnulado?: boolean;
+    notas?: string;
+  } | null>(null);
+
   const currentYear = new Date().getFullYear();
   // Fetch rubros on component mount - initially empty until student is selected
   useEffect(() => {
@@ -361,26 +384,73 @@ const OtherPayments: React.FC = () => {
       console.log("Payment response:", response); // Add debug log
 
       // Show success toast notification
-      toast.success("¡Pago enviado con éxito!"); // Reset form fields
-      form.resetFields();
+      toast.success("¡Pago enviado con éxito!");
 
-      // Reset student selection and clear all search filters
-      setSelectedStudent(null);
-      setSelectedStudentDetails(null);
-      setAlumnoId(null);
-      setSelectedCodigo(null);
-      setAutoCompleteValue("");
-      setCodigoSearchValue("");
-      setTypeaheadOptions([]);
-      setContactos([]);
-      setRubros([]);
-      setSelectedRubro(null);
+      // Reset form fields but keep student information
+      resetFormKeepStudent();
+      
+      // Refresh student details to show the new payment in history
+      await refreshStudentDetails();
     } catch (err) {
       console.error("Error submitting payment:", err); // Add error logging
       toast.error("Error al enviar el pago. Por favor, inténtelo de nuevo.");
     } finally {
       setLoading(false);
     }
+  };
+
+  // Function to reset only form fields but keep student information
+  const resetFormKeepStudent = () => {
+    // Reset form fields but preserve student data
+    form.resetFields();
+    form.setFieldsValue({
+      cicloEscolar: currentYear,
+      fechaPago: dayjs(),
+      medioPago: "1",
+      notas: "",
+      monto: selectedRubro?.montoPreestablecido || undefined,
+      rubroId: selectedRubro?.id?.toString() || undefined,
+      imagenesPago: [],
+    });
+    setIsFormValid(false); // Reset form validation to require user to fill fields again
+  };
+
+  // Function to refresh student details to get updated payment history
+  const refreshStudentDetails = async () => {
+    if (!selectedStudentDetails) return;
+    
+    try {
+      const response = await makeApiRequest<AlumnoDetails>(
+        `/alumnos/codigo/${selectedStudentDetails.codigo}`,
+        "GET"
+      );
+      setSelectedStudentDetails(response);
+      setContactos(response.contactos || []);
+      console.log("Student details refreshed after payment submission");
+    } catch (error) {
+      console.error("Error refreshing student details:", error);
+      // Don't show error to user as this is just for refreshing data
+    }
+  };
+
+  // QR Code modal handlers
+  const handleShowQRCode = (payment: {
+    id: number;
+    fecha: string;
+    monto: number;
+    rubroDescripcion: string;
+    esAnulado?: boolean;
+    notas?: string;
+  }) => {
+    console.log('[OtherPayments] handleShowQRCode called with payment:', payment);
+    setSelectedPayment(payment);
+    setQrModalVisible(true);
+    console.log('[OtherPayments] QR modal opened for payment ID:', payment.id);
+  };
+
+  const handleCloseQRModal = () => {
+    setQrModalVisible(false);
+    setSelectedPayment(null);
   };
 
   return (
@@ -496,6 +566,58 @@ const OtherPayments: React.FC = () => {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {/* Payment History Section */}
+      {selectedStudentDetails && selectedStudentDetails.pagos && selectedStudentDetails.pagos.length > 0 && (
+        <div style={{ marginBottom: "20px" }}>
+          <Title level={4}>Historial de Pagos</Title>
+          <Table
+            dataSource={selectedStudentDetails.pagos}
+            columns={[
+              {
+                title: "ID",
+                dataIndex: "id",
+                key: "id",
+                width: 80,
+              },
+              {
+                title: "Fecha",
+                dataIndex: "fecha",
+                key: "fecha",
+                render: (fecha: string) => dayjs(fecha).format("DD/MM/YYYY"),
+              },
+              {
+                title: "Concepto",
+                dataIndex: "rubroDescripcion",
+                key: "rubroDescripcion",
+              },
+              {
+                title: "Monto",
+                dataIndex: "monto",
+                key: "monto",
+                render: (monto: number) => `Q${monto.toLocaleString()}`,
+              },
+              {
+                title: "Acciones",
+                key: "actions",
+                render: (_, record) => (
+                  <Button
+                    type="link"
+                    icon={<QrcodeOutlined />}
+                    onClick={() => handleShowQRCode(record)}
+                    disabled={record.esAnulado}
+                  >
+                    {record.esAnulado ? "Anulado" : "Ver QR"}
+                  </Button>
+                ),
+              },
+            ]}
+            pagination={false}
+            size="small"
+            rowKey="id"
+          />
         </div>
       )}
 
@@ -732,6 +854,14 @@ const OtherPayments: React.FC = () => {
           </Button>
         </Form.Item>
       </Form>
+
+      {/* QR Code Modal */}
+      <QRCodeModal
+        payment={selectedPayment}
+        studentName={selectedStudent || undefined}
+        visible={qrModalVisible}
+        onClose={handleCloseQRModal}
+      />
     </div>
   );
 };
