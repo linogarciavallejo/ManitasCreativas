@@ -3,6 +3,7 @@ using ManitasCreativas.Application.Interfaces.Repositories;
 using ManitasCreativas.Application.Interfaces.Services;
 using ManitasCreativas.Domain.Entities;
 using QRCoder;
+using Microsoft.Extensions.Configuration;
 
 namespace ManitasCreativas.Application.Services
 {
@@ -10,13 +11,16 @@ namespace ManitasCreativas.Application.Services
     {
         private readonly ICodigosQRPagosRepository _qrCodeRepository;
         private readonly IPagoRepository _pagoRepository;
+        private readonly IConfiguration _configuration;
 
         public QRCodeService(
             ICodigosQRPagosRepository qrCodeRepository,
-            IPagoRepository pagoRepository)
+            IPagoRepository pagoRepository,
+            IConfiguration configuration)
         {
             _qrCodeRepository = qrCodeRepository;
             _pagoRepository = pagoRepository;
+            _configuration = configuration;
         }
 
         public async Task<QRCodeGenerateResponseDto> GenerateQRCodeAsync(int pagoId, int expirationMinutes = 525600) // Default 1 year
@@ -49,7 +53,10 @@ namespace ManitasCreativas.Application.Services
                 Console.WriteLine($"[QRCodeService] Returning existing QR code for payment {pagoId}");
                 // Return existing QR code instead of creating a new one
                 var existing = existingQR.First();
-                var existingQrCodeImageBase64 = GenerateQRCodeImage(existing.TokenUnico.ToString());
+                // Return existing QR code with updated URL format
+                var existingFrontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173";
+                var existingValidationUrl = $"{existingFrontendUrl}/validate-qr/{existing.TokenUnico}";
+                var existingQrCodeImageBase64 = GenerateQRCodeImage(existingValidationUrl);
                                 // Generate existing payment info in Spanish
                 var existingPagoInfo = $"ID de Pago: {pagoId} - Monto: Q{pago.Monto:N2}";
 
@@ -86,8 +93,10 @@ namespace ManitasCreativas.Application.Services
             await _qrCodeRepository.AddAsync(codigoQR);
             Console.WriteLine($"[QRCodeService] QR code saved successfully");
 
-            // Generate the QR code image
-            var qrCodeImageBase64 = GenerateQRCodeImage(tokenUnico.ToString());
+            // Generate the QR code image with validation URL
+            var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173";
+            var validationUrl = $"{frontendUrl}/validate-qr/{tokenUnico}";
+            var qrCodeImageBase64 = GenerateQRCodeImage(validationUrl);
             Console.WriteLine($"[QRCodeService] QR code image generated, length: {qrCodeImageBase64.Length} characters");
 
             // Create payment info string in Spanish
