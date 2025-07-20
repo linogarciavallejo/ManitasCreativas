@@ -50,7 +50,8 @@ namespace ManitasCreativas.Application.Services
                 // Return existing QR code instead of creating a new one
                 var existing = existingQR.First();
                 var existingQrCodeImageBase64 = GenerateQRCodeImage(existing.TokenUnico.ToString());
-                var existingPagoInfo = $"Payment ID: {pagoId} - Amount: {pago.Monto:C}";
+                                // Generate existing payment info in Spanish
+                var existingPagoInfo = $"ID de Pago: {pagoId} - Monto: Q{pago.Monto:N2}";
 
                 return new QRCodeGenerateResponseDto
                 {
@@ -89,8 +90,8 @@ namespace ManitasCreativas.Application.Services
             var qrCodeImageBase64 = GenerateQRCodeImage(tokenUnico.ToString());
             Console.WriteLine($"[QRCodeService] QR code image generated, length: {qrCodeImageBase64.Length} characters");
 
-            // Create payment info string
-            var pagoInfo = $"Payment ID: {pagoId} - Amount: {pago.Monto:C}";
+            // Create payment info string in Spanish
+            var pagoInfo = $"ID de Pago: {pagoId} - Monto: Q{pago.Monto:N2}";
 
             Console.WriteLine($"[QRCodeService] Returning QR code response for payment {pagoId}");
             return new QRCodeGenerateResponseDto
@@ -152,7 +153,7 @@ namespace ManitasCreativas.Application.Services
                 return new QRCodeValidateResponseDto
                 {
                     IsValid = false,
-                    Message = "⚠️ PAYMENT VOIDED - This payment has been cancelled/voided and is no longer valid.",
+                    Message = "⚠️ PAGO ANULADO - Este pago ha sido cancelado/anulado y ya no es válido.",
                     PagoId = codigoQR.PagoId,
                     AlumnoNombre = $"{codigoQR.Pago?.Alumno?.PrimerNombre} {codigoQR.Pago?.Alumno?.PrimerApellido}",
                     RubroDescripcion = codigoQR.Pago?.Rubro?.Descripcion,

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Modal, Button, Spin, Alert, Typography, Space, Divider, message, Input } from "antd";
-import { QrcodeOutlined, CheckCircleOutlined, ExclamationCircleOutlined, ReloadOutlined } from "@ant-design/icons";
+import { Modal, Button, Spin, Alert, Typography, Space, Divider, message } from "antd";
+import { ReloadOutlined, PrinterOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { qrCodeService, QRCodeGenerateRequest, QRCodeGenerateResponse, QRCodeValidateResponse } from "../../services/qrCodeService";
+import { qrCodeService, QRCodeGenerateRequest, QRCodeGenerateResponse } from "../../services/qrCodeService";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -32,12 +32,6 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<QRCodeGenerateResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
-  // Validation state
-  const [validationMode, setValidationMode] = useState(false);
-  const [validationInput, setValidationInput] = useState("");
-  const [validationResult, setValidationResult] = useState<QRCodeValidateResponse | null>(null);
-  const [validating, setValidating] = useState(false);
 
   const loadOrGenerateQRCode = useCallback(async () => {
     if (!payment) return;
@@ -63,6 +57,10 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
     }
   }, [payment]);
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   useEffect(() => {
     if (visible && payment && !payment.esAnulado) {
       loadOrGenerateQRCode();
@@ -72,37 +70,8 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
     if (!visible) {
       setQrCodeData(null);
       setError(null);
-      setValidationMode(false);
-      setValidationInput("");
-      setValidationResult(null);
     }
   }, [visible, payment, loadOrGenerateQRCode]);
-
-  const handleValidateQR = async () => {
-    if (!validationInput.trim()) {
-      message.warning("Por favor ingresa los datos del código QR");
-      return;
-    }
-
-    setValidating(true);
-    setValidationResult(null);
-
-    try {
-      const result = await qrCodeService.validateQRCode({ token: validationInput.trim() });
-      setValidationResult(result);
-      
-      if (result.isValid) {
-        message.success("Código QR válido");
-      } else {
-        message.error(result.message);
-      }
-    } catch (err) {
-      console.error("Error validating QR code:", err);
-      message.error("Error al validar el código QR");
-    } finally {
-      setValidating(false);
-    }
-  };
 
   const handleRegenerateQR = () => {
     setQrCodeData(null);
@@ -111,7 +80,7 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
 
   if (!payment) return null;
 
-  const modalTitle = validationMode ? "Validar Código QR" : `Código QR - Pago #${payment.id}`;
+  const modalTitle = `Código QR - Pago #${payment.id}`;
 
   return (
     <Modal
@@ -122,7 +91,16 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
         <Button key="close" onClick={onClose}>
           Cerrar
         </Button>,
-        !validationMode && qrCodeData && (
+        qrCodeData && (
+          <Button
+            key="print"
+            icon={<PrinterOutlined />}
+            onClick={handlePrint}
+          >
+            Imprimir
+          </Button>
+        ),
+        qrCodeData && (
           <Button
             key="regenerate"
             icon={<ReloadOutlined />}
@@ -132,73 +110,17 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
             Regenerar QR
           </Button>
         ),
-        <Button
-          key="toggle"
-          type={validationMode ? "default" : "primary"}
-          icon={<QrcodeOutlined />}
-          onClick={() => setValidationMode(!validationMode)}
-        >
-          {validationMode ? "Ver Mi QR" : "Validar QR"}
-        </Button>,
       ]}
       width={600}
+      className="qr-code-modal qr-code-modal-tuition"
     >
       {payment.esAnulado ? (
         <Alert
           message="Pago Anulado"
           description="No se puede generar código QR para un pago anulado."
           type="warning"
-          icon={<ExclamationCircleOutlined />}
           showIcon
         />
-      ) : validationMode ? (
-        // Validation Mode
-        <Space direction="vertical" style={{ width: "100%" }} size="large">
-          <Title level={4}>Validación de Código QR</Title>
-          <Paragraph>
-            Ingresa los datos del código QR que deseas validar:
-          </Paragraph>
-          
-          <Input.TextArea
-            placeholder="Pega aquí los datos del código QR..."
-            value={validationInput}
-            onChange={(e) => setValidationInput(e.target.value)}
-            rows={4}
-          />
-          
-          <Button
-            type="primary"
-            onClick={handleValidateQR}
-            loading={validating}
-            block
-          >
-            Validar Código QR
-          </Button>
-
-          {validationResult && (
-            <Alert
-              message={validationResult.isValid ? "Código QR Válido" : "Código QR Inválido"}
-              description={validationResult.message}
-              type={validationResult.isValid ? "success" : "error"}
-              icon={validationResult.isValid ? <CheckCircleOutlined /> : <ExclamationCircleOutlined />}
-              showIcon
-            />
-          )}
-
-          {validationResult?.isValid && (validationResult.alumnoNombre || validationResult.rubroDescripcion) && (
-            <>
-              <Divider />
-              <Title level={5}>Información del Pago</Title>
-              <Space direction="vertical" style={{ width: "100%" }}>
-                {validationResult.alumnoNombre && <Text><strong>Estudiante:</strong> {validationResult.alumnoNombre}</Text>}
-                {validationResult.rubroDescripcion && <Text><strong>Tipo:</strong> {validationResult.rubroDescripcion}</Text>}
-                {validationResult.montosPago && <Text><strong>Monto:</strong> Q{validationResult.montosPago.toLocaleString()}</Text>}
-                {validationResult.fechaPago && <Text><strong>Fecha de Pago:</strong> {dayjs(validationResult.fechaPago).format("DD/MM/YYYY")}</Text>}
-                {validationResult.pagoId && <Text><strong>ID de Pago:</strong> {validationResult.pagoId}</Text>}
-              </Space>
-            </>
-          )}
-        </Space>
       ) : (
         // QR Code Display Mode
         <Space direction="vertical" style={{ width: "100%" }} size="large">
@@ -275,5 +197,129 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
     </Modal>
   );
 };
+
+// Add print-specific CSS
+const printStyles = `
+  @media print {
+    @page {
+      margin: 0.5in;
+      size: letter;
+    }
+    
+    /* Hide everything first */
+    body * {
+      visibility: hidden;
+    }
+    
+    /* Show only our modal content */
+    .qr-code-modal-tuition,
+    .qr-code-modal-tuition * {
+      visibility: visible !important;
+    }
+    
+    /* Position and style the modal */
+    .qr-code-modal-tuition {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 100% !important;
+      height: auto !important;
+      background: white !important;
+    }
+    
+    /* Reset modal styles */
+    .qr-code-modal-tuition .ant-modal-mask,
+    .qr-code-modal-tuition .ant-modal-wrap {
+      position: static !important;
+      background: white !important;
+    }
+    
+    .qr-code-modal-tuition .ant-modal {
+      position: static !important;
+      width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+      background: white !important;
+    }
+    
+    .qr-code-modal-tuition .ant-modal-content {
+      box-shadow: none !important;
+      border: none !important;
+      background: white !important;
+    }
+    
+    /* Hide header, footer, and alerts */
+    .qr-code-modal-tuition .ant-modal-header,
+    .qr-code-modal-tuition .ant-modal-footer,
+    .qr-code-modal-tuition .ant-alert {
+      display: none !important;
+    }
+    
+    /* Style the body */
+    .qr-code-modal-tuition .ant-modal-body {
+      padding: 20pt !important;
+      background: white !important;
+    }
+    
+    /* Typography */
+    .qr-code-modal-tuition h4 {
+      font-size: 16pt !important;
+      margin: 10pt 0 !important;
+      text-align: center !important;
+      color: black !important;
+    }
+    
+    .qr-code-modal-tuition p {
+      font-size: 12pt !important;
+      margin: 8pt 0 !important;
+      text-align: center !important;
+      color: black !important;
+    }
+    
+    .qr-code-modal-tuition span {
+      font-size: 12pt !important;
+      color: black !important;
+    }
+    
+    /* QR Code */
+    .qr-code-modal-tuition img {
+      display: block !important;
+      margin: 15pt auto !important;
+      max-width: 150pt !important;
+      max-height: 150pt !important;
+      background: white !important;
+    }
+    
+    /* Spacing */
+    .qr-code-modal-tuition .ant-space-item {
+      margin-bottom: 5pt !important;
+    }
+    
+    .qr-code-modal-tuition .ant-divider {
+      margin: 10pt 0 !important;
+      border-top: 1pt solid #ccc !important;
+    }
+    
+    /* Make sure all text is black */
+    .qr-code-modal-tuition * {
+      color: black !important;
+      background: white !important;
+    }
+    
+    /* Hide other modals */
+    .qr-code-modal:not(.qr-code-modal-tuition) {
+      display: none !important;
+    }
+  }
+`;
+
+// Inject styles with unique ID for tuition modal
+if (typeof document !== 'undefined' && !document.getElementById('qr-print-styles-tuition')) {
+  const style = document.createElement('style');
+  style.id = 'qr-print-styles-tuition';
+  style.textContent = printStyles;
+  document.head.appendChild(style);
+}
 
 export default QRCodeModal;
