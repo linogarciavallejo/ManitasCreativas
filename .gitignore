@@ -58,3 +58,11 @@ node_modules
 /package-lock.json
 /ManitasCreativas.WebApi/wwwroot/assets
 /manitas-creativas-frontend/package-lock.json
+ManitasCreativas.WebApi/CLOUDWATCH_LOGGING_README.md
+
+# Environment files with sensitive data
+*.env
+production.env
+appsettings.Production.json
+test-payload.json
+ManitasCreativas.WebApi/appsettings.Development.json

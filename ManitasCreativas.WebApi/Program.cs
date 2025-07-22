@@ -10,13 +10,68 @@ using ManitasCreativas.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using ManitasCreativas.Application.Services;
 using ManitasCreativas.WebApi.Controllers;
+using Serilog;
+using Serilog.Events;
+using Amazon.CloudWatchLogs;
+using ManitasCreativas.WebApi.Middleware;
+using ManitasCreativas.WebApi.Services;
+using Amazon;
 
-var builder = WebApplication.CreateBuilder(args);
+// Configure Serilog early in the application startup
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("System", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Application", "ManitasCreativas.WebApi")
+    .WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+    .CreateBootstrapLogger();
 
-builder.Services.AddSpaStaticFiles(configuration =>
+try
 {
-    configuration.RootPath = "wwwroot";
-});
+    Log.Information("Starting ManitasCreativas Web API");
+
+    var builder = WebApplication.CreateBuilder(args);
+
+    // Configure AWS credentials for CloudWatch logging
+    var awsAccessKey = builder.Configuration["AWS:AccessKey"];
+    var awsSecretKey = builder.Configuration["AWS:SecretKey"];
+    var awsRegion = builder.Configuration["AWS:Region"];
+
+    Log.Information("AWS Configuration - AccessKey: {AccessKey}, Region: {Region}, SecretKey Length: {SecretKeyLength}", 
+        awsAccessKey?.Substring(0, Math.Min(8, awsAccessKey?.Length ?? 0)) + "***", 
+        awsRegion, 
+        awsSecretKey?.Length ?? 0);
+
+    if (!string.IsNullOrEmpty(awsAccessKey) && !string.IsNullOrEmpty(awsSecretKey))
+    {
+        Environment.SetEnvironmentVariable("AWS_ACCESS_KEY_ID", awsAccessKey);
+        Environment.SetEnvironmentVariable("AWS_SECRET_ACCESS_KEY", awsSecretKey);
+        Environment.SetEnvironmentVariable("AWS_REGION", awsRegion);
+        Log.Information("AWS credentials set as environment variables");
+    }
+    else
+    {
+        Log.Warning("AWS credentials not found in configuration");
+    }
+
+    // Replace default logging with Serilog
+    builder.Host.UseSerilog((context, services, configuration) =>
+    {
+        configuration
+            .ReadFrom.Configuration(context.Configuration)
+            .ReadFrom.Services(services)
+            .Enrich.FromLogContext()
+            .Enrich.WithProperty("Application", "ManitasCreativas.WebApi");
+            
+        Log.Information("Serilog configuration loaded, Environment: {Environment}", context.HostingEnvironment.EnvironmentName);
+    });
+
+    builder.Services.AddSpaStaticFiles(configuration =>
+    {
+        configuration.RootPath = "wwwroot";
+    });
 
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
@@ -44,6 +99,9 @@ builder.Services.AddCors(options =>
         // Note: AllowAnyOrigin and AllowCredentials cannot be used together
     });
 });
+
+// Register logging service
+builder.Services.AddSingleton<IAppLogger, AppLogger>();
 
 // Dependency Injection for Repositories
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
@@ -135,13 +193,69 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Add S3 configuration
 var s3Config = builder.Configuration.GetSection("S3").Get<S3Config>();
-builder.Services.AddSingleton(s3Config);
-builder.Services.AddSingleton<IAmazonS3>(sp =>
+if (s3Config != null)
 {
-    return new AmazonS3Client(s3Config.AccessKey, s3Config.SecretKey, Amazon.RegionEndpoint.GetBySystemName(s3Config.Region));
-});
+    builder.Services.AddSingleton(s3Config);
+    builder.Services.AddSingleton<IAmazonS3>(sp =>
+    {
+        return new AmazonS3Client(s3Config.AccessKey, s3Config.SecretKey, Amazon.RegionEndpoint.GetBySystemName(s3Config.Region));
+    });
+}
 
 var app = builder.Build();
+
+// Test CloudWatch connectivity immediately after app is built
+try
+{
+    Log.Information("Testing CloudWatch connectivity - App built successfully");
+    
+    //// Test AWS CloudWatch connection directly
+    //var accessKey = builder.Configuration["AWS:AccessKey"];
+    //var secretKey = builder.Configuration["AWS:SecretKey"];
+    //var region = builder.Configuration["AWS:Region"];
+    
+    //if (!string.IsNullOrEmpty(accessKey) && !string.IsNullOrEmpty(secretKey))
+    //{
+    //    Console.WriteLine("🔍 AWS CloudWatch credentials found in configuration");
+    //    Console.WriteLine($"   - Access Key: {accessKey?.Substring(0, Math.Min(8, accessKey.Length))}***");
+    //    Console.WriteLine($"   - Region: {region}");
+    //    Console.WriteLine($"   - Environment: {app.Environment.EnvironmentName}");
+        
+    //    // Test CloudWatch connection
+    //    await CloudWatchTest.TestCloudWatchConnectionAsync(accessKey, secretKey, region);
+    //}
+    //else
+    //{
+    //    Console.WriteLine("❌ AWS credentials not found in configuration");
+    //}
+    
+    Log.Warning("This is a test WARNING log for CloudWatch from {Environment}", app.Environment.EnvironmentName);
+    Log.Error("This is a test ERROR log for CloudWatch from {Environment}", app.Environment.EnvironmentName);
+    Log.Information("Application started in {Environment} mode at {StartTime}", app.Environment.EnvironmentName, DateTime.UtcNow);
+    
+    Log.Information("CloudWatch test completed, continuing with app startup");
+}
+catch (Exception ex)
+{
+    Log.Error(ex, "Error during CloudWatch connectivity test");
+}
+
+// Add custom middleware for logging and exception handling
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<RequestLoggingMiddleware>();
+
+// Add Serilog request logging
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+    options.GetLevel = (httpContext, elapsed, ex) =>
+    {
+        if (ex != null) return LogEventLevel.Error;
+        if (httpContext.Response.StatusCode > 499) return LogEventLevel.Error;
+        if (httpContext.Response.StatusCode > 399) return LogEventLevel.Warning;
+        return LogEventLevel.Information;
+    };
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -179,6 +293,28 @@ app.MapRubroUniformeDetalleEndpoints();
 // QR Code Endpoints
 app.MapQRCodeEndpoints();
 
+// Health Check Endpoints
+app.MapHealthCheckEndpoints();
+
+// Add a startup endpoint to verify the app is running
+app.MapGet("/health", () => new { 
+    Status = "Healthy", 
+    Environment = app.Environment.EnvironmentName,
+    Timestamp = DateTime.UtcNow,
+    Application = "ManitasCreativas.WebApi"
+});
+
 app.MapFallbackToFile("index.html"); // Serve the SPA
 
+Log.Information("ManitasCreativas Web API started successfully in {Environment} mode", app.Environment.EnvironmentName);
 app.Run();
+
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "ManitasCreativas Web API terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
