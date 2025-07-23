@@ -1,22 +1,24 @@
-using Microsoft.EntityFrameworkCore;
-using ManitasCreativas.Application.Interfaces.Services;
+using Amazon;
+using Amazon.CloudWatchLogs;
+using Amazon.S3;
+using Amazon.Extensions.NETCore.Setup;
+using AWS.Logger.SeriLog;
+using ManitasCreativas.Application.DTOs;
 using ManitasCreativas.Application.Interfaces.Repositories;
+using ManitasCreativas.Application.Interfaces.Services;
+using ManitasCreativas.Application.Services;
 using ManitasCreativas.Infrastructure;
 using ManitasCreativas.Infrastructure.Repositories;
 using ManitasCreativas.Infrastructure.Shared.Services;
-using Amazon.S3;
-using Microsoft.Extensions.Options;
-using ManitasCreativas.Application.DTOs;
-using Microsoft.AspNetCore.Mvc;
-using ManitasCreativas.Application.Services;
 using ManitasCreativas.WebApi.Controllers;
-using Serilog;
-using Serilog.Events;
-using Amazon.CloudWatchLogs;
 using ManitasCreativas.WebApi.Middleware;
 using ManitasCreativas.WebApi.Services;
-using Amazon;
-
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Serilog;
+using Serilog.Events;
+using AWS.Logger;
 
 Serilog.Debugging.SelfLog.Enable(msg => Console.WriteLine($"SERILOG-DEBUG: {msg}"));
 
@@ -71,7 +73,18 @@ try
                 .Configuration(context.Configuration)
                 .ReadFrom.Services(services)
                 .Enrich.FromLogContext()
-                .Enrich.WithProperty("Application", "ManitasCreativas.WebApi");
+                .Enrich.WithProperty("Application", "ManitasCreativas.WebApi")
+                .WriteTo.AWSSeriLog(
+                    new AWSLoggerConfig
+                    {
+                        Profile = "PersonalSubscription",
+                        LogGroup = "ManitasCreativas-API",
+                        LogStreamNamePrefix = "production",
+                        FlushTimeout = TimeSpan.FromSeconds(5),
+                        Region = "us-east-2",
+                        DisableLogGroupCreation = true,
+                    }
+                );
 
             Log.Information(
                 "Serilog configuration loaded, Environment: {Environment}",
@@ -368,7 +381,9 @@ try
         app.Environment.EnvironmentName
     );
 
-    Log.Information("Manteniendo la aplicación viva por 20 segundos para forzar el envío de logs...");
+    Log.Information(
+        "Manteniendo la aplicación viva por 20 segundos para forzar el envío de logs..."
+    );
     await Task.Delay(20000);
     Log.Information("Finalizando la aplicación después de 20 segundos");
 

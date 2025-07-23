@@ -66,3 +66,4 @@ production.env
 appsettings.Production.json
 test-payload.json
 ManitasCreativas.WebApi/appsettings.Development.json
+/ManitasCreativas.WebApi/aws-logger-errors.txt
