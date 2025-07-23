@@ -43,7 +43,10 @@ public static class CloudWatchTest
                 
                 foreach (var stream in streamsResponse.LogStreams)
                 {
-                    Console.WriteLine($"   - Stream: {stream.LogStreamName} (Creation time: {stream.CreationTime?.ToString() ?? "Unknown"})");
+                    var creationTimeStr = stream.CreationTime != default(DateTime)
+                        ? stream.CreationTime.ToString()
+                        : "Unknown";
+                    Console.WriteLine($"   - Stream: {stream.LogStreamName} (Creation time: {creationTimeStr})");
                 }
             }
             else
