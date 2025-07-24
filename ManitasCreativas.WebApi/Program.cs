@@ -69,22 +69,26 @@ try
     builder.Host.UseSerilog(
         (context, services, configuration) =>
         {
+            var awsLoggerConfig = new AWSLoggerConfig
+            {
+                LogGroup = "ManitasCreativas-API",
+                LogStreamNamePrefix = context.HostingEnvironment.EnvironmentName,
+                FlushTimeout = TimeSpan.FromSeconds(5),
+                Region = awsRegion ?? "us-east-2", // Default region if not set
+                DisableLogGroupCreation = true, // Prevent automatic log group creation
+            };
+
+            if (!string.IsNullOrEmpty(awsAccessKey) && !string.IsNullOrEmpty(awsSecretKey))
+            {
+                awsLoggerConfig.Credentials = new Amazon.Runtime.BasicAWSCredentials(awsAccessKey, awsSecretKey);
+            }
+
             configuration.ReadFrom
                 .Configuration(context.Configuration)
                 .ReadFrom.Services(services)
                 .Enrich.FromLogContext()
                 .Enrich.WithProperty("Application", "ManitasCreativas.WebApi")
-                .WriteTo.AWSSeriLog(
-                    new AWSLoggerConfig
-                    {
-                        Profile = "PersonalSubscription",
-                        LogGroup = "ManitasCreativas-API",
-                        LogStreamNamePrefix = "production",
-                        FlushTimeout = TimeSpan.FromSeconds(5),
-                        Region = "us-east-2",
-                        DisableLogGroupCreation = true,
-                    }
-                );
+                .WriteTo.AWSSeriLog(awsLoggerConfig);
 
             Log.Information(
                 "Serilog configuration loaded, Environment: {Environment}",
