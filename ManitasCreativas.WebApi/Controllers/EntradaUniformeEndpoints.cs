@@ -1,5 +1,6 @@
 using ManitasCreativas.Application.Interfaces.Services;
 using ManitasCreativas.Application.DTOs;
+using ManitasCreativas.WebApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -61,15 +62,25 @@ public static class EntradaUniformeEndpoints
         app.MapPost("/entradas-uniforme", async (
             [FromBody] EntradaUniformeCreateDto createDto,
             [FromQuery] int usuarioCreacionId,
-            IEntradaUniformeService entradaUniformeService) =>
+            IEntradaUniformeService entradaUniformeService,
+            IAppLogger appLogger) =>
         {
             try
             {
+                appLogger.LogInformation("Creating new entrada uniforme - Usuario: {UsuarioCreacionId}, Notas: {Notas}",
+                    usuarioCreacionId, createDto.Notas ?? "N/A");
+
                 var entrada = await entradaUniformeService.CreateAsync(createDto, usuarioCreacionId);
+                
+                appLogger.LogInformation("Entrada uniforme created successfully - ID: {EntradaId}, Usuario: {UsuarioCreacionId}",
+                    entrada.Id, usuarioCreacionId);
+                
                 return Results.Created($"/entradas-uniforme/{entrada.Id}", entrada);
             }
             catch (Exception ex)
             {
+                appLogger.LogError(ex, "Error creating entrada uniforme - Usuario: {UsuarioCreacionId}",
+                    usuarioCreacionId);
                 return Results.BadRequest($"Error creating EntradaUniforme: {ex.Message}");
             }
         })
@@ -81,19 +92,31 @@ public static class EntradaUniformeEndpoints
             int id,
             [FromBody] EntradaUniformeCreateDto updateDto,
             [FromQuery] int usuarioActualizacionId,
-            IEntradaUniformeService entradaUniformeService) =>
+            IEntradaUniformeService entradaUniformeService,
+            IAppLogger appLogger) =>
         {
             try
             {
+                appLogger.LogInformation("Updating entrada uniforme - ID: {EntradaId}, Usuario: {UsuarioActualizacionId}",
+                    id, usuarioActualizacionId);
+
                 var entrada = await entradaUniformeService.UpdateAsync(id, updateDto, usuarioActualizacionId);
+                
+                appLogger.LogInformation("Entrada uniforme updated successfully - ID: {EntradaId}, Usuario: {UsuarioActualizacionId}",
+                    entrada.Id, usuarioActualizacionId);
+                
                 return Results.Ok(entrada);
             }
             catch (ArgumentException ex)
             {
+                appLogger.LogWarning("Entrada uniforme not found for update - ID: {EntradaId}, Usuario: {UsuarioActualizacionId}",
+                    id, usuarioActualizacionId);
                 return Results.NotFound(ex.Message);
             }
             catch (Exception ex)
             {
+                appLogger.LogError(ex, "Error updating entrada uniforme - ID: {EntradaId}, Usuario: {UsuarioActualizacionId}",
+                    id, usuarioActualizacionId);
                 return Results.BadRequest($"Error updating EntradaUniforme: {ex.Message}");
             }
         })
@@ -105,10 +128,35 @@ public static class EntradaUniformeEndpoints
             int id,
             [FromQuery] string motivoEliminacion,
             [FromQuery] int usuarioEliminacionId,
-            IEntradaUniformeService entradaUniformeService) =>
+            IEntradaUniformeService entradaUniformeService,
+            IAppLogger appLogger) =>
         {
-            var deleted = await entradaUniformeService.DeleteAsync(id, motivoEliminacion, usuarioEliminacionId);
-            return deleted ? Results.NoContent() : Results.NotFound($"EntradaUniforme with ID {id} not found");
+            try
+            {
+                appLogger.LogInformation("Deleting entrada uniforme - ID: {EntradaId}, Usuario: {UsuarioEliminacionId}, Motivo: {MotivoEliminacion}",
+                    id, usuarioEliminacionId, motivoEliminacion ?? "N/A");
+
+                var deleted = await entradaUniformeService.DeleteAsync(id, motivoEliminacion, usuarioEliminacionId);
+                
+                if (deleted)
+                {
+                    appLogger.LogInformation("Entrada uniforme deleted successfully - ID: {EntradaId}, Usuario: {UsuarioEliminacionId}",
+                        id, usuarioEliminacionId);
+                    return Results.NoContent();
+                }
+                else
+                {
+                    appLogger.LogWarning("Entrada uniforme not found for deletion - ID: {EntradaId}, Usuario: {UsuarioEliminacionId}",
+                        id, usuarioEliminacionId);
+                    return Results.NotFound($"EntradaUniforme with ID {id} not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                appLogger.LogError(ex, "Error deleting entrada uniforme - ID: {EntradaId}, Usuario: {UsuarioEliminacionId}",
+                    id, usuarioEliminacionId);
+                return Results.BadRequest($"Error deleting EntradaUniforme: {ex.Message}");
+            }
         })
         .WithName("DeleteEntradaUniforme")
         .WithOpenApi();
