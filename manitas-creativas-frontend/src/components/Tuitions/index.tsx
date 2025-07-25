@@ -93,6 +93,7 @@ const Tuitions: React.FC = () => {
   const [contactos, setContactos] = useState<Contacto[]>([]);
   const [dinamicRubroId, setDinamicRubroId] = useState<string>("1"); // Default to "1" but will be updated
   const [hasValidRubro, setHasValidRubro] = useState<boolean>(false); // Track if student has valid tuition rubro
+  const [rubroValidationComplete, setRubroValidationComplete] = useState<boolean>(false); // Track if rubro validation has completed
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
   // const [gradoId, setGradoId] = useState<number | null>(null); // Currently unused
   const [form] = Form.useForm(); // Add Form instance
@@ -179,11 +180,13 @@ const Tuitions: React.FC = () => {
   const fetchRubroIdForGrado = async (studentGradoId: number) => {
     if (!studentGradoId) {
       console.error("No GradoId provided");
+      setRubroValidationComplete(true);
       return;
     }
 
     try {
       setLoadingRubro(true);
+      setRubroValidationComplete(false); // Reset validation state
 
       // Step 1: Get the Grado details to find the NivelEducativoId
       const gradoDetails = await gradoService.getGradoById(studentGradoId);
@@ -191,6 +194,8 @@ const Tuitions: React.FC = () => {
 
       if (!nivelEducativoId) {
         console.error("No NivelEducativoId found for Grado:", studentGradoId);
+        setHasValidRubro(false);
+        setRubroValidationComplete(true);
         return;
       }
 
@@ -211,9 +216,8 @@ const Tuitions: React.FC = () => {
         );
         setHasValidRubro(false);
         setDinamicRubroId(""); // Clear the rubro ID
-        toast.error(
-          "No se encontró un rubro de colegiatura para este estudiante. No se puede procesar el pago."
-        );
+        setRubroValidationComplete(true);
+        // Don't show toast error immediately, let the UI component handle it elegantly
         return;
       }
 
@@ -225,6 +229,7 @@ const Tuitions: React.FC = () => {
       // Step 4: Update the RubroId state and form value
       setDinamicRubroId(selectedRubro.id.toString());
       setHasValidRubro(true); // Mark that we found a valid rubro
+      setRubroValidationComplete(true);
       console.log("Selected RubroId for tuition payment:", selectedRubro.id);
 
       // Update the form's rubroId field with the dynamic value
@@ -239,9 +244,8 @@ const Tuitions: React.FC = () => {
       console.error("Error fetching appropriate RubroId:", error);
       setHasValidRubro(false);
       setDinamicRubroId(""); // Clear the rubro ID
-      toast.error(
-        "Error al obtener el rubro de colegiatura. No se puede procesar el pago."
-      );
+      setRubroValidationComplete(true);
+      // Don't show toast error immediately, let the UI component handle it elegantly
     } finally {
       setLoadingRubro(false);
     }
@@ -267,6 +271,7 @@ const Tuitions: React.FC = () => {
     setContactos([]);
     setDinamicRubroId("1"); // Reset to default
     setHasValidRubro(false); // Reset valid rubro state
+    setRubroValidationComplete(false); // Reset validation completion state
     form.setFieldsValue({ rubroId: "1" });
   };
 
@@ -494,6 +499,18 @@ const Tuitions: React.FC = () => {
 
   return (
     <div className="payments-container">
+      <style>{`
+        @keyframes fadeInSlideDown {
+          0% {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -528,6 +545,7 @@ const Tuitions: React.FC = () => {
               setSelectedStudent(null);
               setSelectedStudentDetails(null);
               setHasValidRubro(false); // Reset valid rubro state
+              setRubroValidationComplete(false); // Reset validation completion state
             }}
             fieldNames={{ label: "label", value: "value" }}
           />
@@ -582,19 +600,50 @@ const Tuitions: React.FC = () => {
         )}
       </div>
       
-      {/* Display error when student doesn't have valid rubro */}
-      {selectedStudent && !hasValidRubro && (
-        <div style={{ 
-          marginBottom: "20px", 
-          padding: "12px", 
-          backgroundColor: "#fff2e8", 
-          border: "1px solid #ffb366", 
-          borderRadius: "6px" 
-        }}>
-          <div style={{ color: "#d46b08", fontWeight: "bold" }}>⚠️ Error de Configuración</div>
-          <div style={{ color: "#d46b08", marginTop: "4px" }}>
+      {/* Display error when student doesn't have valid rubro - only after validation is complete */}
+      {selectedStudent && rubroValidationComplete && !hasValidRubro && (
+        <div 
+          style={{ 
+            marginBottom: "20px", 
+            padding: "12px", 
+            backgroundColor: "#fff2e8", 
+            border: "1px solid #ffb366", 
+            borderRadius: "6px",
+            opacity: 1,
+            transition: "all 0.3s ease-in-out",
+            animation: "fadeInSlideDown 0.4s ease-out"
+          }}
+        >
+          <div style={{ color: "#d46b08", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "16px" }}>⚠️</span>
+            <span>Error de Configuración</span>
+          </div>
+          <div style={{ color: "#d46b08", marginTop: "8px", lineHeight: "1.4" }}>
             No se encontró un rubro de colegiatura válido para este estudiante. 
-            No se puede procesar el pago hasta que se configure correctamente el rubro para su grado académico.
+            <br />
+            <span style={{ fontSize: "14px", fontWeight: "normal" }}>
+              Contacte al administrador del sistema para configurar correctamente el rubro para su grado académico.
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Show loading state for rubro validation */}
+      {selectedStudent && !rubroValidationComplete && loadingRubro && (
+        <div 
+          style={{ 
+            marginBottom: "20px", 
+            padding: "12px", 
+            backgroundColor: "#f6ffed", 
+            border: "1px solid #b7eb8f", 
+            borderRadius: "6px",
+            opacity: 1,
+            transition: "all 0.3s ease-in-out"
+          }}
+        >
+          <div style={{ color: "#52c41a", fontWeight: "500", display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "14px" }}>🔄</span>
+            <span>Validando configuración de colegiatura...</span>
           </div>
         </div>
       )}

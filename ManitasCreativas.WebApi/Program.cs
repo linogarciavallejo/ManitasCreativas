@@ -20,7 +20,7 @@ using Serilog;
 using Serilog.Events;
 using AWS.Logger;
 
-Serilog.Debugging.SelfLog.Enable(msg => Console.WriteLine($"SERILOG-DEBUG: {msg}"));
+//Serilog.Debugging.SelfLog.Enable(msg => Console.WriteLine($"SERILOG-DEBUG: {msg}"));
 
 // Configure Serilog early in the application startup
 Log.Logger = new LoggerConfiguration().MinimumLevel

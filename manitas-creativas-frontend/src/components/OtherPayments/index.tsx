@@ -206,7 +206,9 @@ const OtherPayments: React.FC = () => {
           // Exclude colegiatura rubros
           rubro.esColegiatura !== true &&
           // Exclude transport rubros
-          rubro.esPagoDeTransporte !== true
+          rubro.esPagoDeTransporte !== true &&
+          // Exclude uniform rubros
+          rubro.esPagoDeUniforme !== true
       );
 
       // Step 4: Update the rubros state
