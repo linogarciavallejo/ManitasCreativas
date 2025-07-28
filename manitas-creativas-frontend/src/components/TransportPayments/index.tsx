@@ -53,7 +53,7 @@ interface Contacto {
 interface Rubro {
   id: number;
   descripcion: string;
-  tipo: string;
+  tipo: number;
   montoPreestablecido?: number;
   esColegiatura: boolean;
   esPagoDeTransporte?: boolean;

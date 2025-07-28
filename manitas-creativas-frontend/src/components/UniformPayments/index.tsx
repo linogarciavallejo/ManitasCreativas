@@ -53,7 +53,7 @@ interface AlumnoOption {
 interface Rubro {
   id: number;
   descripcion: string;
-  tipo: string;
+  tipo: number;
   montoPreestablecido?: number;
   esColegiatura: boolean;
   esPagoDeUniforme?: boolean;

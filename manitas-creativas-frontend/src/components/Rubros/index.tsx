@@ -14,17 +14,16 @@ const { Title } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
-// Enum TipoRubro representation
+// Enum TipoRubro representation - matches C# enum exactly
 const tipoRubroOptions = [
-  { value: 0, label: 'Colegiatura' },
   { value: 1, label: 'Inscripción' },
-  { value: 2, label: 'Material' },
-  { value: 3, label: 'Uniformes' },
-  { value: 4, label: 'Laboratorio' },
-  { value: 5, label: 'Cuota Única' },
-  { value: 6, label: 'Útiles' },
-  { value: 7, label: 'Libros' },
-  { value: 8, label: 'Transporte' },
+  { value: 2, label: 'Cuota Anual' },
+  { value: 3, label: 'Carnet' },
+  { value: 4, label: 'Colegiatura' },
+  { value: 5, label: 'Transporte' },
+  { value: 6, label: 'Uniformes' },
+  { value: 7, label: 'Útiles' },
+  { value: 8, label: 'Libros' },
   { value: 9, label: 'Otros' },
 ];
 
@@ -96,11 +95,22 @@ const Rubros: React.FC = () => {
     applyFilters();
   }, [applyFilters]);
 
+  // Force table re-render when niveles educativos are loaded
+  useEffect(() => {
+    if (nivelesEducativos.length > 0) {
+      // Force a re-render by triggering a state update
+      setFilteredData(prev => [...prev]);
+    }
+  }, [nivelesEducativos]);
+
   // Function to fetch rubros from API
   const fetchRubros = async () => {
     try {
       setFetchingData(true);
       const rubros = await rubroService.getAllRubros();
+      console.log('Fetched rubros:', rubros);
+      console.log('Sample rubro nivelEducativoIds:', rubros.slice(0, 3).map(r => ({ id: r.id, nivelEducativoId: r.nivelEducativoId, descripcion: r.descripcion })));
+      
       // Sort the rubros alphabetically by descripcion by default
       const sortedRubros = [...rubros].sort((a, b) => 
         a.descripcion.localeCompare(b.descripcion)
@@ -129,6 +139,7 @@ const Rubros: React.FC = () => {
     try {
       setLoadingNivelesEducativos(true);
       const nivelesData = await nivelEducativoService.getActiveNivelesEducativos();
+      console.log('Fetched niveles educativos:', nivelesData);
       setNivelesEducativos(nivelesData);
     } catch (error) {
       console.error('Error fetching niveles educativos:', error);
@@ -161,8 +172,18 @@ const Rubros: React.FC = () => {
   // Helper function to get nivel educativo name by id
   const getNivelEducativoName = (id: number | undefined): string => {
     if (!id) return '-';
+    
+    // If niveles educativos are still loading, show loading indicator instead of ID
+    if (loadingNivelesEducativos) return 'Cargando...';
+    
+    // Debug logging
+    console.log('getNivelEducativoName called with ID:', id);
+    console.log('Available nivelesEducativos:', nivelesEducativos);
+    
     const nivel = nivelesEducativos.find(nivel => nivel.id === id);
-    return nivel ? nivel.nombre : `ID: ${id}`;
+    const result = nivel ? nivel.nombre : `ID: ${id}`;
+    console.log('Result for ID', id, ':', result);
+    return result;
   };
   // Function to validate required form fields
   const validateForm = () => {
@@ -219,6 +240,32 @@ const Rubros: React.FC = () => {
         const montoB = b.montoPreestablecido || 0;
         return montoA - montoB;
       },
+    },
+    {
+      title: 'Tipo/Flags',
+      key: 'tipoFlags',
+      width: 40,
+      render: (_: unknown, record: Rubro) => {
+        const flags = [];
+        if (record.esColegiatura) flags.push('Colegiatura');
+        if (record.esPagoDeCarnet) flags.push('Carnet');
+        if (record.esPagoDeTransporte) flags.push('Transporte');
+        if (record.esPagoDeUniforme) flags.push('Uniforme');
+        
+        const tipoLabel = tipoRubroOptions.find(opt => opt.value === record.tipo)?.label || `Tipo ${record.tipo}`;
+        
+        return (
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: 'bold' }}>{tipoLabel}</div>
+            {flags.length > 0 && (
+              <div style={{ fontSize: '10px', color: '#666', marginTop: '2px' }}>
+                {flags.join(', ')}
+              </div>
+            )}
+          </div>
+        );
+      },
+      sorter: (a: Rubro, b: Rubro) => (a.tipo || 0) - (b.tipo || 0),
     },    {
       title: 'Acciones',
       key: 'actions',
@@ -336,6 +383,8 @@ const Rubros: React.FC = () => {
     setEditingId(record.id);
     console.log('Editing record:', record);
     console.log('EsPagoDeTransporte value in record:', record.esPagoDeTransporte);
+    console.log('EsPagoDeUniforme value in record:', record.esPagoDeUniforme);
+    console.log('OrdenVisualizacionGrid value in record:', record.ordenVisualizacionGrid);
     
     const formValues = {
       ...record,
@@ -347,6 +396,8 @@ const Rubros: React.FC = () => {
     
     console.log('Form values being set:', formValues);
     console.log('EsPagoDeTransporte in form values:', formValues.esPagoDeTransporte);
+    console.log('EsPagoDeUniforme in form values:', formValues.esPagoDeUniforme);
+    console.log('OrdenVisualizacionGrid in form values:', formValues.ordenVisualizacionGrid);
       form.setFieldsValue(formValues);
     
     // Fetch grados if a nivel educativo is specified
@@ -394,7 +445,7 @@ const Rubros: React.FC = () => {
     try {
       const values = await form.validateFields();
       setLoading(true);
-
+      
       // Transform dates to string format
       const formattedValues = {
         ...values,
@@ -406,15 +457,23 @@ const Rubros: React.FC = () => {
 
       console.log('Form values before sending:', formattedValues);
       console.log('EsPagoDeTransporte value:', formattedValues.esPagoDeTransporte);
+      console.log('EsPagoDeUniforme value:', formattedValues.esPagoDeUniforme);
+      console.log('OrdenVisualizacionGrid value:', formattedValues.ordenVisualizacionGrid);
 
       if (editingId === null) {
-        // Add new rubro
+        // Add new rubro - UsuarioCreacionId will be added automatically by apiHelper
+        console.log('Creating rubro with data:', formattedValues);
         const newRubro = await rubroService.createRubro(formattedValues);
         setData([...data, newRubro]);
         toast.success('Rubro creado con éxito');
       } else {
-        // Update existing rubro
-        await rubroService.updateRubro(editingId, { ...formattedValues, id: editingId });
+        // Update existing rubro - UsuarioActualizacionId will be added automatically by apiHelper
+        const rubroData = {
+          ...formattedValues,
+          id: editingId
+        };
+        console.log('Updating rubro with data:', rubroData);
+        await rubroService.updateRubro(editingId, rubroData);
         
         // Refresh the data to get the updated version
         await fetchRubros();
@@ -484,7 +543,7 @@ const Rubros: React.FC = () => {
           </Select>
         </Form.Item>
         
-        {tipoValue === 0 && ( // Only show for Colegiatura
+        {tipoValue === 4 && ( // Only show for Colegiatura
           <>
             <Form.Item
               label="Ciclo Escolar"
@@ -726,6 +785,29 @@ const Rubros: React.FC = () => {
             <Switch 
               checkedChildren="Sí" 
               unCheckedChildren="No" 
+            />
+          </Form.Item>
+
+          <Form.Item 
+            label="Es Pago de Uniforme" 
+            name="esPagoDeUniforme" 
+            valuePropName="checked"
+          >
+            <Switch 
+              checkedChildren="Sí" 
+              unCheckedChildren="No" 
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Orden de Visualización en el Control de Pagos"
+            name="ordenVisualizacionGrid"
+          >
+            <InputNumber 
+              placeholder="Orden en el grid (opcional)" 
+              min={1}
+              max={999}
+              style={{ width: '100%' }}
             />
           </Form.Item>
 

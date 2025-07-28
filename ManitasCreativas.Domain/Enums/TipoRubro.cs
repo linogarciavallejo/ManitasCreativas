@@ -8,15 +8,14 @@ namespace ManitasCreativas.Domain.Enums
 {
     public enum TipoRubro
     {
-        Colegiatura = 0,
         Inscripcion = 1,
-        Material = 2,
-        Uniformes = 3,
-        Laboratorio = 4,
-        CuotaUnica = 5,
-        Utiles = 6,
-        Libros = 7,
-        Transporte = 8,
+        CuotaAnual = 2,
+        Carnet = 3,
+        Colegiatura = 4,
+        Transporte = 5,
+        Uniformes = 6,
+        Utiles = 7,
+        Libros = 8,
         Otros = 9
     }
 }

@@ -4,7 +4,7 @@ import { makeApiRequest } from './apiHelper';
 export interface Rubro {
   id: number;
   descripcion: string;
-  tipo: string; // Changed from number to string to match expected values
+  tipo: number; // Fixed: Changed back to number to match backend RubroDto
   penalizacionPorMoraMonto?: number;
   penalizacionPorMoraPorcentaje?: number;
   fechaLimitePagoAmarillo?: string;

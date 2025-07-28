@@ -152,8 +152,17 @@ public class RubroService : IRubroService
             UsuarioCreacionId = rubroDto.UsuarioCreacionId // Set the user ID from DTO
         };
 
+        // Debug logging for the entity before create
+        Console.WriteLine($"RubroService.AddRubroAsync - Before create:");
+        Console.WriteLine($"  EsPagoDeUniforme: {rubro.EsPagoDeUniforme}");
+        Console.WriteLine($"  OrdenVisualizacionGrid: {rubro.OrdenVisualizacionGrid}");
+        Console.WriteLine($"  UsuarioCreacionId: {rubro.UsuarioCreacionId}");
+
         await _rubroRepository.AddAsync(rubro);
         rubroDto.Id = rubro.Id;
+        
+        // Debug logging after create
+        Console.WriteLine($"RubroService.AddRubroAsync - After create completed, ID: {rubro.Id}");
     }    public async Task UpdateRubroAsync(RubroDto rubroDto)
     {
         // Verify that UsuarioActualizacionId is provided
@@ -217,8 +226,17 @@ public class RubroService : IRubroService
         existingRubro.OrdenVisualizacionGrid = rubroDto.OrdenVisualizacionGrid;
         existingRubro.FechaActualizacion = DateTime.UtcNow;
         existingRubro.UsuarioActualizacionId = rubroDto.UsuarioActualizacionId; // Set the user ID from DTO
+        
+        // Debug logging for the entity before update
+        Console.WriteLine($"RubroService.UpdateRubroAsync - Before update:");
+        Console.WriteLine($"  EsPagoDeUniforme: {existingRubro.EsPagoDeUniforme}");
+        Console.WriteLine($"  OrdenVisualizacionGrid: {existingRubro.OrdenVisualizacionGrid}");
+        Console.WriteLine($"  UsuarioActualizacionId: {existingRubro.UsuarioActualizacionId}");
  
         await _rubroRepository.UpdateAsync(existingRubro);
+        
+        // Debug logging after update
+        Console.WriteLine($"RubroService.UpdateRubroAsync - After update completed");
     }
 
     public async Task DeleteRubroAsync(int id)

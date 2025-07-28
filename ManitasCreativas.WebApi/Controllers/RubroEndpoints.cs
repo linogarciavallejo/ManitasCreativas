@@ -19,6 +19,14 @@ public static class RubroEndpoints
 
         app.MapPost("/rubros", async (RubroDto rubroDto, IRubroService rubroService, HttpContext httpContext) =>
         {
+            // Debug logging for received DTO
+            Console.WriteLine($"POST /rubros - Received DTO:");
+            Console.WriteLine($"  Descripcion: {rubroDto.Descripcion}");
+            Console.WriteLine($"  Tipo: {rubroDto.Tipo}");
+            Console.WriteLine($"  EsPagoDeUniforme: {rubroDto.EsPagoDeUniforme}");
+            Console.WriteLine($"  OrdenVisualizacionGrid: {rubroDto.OrdenVisualizacionGrid}");
+            Console.WriteLine($"  UsuarioCreacionId: {rubroDto.UsuarioCreacionId}");
+            
             // First try to get username from request header
             string username = httpContext.Request.Headers["X-Username"].FirstOrDefault() ?? "system";
             
@@ -32,6 +40,8 @@ public static class RubroEndpoints
             rubroDto.FechaCreacion = DateTime.UtcNow;
             //rubroDto.UsuarioCreacion = username;
             
+            Console.WriteLine($"  Final UsuarioCreacionId before service call: {rubroDto.UsuarioCreacionId}");
+            
             await rubroService.AddRubroAsync(rubroDto);
             return Results.Created($"/rubros/{rubroDto.Id}", rubroDto);
         });
@@ -39,6 +49,14 @@ public static class RubroEndpoints
         app.MapPut("/rubros/{id}", async (int id, RubroDto rubroDto, IRubroService rubroService, HttpContext httpContext) =>
         {
             rubroDto.Id = id;
+            
+            // Debug logging for received DTO
+            Console.WriteLine($"PUT /rubros/{id} - Received DTO:");
+            Console.WriteLine($"  Descripcion: {rubroDto.Descripcion}");
+            Console.WriteLine($"  Tipo: {rubroDto.Tipo}");
+            Console.WriteLine($"  EsPagoDeUniforme: {rubroDto.EsPagoDeUniforme}");
+            Console.WriteLine($"  OrdenVisualizacionGrid: {rubroDto.OrdenVisualizacionGrid}");
+            Console.WriteLine($"  UsuarioActualizacionId: {rubroDto.UsuarioActualizacionId}");
             
             // First try to get username from request header
             string username = httpContext.Request.Headers["X-Username"].FirstOrDefault() ?? "system";
@@ -52,6 +70,8 @@ public static class RubroEndpoints
             // Set update data
             rubroDto.FechaActualizacion = DateTime.UtcNow;
             //rubroDto.UsuarioActualizacion = username;
+            
+            Console.WriteLine($"  Final UsuarioActualizacionId before service call: {rubroDto.UsuarioActualizacionId}");
             
             await rubroService.UpdateRubroAsync(rubroDto);
             return Results.NoContent();
