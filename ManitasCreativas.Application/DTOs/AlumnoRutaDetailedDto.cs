@@ -2,6 +2,7 @@ namespace ManitasCreativas.Application.DTOs;
 
 public class AlumnoRutaDetailedDto
 {
+    public int Id { get; set; }
     public int AlumnoId { get; set; }
     public int RubroTransporteId { get; set; }
     public DateTime FechaInicio { get; set; }

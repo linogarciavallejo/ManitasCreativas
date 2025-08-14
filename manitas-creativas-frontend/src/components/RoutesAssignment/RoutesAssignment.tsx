@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Select, Button, Table, Space, Typography, message, Tag, Popconfirm } from 'antd';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Select, Button, Table, Space, Typography, message, Tag, Popconfirm, Radio } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { ToastContainer } from 'react-toastify';
 import { AlumnoRutaDetailed } from '../../types/routeAssignment';
@@ -16,6 +16,8 @@ const RoutesAssignment: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [transportRubros, setTransportRubros] = useState<Rubro[]>([]);
   const [assignedStudents, setAssignedStudents] = useState<AlumnoRutaDetailed[]>([]);
+  const [allAssignments, setAllAssignments] = useState<AlumnoRutaDetailed[]>([]);
+  const [viewMode, setViewMode] = useState<'by-route' | 'all-assignments'>('by-route');
   const [selectedRoute, setSelectedRoute] = useState<number | undefined>(undefined);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
@@ -25,15 +27,6 @@ const RoutesAssignment: React.FC = () => {
   useEffect(() => {
     loadTransportRubros();
   }, []);
-
-  // Load assigned students when route changes
-  useEffect(() => {
-    if (selectedRoute) {
-      loadAssignedStudents(selectedRoute);
-    } else {
-      setAssignedStudents([]);
-    }
-  }, [selectedRoute]);
 
   const loadTransportRubros = async () => {
     try {
@@ -46,7 +39,7 @@ const RoutesAssignment: React.FC = () => {
     }
   };
 
-  const loadAssignedStudents = async (rubroId: number) => {
+  const loadAssignedStudents = useCallback(async (rubroId: number) => {
     setLoading(true);
     try {
       const students = await routeAssignmentService.getStudentsByRoute(rubroId);
@@ -63,14 +56,62 @@ const RoutesAssignment: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const loadAllAssignments = useCallback(async () => {
+    setLoading(true);
+    try {
+      const allAssignments: AlumnoRutaDetailed[] = [];
+      
+      // Get assignments for all transport routes
+      for (const rubro of transportRubros) {
+        const students = await routeAssignmentService.getStudentsByRoute(rubro.id);
+        allAssignments.push(...students);
+      }
+      
+      // Sort by student name first, then by route
+      const sortedAssignments = allAssignments.sort((a, b) => {
+        const nameComparison = a.alumnoCompleto.toLowerCase().localeCompare(b.alumnoCompleto.toLowerCase());
+        if (nameComparison !== 0) return nameComparison;
+        
+        // If same student, sort by route name
+        const routeA = transportRubros.find(r => r.id === a.rubroTransporteId)?.descripcion || '';
+        const routeB = transportRubros.find(r => r.id === b.rubroTransporteId)?.descripcion || '';
+        return routeA.localeCompare(routeB);
+      });
+      
+      setAllAssignments(sortedAssignments);
+    } catch (error) {
+      console.error('Error loading all assignments:', error);
+      message.error('Error al cargar todas las asignaciones');
+    } finally {
+      setLoading(false);
+    }
+  }, [transportRubros]);
+
+  // Load assigned students when route changes or view mode changes
+  useEffect(() => {
+    if (viewMode === 'by-route' && selectedRoute) {
+      loadAssignedStudents(selectedRoute);
+    } else if (viewMode === 'all-assignments' && transportRubros.length > 0) {
+      loadAllAssignments();
+    } else {
+      setAssignedStudents([]);
+      setAllAssignments([]);
+    }
+  }, [selectedRoute, viewMode, transportRubros, loadAllAssignments, loadAssignedStudents]);
 
   const handleRouteChange = (value: number) => {
     setSelectedRoute(value);
   };
 
+  const handleViewModeChange = (mode: 'by-route' | 'all-assignments') => {
+    setViewMode(mode);
+    setSelectedRoute(undefined);
+  };
+
   const handleAddStudent = () => {
-    if (!selectedRoute) {
+    if (viewMode === 'by-route' && !selectedRoute) {
       message.warning('Por favor selecciona una ruta primero');
       return;
     }
@@ -87,19 +128,23 @@ const RoutesAssignment: React.FC = () => {
     try {
       console.log('=== DELETE CONFIRMED ===');
       console.log('Removing student:', student);
-      console.log('API call parameters:', { alumnoId: student.alumnoId, rubroTransporteId: student.rubroTransporteId });
+      console.log('API call parameters:', { assignmentId: student.id });
       
-      const response = await routeAssignmentService.removeStudentFromRoute(student.alumnoId, student.rubroTransporteId);
+      const response = await routeAssignmentService.removeStudentFromRoute(student.id);
       console.log('API response:', response);
       console.log('Delete API call succeeded!');
       
       message.success('Estudiante removido exitosamente');
       
-      // Reload the assigned students to refresh the table
-      if (selectedRoute) {
+      // Reload the appropriate view to refresh the table
+      if (viewMode === 'by-route' && selectedRoute) {
         console.log('Reloading assigned students for route:', selectedRoute);
         await loadAssignedStudents(selectedRoute);
         console.log('Table reloaded after delete');
+      } else if (viewMode === 'all-assignments') {
+        console.log('Reloading all assignments');
+        await loadAllAssignments();
+        console.log('All assignments table reloaded after delete');
       }
     } catch (error) {
       console.error('=== DELETE API ERROR ===');
@@ -118,8 +163,10 @@ const RoutesAssignment: React.FC = () => {
   const handleModalSuccess = () => {
     setModalVisible(false);
     setEditingStudent(null);
-    if (selectedRoute) {
+    if (viewMode === 'by-route' && selectedRoute) {
       loadAssignedStudents(selectedRoute);
+    } else if (viewMode === 'all-assignments') {
+      loadAllAssignments();
     }
   };
 
@@ -184,78 +231,107 @@ const RoutesAssignment: React.FC = () => {
     }
   };
 
-  const columns = [    {
-      title: 'No.',
-      key: 'index',
-      width: 60,
-      render: (_: unknown, __: unknown, index: number) => index + 1,
-    },
-    {
-      title: 'Alumno',
-      key: 'alumno',
-      render: (record: AlumnoRutaDetailed) => (
-        <div>
-          <div style={{ fontWeight: 'bold' }}>
-            {record.alumnoCompleto}
+  const getColumnsForView = () => {
+    const baseColumns = [
+      {
+        title: 'No.',
+        key: 'index',
+        width: 60,
+        render: (_: unknown, __: unknown, index: number) => index + 1,
+      },
+      {
+        title: 'Alumno',
+        key: 'alumno',
+        render: (record: AlumnoRutaDetailed) => (
+          <div>
+            <div style={{ fontWeight: 'bold' }}>
+              {record.alumnoCompleto}
+            </div>
+            <div style={{ fontSize: '12px', color: '#666' }}>
+              Grado: {record.grado} • Sección: {record.seccion} • Sede: {record.sede}
+            </div>
           </div>
-          <div style={{ fontSize: '12px', color: '#666' }}>
-            Grado: {record.grado} • Sección: {record.seccion} • Sede: {record.sede}
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: 'Fecha Inicio',
-      dataIndex: 'fechaInicio',
-      key: 'fechaInicio',      width: 120,
-      render: (date: string) => formatDate(date),
-    },
-    {
-      title: 'Fecha Fin',
-      dataIndex: 'fechaFin',
-      key: 'fechaFin',
-      width: 120,
-      render: (date: string | null) => (
-        date ? formatDate(date) : <Tag color="green">Activo</Tag>
-      ),
-    },
-    {
-      title: 'Acciones',
-      key: 'actions',
-      width: 120,
-      render: (record: AlumnoRutaDetailed) => (
-        <Space>
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => handleEditStudent(record)}
-            title="Editar"
-          />          <Popconfirm
-            title={
-              <div>
-                <p>¿Está seguro de remover este estudiante de la ruta?</p>
-                <p style={{ fontSize: '12px', color: '#ff4d4f' }}>
-                  Esta acción no se puede deshacer.
-                </p>
-              </div>
-            }
-            onConfirm={() => handleRemoveStudent(record)}
-            okText="Sí, remover"
-            cancelText="No, cancelar"
-            okButtonProps={{ danger: true }}
-            icon={<DeleteOutlined style={{ color: 'red' }} />}
-          >
+        ),
+      },
+    ];
+
+    // Add route column for all-assignments view
+    if (viewMode === 'all-assignments') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const routeColumn: any = {
+        title: 'Ruta',
+        key: 'ruta',
+        width: 200,
+        render: (_: unknown, record: AlumnoRutaDetailed) => {
+          const route = transportRubros.find(r => r.id === record.rubroTransporteId);
+          return <span>{route?.descripcion || 'N/A'}</span>;
+        },
+      };
+      baseColumns.push(routeColumn);
+    }
+
+    const remainingColumns = [
+      {
+        title: 'Fecha Inicio',
+        dataIndex: 'fechaInicio',
+        key: 'fechaInicio',
+        width: 120,
+        render: (date: string) => formatDate(date),
+      },
+      {
+        title: 'Fecha Fin',
+        dataIndex: 'fechaFin',
+        key: 'fechaFin',
+        width: 120,
+        render: (date: string | null) => (
+          date ? formatDate(date) : <Tag color="green">Activo</Tag>
+        ),
+      },
+      {
+        title: 'Acciones',
+        key: 'actions',
+        width: 120,
+        render: (record: AlumnoRutaDetailed) => (
+          <Space>
             <Button
               type="text"
-              danger
-              icon={<DeleteOutlined />}
-              title="Remover"
+              icon={<EditOutlined />}
+              onClick={() => handleEditStudent(record)}
+              title="Editar"
             />
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
+            <Popconfirm
+              title={
+                <div>
+                  <p>¿Está seguro de remover este estudiante de la ruta?</p>
+                  <p style={{ fontSize: '12px', color: '#ff4d4f' }}>
+                    Esta acción no se puede deshacer.
+                  </p>
+                </div>
+              }
+              onConfirm={() => handleRemoveStudent(record)}
+              okText="Sí, remover"
+              cancelText="No, cancelar"
+              okButtonProps={{ danger: true }}
+              icon={<DeleteOutlined style={{ color: 'red' }} />}
+            >
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                title="Remover"
+              />
+            </Popconfirm>
+          </Space>
+        ),
+      },
+    ];
+
+    return [...baseColumns, ...remainingColumns];
+  };
+
+  const getTableDataSource = () => {
+    return viewMode === 'all-assignments' ? allAssignments : assignedStudents;
+  };
   return (
     <div className="routes-assignment">
       <ToastContainer
@@ -273,53 +349,84 @@ const RoutesAssignment: React.FC = () => {
       <div className="routes-assignment-header">
         <Title level={2}>Asignación de Rutas</Title>
         
-        <div className="route-filter">
-          <Space size="middle" align="center">
-            <span style={{ fontWeight: 'bold' }}>Ruta:</span>
-            <Select
-              placeholder="Selecciona una ruta"
-              value={selectedRoute}
-              onChange={handleRouteChange}
-              style={{ minWidth: 300 }}
-              allowClear
-            >
-              {transportRubros.map(rubro => (
-                <Option key={rubro.id} value={rubro.id}>
-                  {rubro.descripcion}
-                </Option>
-              ))}
-            </Select>
-            
+        {/* View Mode Selection */}
+        <div style={{ marginBottom: 16 }}>
+          <Radio.Group 
+            value={viewMode} 
+            onChange={(e) => handleViewModeChange(e.target.value)}
+            buttonStyle="solid"
+          >
+            <Radio.Button value="by-route">Por Ruta</Radio.Button>
+            <Radio.Button value="all-assignments">Todas las Asignaciones</Radio.Button>
+          </Radio.Group>
+        </div>
+        
+        {/* Route Filter (only show in by-route mode) */}
+        {viewMode === 'by-route' && (
+          <div className="route-filter">
+            <Space size="middle" align="center">
+              <span style={{ fontWeight: 'bold' }}>Ruta:</span>
+              <Select
+                placeholder="Selecciona una ruta"
+                value={selectedRoute}
+                onChange={handleRouteChange}
+                style={{ minWidth: 300 }}
+                allowClear
+              >
+                {transportRubros.map(rubro => (
+                  <Option key={rubro.id} value={rubro.id}>
+                    {rubro.descripcion}
+                  </Option>
+                ))}
+              </Select>
+              
+              <Button 
+                type="primary" 
+                icon={<PlusOutlined />}
+                onClick={handleAddStudent}
+                disabled={!selectedRoute}
+              >
+                Agregar Estudiante
+              </Button>
+            </Space>
+          </div>
+        )}
+
+        {/* Add Student Button for all-assignments mode */}
+        {viewMode === 'all-assignments' && (
+          <div style={{ marginTop: 16 }}>
             <Button 
               type="primary" 
               icon={<PlusOutlined />}
               onClick={handleAddStudent}
-              disabled={!selectedRoute}
             >
               Agregar Estudiante
             </Button>
-          </Space>
-        </div>
+          </div>
+        )}
       </div>
 
-      {selectedRoute && (
+      {/* Show table in by-route mode only when route is selected, or always in all-assignments mode */}
+      {((viewMode === 'by-route' && selectedRoute) || viewMode === 'all-assignments') && (
         <div className="students-table">
           <Table
-            columns={columns}
-            dataSource={assignedStudents}
+            columns={getColumnsForView()}
+            dataSource={getTableDataSource()}
             loading={loading}
-            rowKey={(record) => `${record.alumnoId}-${record.rubroTransporteId}`}
+            rowKey={(record) => record.id.toString()}
             pagination={{
               pageSize: 10,
               showSizeChanger: true,
               showQuickJumper: true,
               showTotal: (total, range) => 
-                `${range[0]}-${range[1]} de ${total} estudiantes`,
+                `${range[0]}-${range[1]} de ${total} ${viewMode === 'all-assignments' ? 'asignaciones' : 'estudiantes'}`,
             }}
             locale={{
-              emptyText: selectedRoute 
-                ? 'No hay estudiantes asignados a esta ruta' 
-                : 'Selecciona una ruta para ver los estudiantes asignados'
+              emptyText: viewMode === 'all-assignments' 
+                ? 'No hay asignaciones registradas' 
+                : (selectedRoute 
+                  ? 'No hay estudiantes asignados a esta ruta' 
+                  : 'Selecciona una ruta para ver los estudiantes asignados')
             }}
           />
         </div>
@@ -328,9 +435,13 @@ const RoutesAssignment: React.FC = () => {
       <StudentRouteModal
         visible={modalVisible}
         mode={modalMode}
-        rubroTransporteId={selectedRoute || 0}
-        rubroNombre={getSelectedRouteName()}
+        rubroTransporteId={modalMode === 'edit' ? editingStudent?.rubroTransporteId || 0 : (selectedRoute || 0)}
+        rubroNombre={modalMode === 'edit' 
+          ? transportRubros.find(r => r.id === editingStudent?.rubroTransporteId)?.descripcion || ''
+          : getSelectedRouteName()
+        }
         initialData={editingStudent ? {
+          assignmentId: editingStudent.id,
           alumnoId: editingStudent.alumnoId,
           alumnoNombre: editingStudent.alumnoCompleto,
           fechaInicio: editingStudent.fechaInicio,

@@ -11,5 +11,6 @@ public interface IAlumnoRutaService
     Task AddAsync(AlumnoRutaDto alumnoRutaDto);
     Task UpdateAsync(AlumnoRutaDto alumnoRutaDto);
     Task DeleteAsync(int alumnoId, int rubroTransporteId);
+    Task DeleteByIdAsync(int assignmentId);
     Task<IEnumerable<AlumnoRutaDetailedDto>> GetStudentsByRouteAsync(int rubroTransporteId);
 }

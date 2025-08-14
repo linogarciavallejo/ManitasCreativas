@@ -72,6 +72,10 @@ interface AlumnoDetails {
     rubroDescripcion: string;
     esAnulado?: boolean;
     notas?: string;
+    cicloEscolar?: number;
+    mesColegiatura?: number;
+    anioColegiatura?: number;
+    esColegiatura?: boolean;
     // Add other payment fields as needed
   }>;
   contactos: Contacto[];
@@ -275,6 +279,27 @@ const Tuitions: React.FC = () => {
     form.setFieldsValue({ rubroId: "1" });
   };
 
+  // Function to check for duplicate tuition payments
+  const checkForDuplicatePayment = (cicloEscolar: number, mes: number): boolean => {
+    if (!selectedStudentDetails || !selectedStudentDetails.pagos) {
+      return false; // No existing payments to check against
+    }
+
+    // Filter for tuition payments that are not voided/canceled
+    const existingTuitionPayments = selectedStudentDetails.pagos.filter(pago => 
+      pago.esColegiatura === true && 
+      pago.esAnulado !== true
+    );
+
+    // Check if there's already a payment for this student, school year, and month
+    const duplicatePayment = existingTuitionPayments.find(pago => 
+      pago.cicloEscolar === cicloEscolar && 
+      pago.mesColegiatura === mes
+    );
+
+    return !!duplicatePayment;
+  };
+
   // Search by codigo input
   const handleCodigoSearch = async (codigo: string) => {
     try {
@@ -350,7 +375,7 @@ const Tuitions: React.FC = () => {
     setSelectedStudent(option.label);
     try {
       const response = await makeApiRequest<AlumnoDetails>(
-        `/alumnos/codigo/${option.codigo}`,
+        `/alumnos/${value}`,
         "GET"
       );
       setSelectedCodigo(response.codigo);
@@ -391,6 +416,21 @@ const Tuitions: React.FC = () => {
 
     if (!hasValidRubro) {
       toast.error("No se puede procesar el pago: no hay un rubro de colegiatura válido para este estudiante.");
+      return;
+    }
+
+    // Check for duplicate payment validation
+    const cicloEscolar = parseInt(values.cicloEscolar.toString());
+    const mes = parseInt(values.mes.toString());
+    
+    if (checkForDuplicatePayment(cicloEscolar, mes)) {
+      const monthNames = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ];
+      const monthName = monthNames[mes - 1] || mes.toString();
+      
+      toast.error(`Ya existe un pago de colegiatura para ${selectedStudent} en ${monthName} ${cicloEscolar}. No se pueden registrar pagos duplicados para el mismo mes y año escolar.`);
       return;
     }
 
@@ -664,16 +704,17 @@ const Tuitions: React.FC = () => {
       )}
 
       {/* Display recent tuition payments */}
-      {selectedStudent && selectedStudentDetails && selectedStudentDetails.pagos && selectedStudentDetails.pagos.length > 0 && (
+      {selectedStudent && selectedStudentDetails && (
         <PaymentHistoryTable
-          payments={selectedStudentDetails.pagos}
+          payments={selectedStudentDetails.pagos || []}
           onShowQRCode={handleShowQRCode}
           title="Pagos de Colegiatura Recientes"
           showStatusColumn={true}
+          showMonthColumn={true}
+          hideConceptoColumn={true}
+          showEmptyState={true}
           filterFunction={(pago) => 
-            pago.rubroDescripcion?.toLowerCase().includes('colegiatura') ||
-            pago.rubroDescripcion?.toLowerCase().includes('tuition') ||
-            pago.rubroDescripcion?.toLowerCase().includes('mensualidad')
+            pago.esColegiatura === true
           }
         />
       )}{" "}

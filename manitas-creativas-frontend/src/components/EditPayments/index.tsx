@@ -212,7 +212,7 @@ const EditPayments: React.FC = () => {
 
     try {
       const response = await makeApiRequest<AlumnoDetails>(
-        `/alumnos/codigo/${option.codigo}`,
+        `/alumnos/${value}`,
         "GET"
       );
       setSelectedStudentDetails(response);

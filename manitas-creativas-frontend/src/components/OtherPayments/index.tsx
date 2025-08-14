@@ -285,7 +285,7 @@ const OtherPayments: React.FC = () => {
     setSelectedStudent(option.label);
     try {
       const response = await makeApiRequest<AlumnoDetails>(
-        `/alumnos/codigo/${option.codigo}`,
+        `/alumnos/${value}`,
         "GET"
       );
       setSelectedStudentDetails(response);
@@ -421,7 +421,7 @@ const OtherPayments: React.FC = () => {
     
     try {
       const response = await makeApiRequest<AlumnoDetails>(
-        `/alumnos/codigo/${selectedStudentDetails.codigo}`,
+        `/alumnos/${selectedStudentDetails.id}`,
         "GET"
       );
       setSelectedStudentDetails(response);

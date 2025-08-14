@@ -82,6 +82,12 @@ interface AlumnoDetails {
     rubroDescripcion: string;
     esAnulado?: boolean;
     notas?: string;
+    cicloEscolar?: number;
+    mesColegiatura?: number;
+    anioColegiatura?: number;
+    esPagoDeTransporte?: boolean;
+    rubroId?: number;
+    // Add other payment fields as needed
   }>;
   contactos: Contacto[];
 }
@@ -330,6 +336,32 @@ const TransportPayments: React.FC = () => {
     setIsFormValid(false); // Reset form validation
   };
 
+  // Function to check for duplicate transport payments
+  const checkForDuplicateTransportPayment = (cicloEscolar: number, mes: number, rubroId: number): boolean => {
+    if (!selectedStudentDetails || !selectedStudentDetails.pagos) {
+      return false; // No existing payments to check against
+    }
+
+    // Filter for transport payments that are not voided/canceled
+    const existingTransportPayments = selectedStudentDetails.pagos.filter(pago => {
+      const isTransportPayment = pago.esPagoDeTransporte === true;
+      const isNotVoided = pago.esAnulado !== true;
+      
+      return isTransportPayment && isNotVoided;
+    });
+
+    // Check if there's already a payment for this student, school year, month, and rubro
+    const duplicatePayment = existingTransportPayments.find(pago => {
+      const matchesCiclo = pago.cicloEscolar === cicloEscolar;
+      const matchesMes = pago.mesColegiatura === mes;
+      const matchesRubro = pago.rubroId === rubroId;
+      
+      return matchesCiclo && matchesMes && matchesRubro;
+    });
+
+    return !!duplicatePayment;
+  };
+
   // Function to reset only form fields but keep student information
   const resetFormKeepStudent = () => {
     // Reset form fields but preserve student data
@@ -352,11 +384,10 @@ const TransportPayments: React.FC = () => {
     
     try {
       const response = await makeApiRequest<AlumnoDetails>(
-        `/alumnos/codigo/${selectedStudentDetails.codigo}`,
+        `/alumnos/${selectedStudentDetails.id}`,
         "GET"
       );
       setSelectedStudentDetails(response);
-      console.log("Student details refreshed after payment submission");
     } catch (error) {
       console.error("Error refreshing student details:", error);
       // Don't show error to user as this is just for refreshing data
@@ -421,7 +452,7 @@ const TransportPayments: React.FC = () => {
     setSelectedStudent(option.label);
     try {
       const response = await makeApiRequest<AlumnoDetails>(
-        `/alumnos/codigo/${option.codigo}`,
+        `/alumnos/${value}`,
         "GET"
       );
       setSelectedStudentDetails(response);
@@ -458,6 +489,23 @@ const TransportPayments: React.FC = () => {
 
     if (!studentHasValidRoute) {
       toast.error("El estudiante seleccionado no tiene una ruta de transporte activa asignada.");
+      return;
+    }
+
+    // Check for duplicate transport payment validation
+    const cicloEscolar = parseInt(values.cicloEscolar.toString());
+    const mes = parseInt(values.mes.toString());
+    const rubroId = parseInt(values.rubroId.toString());
+    
+    if (checkForDuplicateTransportPayment(cicloEscolar, mes, rubroId)) {
+      const monthNames = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ];
+      const monthName = monthNames[mes - 1] || mes.toString();
+      const rubroDescription = selectedRubro?.descripcion || 'transporte';
+      
+      toast.error(`Ya existe un pago de ${rubroDescription.toLowerCase()} para ${selectedStudent} en ${monthName} ${cicloEscolar}. No se pueden registrar pagos duplicados para el mismo mes y año escolar.`);
       return;
     }
 
@@ -517,7 +565,7 @@ const TransportPayments: React.FC = () => {
       // Reset form fields but keep student information
       resetFormKeepStudent();
       
-      // Refresh student details to show the new payment in history
+      // Wait for student details to refresh before allowing next payment
       await refreshStudentDetails();
     } catch (err: unknown) {
       console.error("Error details:", err); // Add detailed error logging
@@ -650,6 +698,8 @@ const TransportPayments: React.FC = () => {
         payments={selectedStudentDetails?.pagos || []}
         onShowQRCode={handleShowQRCode}
         title="Historial de Pagos"
+        showMonthColumn={true}
+        hideConceptoColumn={true}
       />{" "}
       
       {/* Display warning if student has no valid routes */}

@@ -1,4 +1,5 @@
 export interface AlumnoRuta {
+  id: number;
   alumnoId: number;
   rubroTransporteId: number;
   fechaInicio: string;
@@ -6,6 +7,7 @@ export interface AlumnoRuta {
 }
 
 export interface AlumnoRutaDetailed {
+  id: number;
   alumnoId: number;
   rubroTransporteId: number;
   fechaInicio: string;

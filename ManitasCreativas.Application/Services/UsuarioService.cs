@@ -278,4 +278,30 @@ Equipo de Manitas Creativas";
                 };
         }
     }
+
+    public async Task<bool> ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto)
+    {
+        if (changePasswordDto.NewPassword != changePasswordDto.ConfirmPassword)
+        {
+            return false;
+        }
+        
+        var usuario = await _usuarioRepository.GetByIdAsync(userId);
+        if (usuario == null)
+        {
+            return false;
+        }
+        
+        // Verify current password
+        if (usuario.Password != changePasswordDto.CurrentPassword)
+        {
+            return false;
+        }
+        
+        // Update password
+        usuario.Password = changePasswordDto.NewPassword; // In production, hash this
+        
+        await _usuarioRepository.UpdateAsync(usuario);
+        return true;
+    }
 }

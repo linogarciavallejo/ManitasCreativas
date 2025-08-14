@@ -73,5 +73,29 @@ public static class AuthEndpoints
                 return Results.Problem("An error occurred during password reset");
             }
         });
+
+        app.MapPost("/api/auth/change-password", async (ChangePasswordDto changePasswordDto, IUsuarioService usuarioService, IAppLogger appLogger) =>
+        {
+            try
+            {
+                appLogger.LogInformation("Password change attempt for user ID: {UserId}", changePasswordDto.UserId);
+                
+                var success = await usuarioService.ChangePasswordAsync(changePasswordDto.UserId, changePasswordDto);
+                
+                if (!success)
+                {
+                    appLogger.LogWarning("Failed password change attempt for user ID: {UserId}", changePasswordDto.UserId);
+                    return Results.BadRequest(new { message = "Contraseña actual incorrecta o las nuevas contraseñas no coinciden." });
+                }
+                
+                appLogger.LogInformation("Password changed successfully for user ID: {UserId}", changePasswordDto.UserId);
+                return Results.Ok(new { message = "Contraseña cambiada exitosamente." });
+            }
+            catch (Exception ex)
+            {
+                appLogger.LogError(ex, "Error during password change");
+                return Results.Problem("An error occurred during password change");
+            }
+        });
     }
 }

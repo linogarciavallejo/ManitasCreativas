@@ -13,4 +13,5 @@ public interface IUsuarioService
     Task<AuthenticationResultDto> AuthenticateUserAsync(string codigoUsuario, string password);
     Task<bool> InitiatePasswordResetAsync(string email);
     Task<bool> ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
+    Task<bool> ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto);
 }

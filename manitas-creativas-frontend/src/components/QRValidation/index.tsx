@@ -4,6 +4,7 @@ import { Card, Spin, Alert, Typography, Space, Button, Divider, Tag, Row, Col } 
 import { CheckCircleOutlined, CloseCircleOutlined, HomeOutlined, ReloadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { QRCodeValidateResponse } from "../../services/qrCodeService";
+import { makeApiRequest } from "../../services/apiHelper";
 
 const { Title, Text } = Typography;
 
@@ -25,20 +26,14 @@ const QRValidation: React.FC = () => {
     try {
       console.log('[QRValidation] Validating token:', tokenToValidate);
       
-      // Make API call directly without authentication for QR validation
-      const response = await fetch('https://localhost:7144/api/qrcode/validate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token: tokenToValidate }),
-      });
+      // Use makeApiRequest instead of direct fetch for proper environment handling
+      const result = await makeApiRequest<QRCodeValidateResponse>(
+        '/api/qrcode/validate',
+        'POST',
+        { token: tokenToValidate },
+        false // Set to false since QR validation doesn't need authentication
+      );
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const result = await response.json();
       console.log('[QRValidation] Validation result:', result);
       setValidation(result);
     } catch (err) {

@@ -18,6 +18,11 @@ public class AlumnoRepository : IAlumnoRepository
             .Include(a => a.Grado)
                 .ThenInclude(g => g.NivelEducativo)
             .Include(a => a.Pagos)
+                .ThenInclude(p => p.Rubro)  // Add this to include Rubro for payments
+            .Include(a => a.Pagos)
+                .ThenInclude(p => p.ImagenesPago)
+            .Include(a => a.AlumnoContactos)
+                .ThenInclude(ac => ac.Contacto)
             .FirstOrDefaultAsync(a => a.Id == id);
     }public async Task<IEnumerable<Alumno>> GetAllAsync()
     {

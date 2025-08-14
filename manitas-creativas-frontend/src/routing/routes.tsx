@@ -2,11 +2,12 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 //import { userStore } from "../store";
 import PrivateRoute from "./PrivateRoute";
-import AdminRoute from "./AdminRoute";
+import FeatureRoute from "./FeatureRoute";
 
 const SignIn = React.lazy(() => import("../components/SignIn"));
 const ForgotPassword = React.lazy(() => import("../components/ForgotPassword"));
 const ResetPassword = React.lazy(() => import("../components/ResetPassword"));
+const ChangePassword = React.lazy(() => import("../components/ChangePassword"));
 const Main = React.lazy(() => import("../components/Main"));
 const Tuitions = React.lazy(() => import("../components/Tuitions"));
 const OtherPayments = React.lazy(() => import("../components/OtherPayments"));
@@ -77,41 +78,94 @@ const AppRoutes: React.FC = () => {
           </PrivateRoute>
         }
       >
-        <Route path="tuitions" element={<Tuitions />} />
-        <Route path="other-payments" element={<OtherPayments />} />
-        <Route path="statement" element={<Statement />} />{" "}
+        <Route 
+          path="tuitions" 
+          element={
+            <FeatureRoute featureName="tuitions">
+              <Tuitions />
+            </FeatureRoute>
+          } 
+        />
+        <Route 
+          path="other-payments" 
+          element={
+            <FeatureRoute featureName="other-payments">
+              <OtherPayments />
+            </FeatureRoute>
+          } 
+        />
+        <Route 
+          path="statement" 
+          element={
+            <FeatureRoute featureName="statement">
+              <Statement />
+            </FeatureRoute>
+          } 
+        />
         <Route
           path="rubros"
           element={
-            <AdminRoute>
+            <FeatureRoute featureName="rubros">
               <Rubros />
-            </AdminRoute>
+            </FeatureRoute>
           }
         />
         <Route
           path="students"
           element={
-            <AdminRoute>
+            <FeatureRoute featureName="students">
               <Students />
-            </AdminRoute>
+            </FeatureRoute>
           }
         />
         <Route
           path="users"
           element={
-            <AdminRoute>
+            <FeatureRoute featureName="users">
               <Users />
-            </AdminRoute>
+            </FeatureRoute>
           }
         />
-        <Route path="payment-report" element={<PaymentReport />} />
-        <Route path="edit-payments" element={<EditPayments />} />{" "}
-        <Route path="transport-payments" element={<TransportPayments />} />{" "}
+        <Route 
+          path="payment-report" 
+          element={
+            <FeatureRoute featureName="payment-report">
+              <PaymentReport />
+            </FeatureRoute>
+          } 
+        />
+        <Route 
+          path="edit-payments" 
+          element={
+            <FeatureRoute featureName="edit-payments">
+              <EditPayments />
+            </FeatureRoute>
+          } 
+        />{" "}
+        <Route 
+          path="transport-payments" 
+          element={
+            <FeatureRoute featureName="transport-payments">
+              <TransportPayments />
+            </FeatureRoute>
+          } 
+        />{" "}
         <Route
           path="transport-payments-report"
-          element={<TransportPaymentsReport />}
-        />{" "}
-        <Route path="reports" element={<ReportsMenu />} />{" "}
+          element={
+            <FeatureRoute featureName="transport-payments-report">
+              <TransportPaymentsReport />
+            </FeatureRoute>
+          }
+        />
+        <Route 
+          path="reports" 
+          element={
+            <FeatureRoute featureName="reports">
+              <ReportsMenu />
+            </FeatureRoute>
+          } 
+        />
         <Route
           path="monthly-payments-report"
           element={<MonthlyPaymentReport />}
@@ -127,19 +181,31 @@ const AppRoutes: React.FC = () => {
         <Route
           path="routes-assignment"
           element={
-            <AdminRoute>
+            <FeatureRoute featureName="routes-assignment">
               <RoutesAssignment />
-            </AdminRoute>
+            </FeatureRoute>
           }
         />
-        <Route path="uniforms" element={<UniformsMain />} />
+        <Route 
+          path="uniforms" 
+          element={
+            <FeatureRoute featureName="uniforms-management">
+              <UniformsMain />
+            </FeatureRoute>
+          } 
+        />
         <Route path="uniforms/catalog" element={<PrendaUniforme />} />
         <Route
           path="uniforms/configuration"
-          element={<UniformsConfiguration />}
+          element={
+            <FeatureRoute featureName="uniforms-configuration">
+              <UniformsConfiguration />
+            </FeatureRoute>
+          }
         />
         <Route path="uniforms/uniform-payments" element={<UniformPayments />} />
         <Route path="uniforms/inventory" element={<UniformInventory />} />
+        <Route path="change-password" element={<ChangePassword />} />
       </Route>
     </Routes>
   );

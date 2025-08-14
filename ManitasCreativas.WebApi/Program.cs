@@ -181,6 +181,7 @@ try
     builder.Services.AddScoped<ISedeService, SedeService>();
     builder.Services.AddScoped<IContactoService, ContactoService>();
     builder.Services.AddScoped<IAlumnoRutaService, AlumnoRutaService>();
+    builder.Services.AddScoped<IFeatureFlagsService, FeatureFlagsService>();
 
     // Register AlumnoService after its dependencies with all three repositories
     builder.Services.AddScoped<IAlumnoService, AlumnoService>(sp =>
@@ -344,6 +345,7 @@ try
     app.UseStaticFiles();
     app.MapAuthEndpoints();
     app.MapUsuarioEndpoints();
+    app.MapFeatureFlagsEndpoints();
     app.MapAlumnoEndpoints();
     app.MapPagoEndpoints();
     app.MapRubroEndpoints();

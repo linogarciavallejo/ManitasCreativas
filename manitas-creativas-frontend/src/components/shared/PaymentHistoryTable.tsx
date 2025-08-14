@@ -14,6 +14,9 @@ interface Payment {
   rubroDescripcion: string;
   esAnulado?: boolean;
   notas?: string;
+  mesColegiatura?: number;
+  esColegiatura?: boolean;
+  esPagoDeTransporte?: boolean;
 }
 
 interface PaymentHistoryTableProps {
@@ -23,6 +26,9 @@ interface PaymentHistoryTableProps {
   filterFunction?: (payment: Payment) => boolean;
   useCard?: boolean; // Whether to wrap in Card component (for UniformPayments)
   showStatusColumn?: boolean; // Whether to show the Estado column (for Tuitions)
+  showMonthColumn?: boolean; // Whether to show the Mes column (for Tuitions and TransportPayments)
+  hideConceptoColumn?: boolean; // Whether to hide the Concepto column (for TransportPayments)
+  showEmptyState?: boolean; // Whether to show empty state instead of returning null
   customColumns?: ColumnsType<Payment>; // Allow for custom columns if needed
   containerStyle?: React.CSSProperties;
 }
@@ -34,10 +40,22 @@ const PaymentHistoryTable: React.FC<PaymentHistoryTableProps> = ({
   filterFunction,
   useCard = false,
   showStatusColumn = false,
+  showMonthColumn = false,
+  hideConceptoColumn = false,
+  showEmptyState = false,
   customColumns,
   containerStyle = { marginBottom: "20px" }
 }) => {
   const [showAllPayments, setShowAllPayments] = useState<boolean>(false);
+
+  // Function to convert month number to Spanish month name
+  const getMonthName = (monthNumber: number): string => {
+    const monthNames = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    return monthNames[monthNumber - 1] || monthNumber.toString();
+  };
 
   // Filter payments if a filter function is provided
   const filteredPayments = filterFunction 
@@ -64,21 +82,30 @@ const PaymentHistoryTable: React.FC<PaymentHistoryTableProps> = ({
       dataIndex: 'fecha',
       key: 'fecha',
       render: (fecha: string) => dayjs(fecha).format('DD/MM/YYYY'),
-      width: showStatusColumn ? 120 : undefined,
+      width: showStatusColumn || showMonthColumn ? 120 : undefined,
     },
     {
       title: 'Monto',
       dataIndex: 'monto',
       key: 'monto',
       render: (monto: number) => `Q${monto.toLocaleString()}`,
-      width: showStatusColumn ? 120 : undefined,
+      width: showStatusColumn || showMonthColumn ? 120 : undefined,
     },
-    {
-      title: showStatusColumn ? 'Tipo' : 'Concepto',
+    // Show Mes column only for Tuitions and TransportPayments
+    ...(showMonthColumn ? [{
+      title: 'Mes',
+      dataIndex: 'mesColegiatura',
+      key: 'mesColegiatura',
+      render: (mes: number) => mes ? getMonthName(mes) : '-',
+      width: 100,
+    }] : []),
+    // Show Concepto column only if not explicitly hidden
+    // This allows OtherPayments to show concepto even with status column
+    ...(!hideConceptoColumn ? [{
+      title: 'Concepto',
       dataIndex: 'rubroDescripcion',
       key: 'rubroDescripcion',
-      width: showStatusColumn ? 150 : undefined,
-    },
+    }] : []),
     ...(showStatusColumn ? [{
       title: 'Estado',
       dataIndex: 'esAnulado',
@@ -116,44 +143,91 @@ const PaymentHistoryTable: React.FC<PaymentHistoryTableProps> = ({
           </Button>
         )
       ),
-      width: showStatusColumn ? 100 : undefined,
+      width: showStatusColumn || showMonthColumn ? 100 : undefined,
     },
   ];
 
   // Use custom columns if provided, otherwise use default
   const columns = customColumns || defaultColumns;
 
+  // Create empty state message
+  const emptyStateContent = (
+    <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
+      <p>No hay pagos registrados para mostrar.</p>
+    </div>
+  );
+
   const tableContent = (
     <>
-      <Table
-        dataSource={displayedPayments.map(payment => ({ ...payment, key: payment.id }))}
-        columns={columns}
-        pagination={false}
-        size="small"
-        rowKey="id"
-      />
-      {hasMorePayments && (
-        <div style={{ textAlign: 'center', marginTop: 10 }}>
-          <Button 
-            type="link" 
-            onClick={() => setShowAllPayments(!showAllPayments)}
-            style={{ padding: 0 }}
-          >
-            {showAllPayments ? 'Ver menos...' : 'Ver más...'}
-          </Button>
-        </div>
-      )}
+      {displayedPayments.length > 0 ? (
+        <>
+          <Table
+            dataSource={displayedPayments.map(payment => ({ ...payment, key: payment.id }))}
+            columns={columns}
+            pagination={false}
+            size="small"
+            rowKey="id"
+          />
+          {hasMorePayments && (
+            <div style={{ textAlign: 'center', marginTop: 10 }}>
+              <Button 
+                type="link" 
+                onClick={() => setShowAllPayments(!showAllPayments)}
+                style={{ padding: 0 }}
+              >
+                {showAllPayments ? 'Ver menos...' : 'Ver más...'}
+              </Button>
+            </div>
+          )}
+        </>
+      ) : showEmptyState ? (
+        emptyStateContent
+      ) : null}
     </>
   );
 
-  // Don't render anything if no payments
+  // Don't render anything if no payments and not showing empty state
   if (!payments || payments.length === 0) {
-    return null;
+    return showEmptyState ? (
+      showStatusColumn ? (
+        <div style={containerStyle}>
+          <Divider />
+          <h3>{title}</h3>
+          {emptyStateContent}
+        </div>
+      ) : useCard ? (
+        <Card title={title} style={containerStyle}>
+          {emptyStateContent}
+        </Card>
+      ) : (
+        <div style={containerStyle}>
+          <Title level={4}>{title}</Title>
+          {emptyStateContent}
+        </div>
+      )
+    ) : null;
   }
 
-  // Don't render if filtered payments is empty
+  // Don't render if filtered payments is empty and not showing empty state
   if (filteredPayments.length === 0) {
-    return null;
+    return showEmptyState ? (
+      showStatusColumn ? (
+        <div style={containerStyle}>
+          <Divider />
+          <h3>{title}</h3>
+          {emptyStateContent}
+        </div>
+      ) : useCard ? (
+        <Card title={title} style={containerStyle}>
+          {emptyStateContent}
+        </Card>
+      ) : (
+        <div style={containerStyle}>
+          <Title level={4}>{title}</Title>
+          {emptyStateContent}
+        </div>
+      )
+    ) : null;
   }
 
   // Render with Card wrapper for UniformPayments

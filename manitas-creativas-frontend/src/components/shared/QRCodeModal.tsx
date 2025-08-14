@@ -6,6 +6,15 @@ import { qrCodeService, QRCodeGenerateRequest, QRCodeGenerateResponse } from "..
 
 const { Title, Text, Paragraph } = Typography;
 
+// Helper function to convert month number to Spanish month name
+const getSpanishMonthName = (month: number): string => {
+  const months = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ];
+  return months[month - 1] || 'Mes no válido';
+};
+
 // Unified payment interface that can work with both Pago and TuitionPayment
 interface PaymentData {
   id: number;
@@ -16,6 +25,10 @@ interface PaymentData {
   notas?: string;
   // For EditPayments (Pago)
   alumnoNombre?: string;
+  // For Tuitions
+  esColegiatura?: boolean;
+  mesColegiatura?: number;
+  anioColegiatura?: number;
 }
 
 interface QRCodeModalProps {
@@ -181,8 +194,15 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
               
               <Space direction="vertical" style={{ width: "100%" }}>
                 <Text><strong>Estudiante:</strong> {displayStudentName}</Text>
-                <Text><strong>Concepto:</strong> {payment.notas || "Pago de colegiatura"}</Text>
-                <Text><strong>Tipo:</strong> {payment.rubroDescripcion}</Text>
+                <Text><strong>Concepto:</strong> {payment.rubroDescripcion}</Text>
+                {(payment.esColegiatura && payment.mesColegiatura && payment.anioColegiatura) && (
+                  <Text>
+                    <strong>
+                      Colegiatura:
+                    </strong>{' '}
+                    {getSpanishMonthName(payment.mesColegiatura)} {payment.anioColegiatura}                   
+                </Text>
+                )}
                 <Text><strong>Monto:</strong> Q{payment.monto.toLocaleString()}</Text>
                 <Text><strong>Fecha de Pago:</strong> {dayjs(payment.fecha).format("DD/MM/YYYY")}</Text>
                 {qrCodeData.pagoInfo && <Text><strong>Información:</strong> {qrCodeData.pagoInfo}</Text>}

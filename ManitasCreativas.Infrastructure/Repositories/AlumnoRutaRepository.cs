@@ -27,6 +27,14 @@ public class AlumnoRutaRepository : IAlumnoRutaRepository
             .FirstOrDefaultAsync(ar => ar.AlumnoId == alumnoId && ar.RubroTransporteId == rubroTransporteId);
     }
 
+    public async Task<AlumnoRuta?> GetByIdAsync(int id)
+    {
+        return await _context.AlumnoRutas
+            .Include(ar => ar.RubroTransporte)
+            .Include(ar => ar.Alumno)
+            .FirstOrDefaultAsync(ar => ar.Id == id);
+    }
+
     public async Task AddAsync(AlumnoRuta alumnoRuta)
     {
         await _context.AlumnoRutas.AddAsync(alumnoRuta);
@@ -43,6 +51,16 @@ public class AlumnoRutaRepository : IAlumnoRutaRepository
     {
         _context.AlumnoRutas.Remove(alumnoRuta);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteByIdAsync(int id)
+    {
+        var alumnoRuta = await _context.AlumnoRutas.FindAsync(id);
+        if (alumnoRuta != null)
+        {
+            _context.AlumnoRutas.Remove(alumnoRuta);
+            await _context.SaveChangesAsync();
+        }
     }
 
     public async Task<IEnumerable<AlumnoRuta>> GetByRubroTransporteIdAsync(int rubroTransporteId)

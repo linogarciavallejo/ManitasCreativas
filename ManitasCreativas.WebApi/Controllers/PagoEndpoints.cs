@@ -70,6 +70,13 @@ public static class PagoEndpoints
                     
                     return Results.Created($"/pagos/{nuevoPago.Id}", nuevoPago);
                 }
+                catch (InvalidOperationException ex)
+                {
+                    // Handle duplicate payment validation error
+                    appLogger.LogWarning("Duplicate payment validation failed for Alumno: {AlumnoId} - {Error}", 
+                        pagoDto.AlumnoId, ex.Message);
+                    return Results.BadRequest(new { error = ex.Message });
+                }
                 catch (Exception ex)
                 {
                     appLogger.LogError(ex, "Error creating payment for Alumno: {AlumnoId}", pagoDto.AlumnoId);

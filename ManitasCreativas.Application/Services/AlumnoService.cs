@@ -80,7 +80,16 @@ public class AlumnoService : IAlumnoService
             {
                 Id = p.Id,
                 Monto = p.Monto,
-                Fecha = p.Fecha
+                Fecha = p.Fecha,
+                CicloEscolar = p.CicloEscolar,
+                MedioPago = p.MedioPago,
+                RubroId = p.RubroId,
+                RubroDescripcion = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
+                EsColegiatura = p.EsColegiatura,
+                MesColegiatura = p.MesColegiatura,
+                AnioColegiatura = p.AnioColegiatura,
+                EsPagoDeTransporte = p.EsPagoDeTransporte,
+                EsAnulado = p.EsAnulado
             }).ToList()
         };
     }    public async Task AddAlumnoAsync(AlumnoDto alumnoDto)
@@ -232,6 +241,10 @@ public class AlumnoService : IAlumnoService
                 CicloEscolar = p.CicloEscolar,                MedioPago = p.MedioPago,
                 RubroId = p.RubroId,
                 RubroDescripcion = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
+                EsColegiatura = p.EsColegiatura,
+                MesColegiatura = p.MesColegiatura,
+                AnioColegiatura = p.AnioColegiatura,
+                EsPagoDeTransporte = p.EsPagoDeTransporte,
                 EsAnulado = p.EsAnulado,
                 Notas = p.Notas ?? string.Empty,
                 ImagenesPago = (p.ImagenesPago ?? Enumerable.Empty<PagoImagen>())
@@ -291,9 +304,16 @@ public class AlumnoService : IAlumnoService
             {
                 Id = p.Id,
                 Monto = p.Monto,
-                Fecha = p.Fecha,                CicloEscolar = p.CicloEscolar,
+                Fecha = p.Fecha,
+                CicloEscolar = p.CicloEscolar,
                 MedioPago = p.MedioPago,
-                RubroDescripcion = p.Rubro.Descripcion,
+                RubroId = p.RubroId,
+                RubroDescripcion = p.Rubro != null ? p.Rubro.Descripcion : string.Empty,
+                EsColegiatura = p.EsColegiatura,
+                MesColegiatura = p.MesColegiatura,
+                AnioColegiatura = p.AnioColegiatura,
+                EsPagoDeTransporte = p.EsPagoDeTransporte,
+                EsAnulado = p.EsAnulado,
                 ImagenesPago = p.ImagenesPago.Where(pi => pi.EsImagenEliminada != true).Select(pi => new PagoImagenDto
                 {
                     Id = pi.Id,

@@ -45,8 +45,8 @@ export const routeAssignmentService = {
   },
 
   // Update a student's route assignment dates
-  async updateStudentRouteAssignment(alumnoId: number, rubroTransporteId: number, assignment: Omit<AlumnoRuta, 'alumnoId' | 'rubroTransporteId'>): Promise<void> {
-    const url = `/alumnos/${alumnoId}/rutas/${rubroTransporteId}`;
+  async updateStudentRouteAssignment(assignmentId: number, assignment: Omit<AlumnoRuta, 'id' | 'alumnoId' | 'rubroTransporteId'>): Promise<void> {
+    const url = `/alumnos/rutas/${assignmentId}`;
     
     try {
       await makeApiRequest<void>(url, 'PUT', assignment);
@@ -55,14 +55,30 @@ export const routeAssignmentService = {
       throw error;
     }
   },
-  // Remove a student from a transport route
-  async removeStudentFromRoute(alumnoId: number, rubroTransporteId: number): Promise<void> {
+  // Remove a student from a transport route (by assignment ID)
+  async removeStudentFromRoute(assignmentId: number): Promise<void> {
+    const url = `/alumnos/rutas/${assignmentId}`;
+    
+    try {
+      console.log('API call - removeStudentFromRoute:', { assignmentId, url });
+      const response = await makeApiRequest<void>(url, 'DELETE');
+      console.log('API call successful - removeStudentFromRoute');
+      return response;
+    } catch (error) {
+      console.error('Error removing student from route:', error);
+      console.error('API call details:', { assignmentId, url });
+      throw error;
+    }
+  },
+
+  // Legacy method - remove by alumnoId and rubroTransporteId (keep for backward compatibility)
+  async removeStudentFromRouteLegacy(alumnoId: number, rubroTransporteId: number): Promise<void> {
     const url = `/alumnos/${alumnoId}/rutas/${rubroTransporteId}`;
     
     try {
-      console.log('API call - removeStudentFromRoute:', { alumnoId, rubroTransporteId, url });
+      console.log('API call - removeStudentFromRouteLegacy:', { alumnoId, rubroTransporteId, url });
       const response = await makeApiRequest<void>(url, 'DELETE');
-      console.log('API call successful - removeStudentFromRoute');
+      console.log('API call successful - removeStudentFromRouteLegacy');
       return response;
     } catch (error) {
       console.error('Error removing student from route:', error);

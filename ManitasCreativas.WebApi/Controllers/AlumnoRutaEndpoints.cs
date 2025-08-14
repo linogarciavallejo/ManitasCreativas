@@ -119,7 +119,66 @@ public static class AlumnoRutaEndpoints
             }
         });
 
-        // Remove a student from a route
+        // Update a student route assignment by ID
+        app.MapPut("/alumnos/rutas/{id}", async (int id, AlumnoRutaUpdateDto updateDto, IAlumnoRutaService alumnoRutaService) =>
+        {
+            try
+            {
+                // Validate date fields
+                if (updateDto.FechaInicio == default)
+                {
+                    return Results.BadRequest("FechaInicio is required.");
+                }
+                
+                var alumnoRutaDto = new AlumnoRutaDto
+                {
+                    Id = id,
+                    AlumnoId = 0, // This will be ignored in UpdateAsync by ID
+                    RubroTransporteId = 0, // This will be ignored in UpdateAsync by ID
+                    FechaInicio = updateDto.FechaInicio,
+                    FechaFin = updateDto.FechaFin
+                };
+                
+                await alumnoRutaService.UpdateAsync(alumnoRutaDto);
+                return Results.NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return Results.NotFound(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(ex.Message);
+            }
+        });
+
+        // Remove a student route assignment by ID
+        app.MapDelete("/alumnos/rutas/{id}", async (int id, IAlumnoRutaService alumnoRutaService) =>
+        {
+            try
+            {
+                await alumnoRutaService.DeleteByIdAsync(id);
+                return Results.NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return Results.NotFound(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(ex.Message);
+            }
+        });
+
+        // Remove a student from a route (legacy endpoint)
         app.MapDelete("/alumnos/{alumnoId}/rutas/{rubroTransporteId}", async (int alumnoId, int rubroTransporteId, IAlumnoRutaService alumnoRutaService) =>
         {
             try

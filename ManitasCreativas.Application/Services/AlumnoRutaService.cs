@@ -29,6 +29,7 @@ public class AlumnoRutaService : IAlumnoRutaService
         var alumnoRutas = await _alumnoRutaRepository.GetByAlumnoIdAsync(alumnoId);
         return alumnoRutas.Select(ar => new AlumnoRutaDto
         {
+            Id = ar.Id,
             AlumnoId = ar.AlumnoId,
             RubroTransporteId = ar.RubroTransporteId,
             FechaInicio = ar.FechaInicio,
@@ -46,6 +47,7 @@ public class AlumnoRutaService : IAlumnoRutaService
 
         return new AlumnoRutaDto
         {
+            Id = alumnoRuta.Id,
             AlumnoId = alumnoRuta.AlumnoId,
             RubroTransporteId = alumnoRuta.RubroTransporteId,
             FechaInicio = alumnoRuta.FechaInicio,
@@ -69,13 +71,23 @@ public class AlumnoRutaService : IAlumnoRutaService
             throw new KeyNotFoundException($"Rubro with ID {alumnoRutaDto.RubroTransporteId} not found.");
         }
         
-        // Check if a relation already exists
-        var existingRelation = await _alumnoRutaRepository.GetByIdsAsync(
-            alumnoRutaDto.AlumnoId, alumnoRutaDto.RubroTransporteId);
-            
-        if (existingRelation != null)
+        // Check for date-based overlapping assignments across all routes
+        var allStudentAssignments = await _alumnoRutaRepository.GetByAlumnoIdAsync(alumnoRutaDto.AlumnoId);
+        
+        foreach (var existingAssignment in allStudentAssignments)
         {
-            throw new InvalidOperationException("This student is already assigned to this transport route.");
+            // Check if new assignment dates overlap with any existing assignment (any route)
+            if (DateRangesOverlap(
+                alumnoRutaDto.FechaInicio, 
+                alumnoRutaDto.FechaFin,
+                existingAssignment.FechaInicio, 
+                existingAssignment.FechaFin))
+            {
+                var existingRubro = await _rubroRepository.GetByIdAsync(existingAssignment.RubroTransporteId);
+                var existingRouteDescription = existingRubro?.Descripcion ?? "ruta desconocida";
+                
+                throw new InvalidOperationException($"Student assignment dates overlap with existing assignment to route '{existingRouteDescription}' from {existingAssignment.FechaInicio:yyyy-MM-dd} to {(existingAssignment.FechaFin?.ToString("yyyy-MM-dd") ?? "ongoing")}.");
+            }
         }        // Validate that FechaInicio is provided
         if (alumnoRutaDto.FechaInicio == default)
         {
@@ -93,21 +105,78 @@ public class AlumnoRutaService : IAlumnoRutaService
         await _alumnoRutaRepository.AddAsync(alumnoRuta);
     }
 
+    // Helper method to check if two date ranges overlap
+    private static bool DateRangesOverlap(DateTime start1, DateTime? end1, DateTime start2, DateTime? end2)
+    {
+        // Convert to UTC for consistent comparison
+        var s1 = DateTime.SpecifyKind(start1, DateTimeKind.Utc);
+        var e1 = end1.HasValue ? DateTime.SpecifyKind(end1.Value, DateTimeKind.Utc) : (DateTime?)null;
+        var s2 = DateTime.SpecifyKind(start2, DateTimeKind.Utc);
+        var e2 = end2.HasValue ? DateTime.SpecifyKind(end2.Value, DateTimeKind.Utc) : (DateTime?)null;
+
+        // If either range is ongoing (no end date), check for overlap differently
+        if (!e1.HasValue && !e2.HasValue)
+        {
+            // Both are ongoing, they always overlap
+            return true;
+        }
+        
+        if (!e1.HasValue)
+        {
+            // Range 1 is ongoing, overlap if start1 <= end2
+            return e2.HasValue ? s1 <= e2.Value : true;
+        }
+        
+        if (!e2.HasValue)
+        {
+            // Range 2 is ongoing, overlap if start2 <= end1
+            return s2 <= e1.Value;
+        }
+        
+        // Both ranges have end dates, standard overlap check
+        return s1 <= e2.Value && s2 <= e1.Value;
+    }
+
     public async Task UpdateAsync(AlumnoRutaDto alumnoRutaDto)
     {
-        var existingAlumnoRuta = await _alumnoRutaRepository.GetByIdsAsync(
-            alumnoRutaDto.AlumnoId, alumnoRutaDto.RubroTransporteId);
+        // Find the specific assignment record by ID (not by AlumnoId + RubroTransporteId)
+        // We'll need to update the repository to support GetByIdAsync, but for now use a workaround
+        var allStudentAssignments = await _alumnoRutaRepository.GetByAlumnoIdAsync(alumnoRutaDto.AlumnoId);
+        var existingAlumnoRuta = allStudentAssignments.FirstOrDefault(ar => ar.Id == alumnoRutaDto.Id);
             
         if (existingAlumnoRuta == null)
         {
-            throw new KeyNotFoundException($"AlumnoRuta with AlumnoId {alumnoRutaDto.AlumnoId} and RubroTransporteId {alumnoRutaDto.RubroTransporteId} not found.");
+            throw new KeyNotFoundException($"AlumnoRuta with ID {alumnoRutaDto.Id} not found.");
         }
 
         // Validate that FechaInicio is provided
         if (alumnoRutaDto.FechaInicio == default)
         {
             throw new ArgumentException("FechaInicio is required.");
-        }        // Update the fields
+        }
+
+        // Check for date-based overlapping assignments (excluding the current one being updated)
+        foreach (var existingAssignment in allStudentAssignments)
+        {
+            // Skip the current assignment being updated (by ID, not by route)
+            if (existingAssignment.Id == alumnoRutaDto.Id)
+                continue;
+                
+            // Check if new date ranges overlap with other assignments
+            if (DateRangesOverlap(
+                alumnoRutaDto.FechaInicio, 
+                alumnoRutaDto.FechaFin,
+                existingAssignment.FechaInicio, 
+                existingAssignment.FechaFin))
+            {
+                var existingRubro = await _rubroRepository.GetByIdAsync(existingAssignment.RubroTransporteId);
+                var existingRouteDescription = existingRubro?.Descripcion ?? "ruta desconocida";
+                
+                throw new InvalidOperationException($"Updated assignment dates overlap with existing assignment to route '{existingRouteDescription}' from {existingAssignment.FechaInicio:yyyy-MM-dd} to {(existingAssignment.FechaFin?.ToString("yyyy-MM-dd") ?? "ongoing")}.");
+            }
+        }
+
+        // Update the fields
         existingAlumnoRuta.FechaInicio = DateTime.SpecifyKind(alumnoRutaDto.FechaInicio, DateTimeKind.Utc);
         existingAlumnoRuta.FechaFin = alumnoRutaDto.FechaFin.HasValue ? DateTime.SpecifyKind(alumnoRutaDto.FechaFin.Value, DateTimeKind.Utc) : null;        await _alumnoRutaRepository.UpdateAsync(existingAlumnoRuta);
     }
@@ -130,6 +199,30 @@ public class AlumnoRutaService : IAlumnoRutaService
             $"Found AlumnoRuta to delete: AlumnoId={alumnoRuta.AlumnoId}, RubroTransporteId={alumnoRuta.RubroTransporteId}");
         await _alumnoRutaRepository.DeleteAsync(alumnoRuta);
         Console.WriteLine("AlumnoRuta successfully deleted");
+    }
+
+    // New method to delete by specific assignment ID
+    public async Task DeleteByIdAsync(int assignmentId)
+    {
+        Console.WriteLine($"AlumnoRutaService.DeleteByIdAsync called with assignmentId: {assignmentId}");
+        
+        try
+        {
+            // Verify the assignment exists before attempting to delete
+            var existingAssignment = await _alumnoRutaRepository.GetByIdAsync(assignmentId);
+            if (existingAssignment == null)
+            {
+                throw new InvalidOperationException($"Assignment with ID {assignmentId} not found.");
+            }
+
+            await _alumnoRutaRepository.DeleteByIdAsync(assignmentId);
+            Console.WriteLine($"AlumnoRuta with ID {assignmentId} successfully deleted");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting assignment with ID {assignmentId}: {ex.Message}");
+            throw;
+        }
     }
 
     public async Task<IEnumerable<AlumnoRutaDetailedDto>> GetStudentsByRouteAsync(
@@ -156,6 +249,7 @@ public class AlumnoRutaService : IAlumnoRutaService
 
                 var detailedDto = new AlumnoRutaDetailedDto
                 {
+                    Id = alumnoRuta.Id,
                     AlumnoId = alumnoRuta.AlumnoId,
                     RubroTransporteId = alumnoRuta.RubroTransporteId,
                     FechaInicio = alumnoRuta.FechaInicio,

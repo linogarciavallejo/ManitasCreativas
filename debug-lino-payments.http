@@ -1,7 +1,0 @@
-### Debug Lino Garcia payments - get all his payments
-GET http://localhost:5264/pagos/edit?cicloEscolar=2025&alumnoId=6
-Content-Type: application/json
-
-### Get all tuition rubros 
-GET http://localhost:5264/rubros
-Content-Type: application/json

@@ -36,8 +36,10 @@ namespace ManitasCreativas.Infrastructure
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Rol>().HasData(
-                new Rol { Id = 1, Nombre = "Admin", EsAdmin = true },
-                new Rol { Id = 2, Nombre = "Usuario", EsAdmin = false }
+                new Rol { Id = 1, Nombre = "Administrador", EsAdmin = true },
+                new Rol { Id = 2, Nombre = "Usuario", EsAdmin = false },
+                new Rol { Id = 3, Nombre = "Secretaria", EsAdmin = false },
+                new Rol { Id = 4, Nombre = "Contador", EsAdmin = false }
             );
 
             // Configure Grado -> NivelEducativo relationship

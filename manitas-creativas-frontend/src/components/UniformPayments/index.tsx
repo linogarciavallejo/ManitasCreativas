@@ -661,7 +661,7 @@ const UniformPayments: React.FC = () => {
     
     try {
       const response = await makeApiRequest<AlumnoDetails>(
-        `/alumnos/codigo/${selectedStudentDetails.codigo}`,
+        `/alumnos/${selectedStudentDetails.id}`,
         "GET"
       );
       setSelectedStudentDetails(response);
@@ -749,7 +749,7 @@ const UniformPayments: React.FC = () => {
     });
     
     try {
-      const response = await makeApiRequest<AlumnoDetails>(`/alumnos/codigo/${option.codigo}`, "GET");
+      const response = await makeApiRequest<AlumnoDetails>(`/alumnos/${value}`, "GET");
       setSelectedStudentDetails(response);
       setSelectedCodigo(response.codigo);
     } catch (error: unknown) {

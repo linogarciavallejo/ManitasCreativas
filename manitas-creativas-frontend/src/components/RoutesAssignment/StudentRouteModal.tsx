@@ -3,7 +3,7 @@ import { Modal, Form, Input, DatePicker, AutoComplete, Button, Typography, Space
 import { SearchOutlined } from '@ant-design/icons';
 import { toast } from 'react-toastify';
 import dayjs from 'dayjs';
-import { AlumnoOption } from '../../types/routeAssignment';
+import { AlumnoOption, AlumnoRuta } from '../../types/routeAssignment';
 import { routeAssignmentService } from '../../services/routeAssignmentService';
 import { makeApiRequest } from '../../services/apiHelper';
 
@@ -28,6 +28,7 @@ interface StudentRouteModalProps {
   rubroTransporteId: number;
   rubroNombre: string;
   initialData?: {
+    assignmentId?: number;
     alumnoId: number;
     alumnoNombre: string;
     fechaInicio: string;
@@ -49,8 +50,9 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [studentOptions, setStudentOptions] = useState<AlumnoOption[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<AlumnoOption | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<(AlumnoOption & { existingAssignments?: AlumnoRuta[] }) | null>(null);
   const [codigoInputValue, setCodigoInputValue] = useState('');
+  const [autoCompleteValue, setAutoCompleteValue] = useState<string>('');
   const [isStudentAlreadyAssigned, setIsStudentAlreadyAssigned] = useState(false);
   const [checkingAssignment, setCheckingAssignment] = useState(false);  useEffect(() => {
     if (visible) {
@@ -71,7 +73,9 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
           fechaInicio: parseUtcDate(initialData.fechaInicio),
           fechaFin: initialData.fechaFin ? parseUtcDate(initialData.fechaFin) : null,
           alumno: initialData.alumnoNombre
-        });        setSelectedStudent({
+        });
+
+        setSelectedStudent({
           id: initialData.alumnoId,
           value: initialData.alumnoId.toString(),
           label: initialData.alumnoNombre,
@@ -86,6 +90,7 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
           sede: ''
         });
         setCodigoInputValue('');
+        setAutoCompleteValue(initialData.alumnoNombre);
       } else {
         // Set default values for add mode
         const currentYear = new Date().getFullYear();
@@ -94,30 +99,93 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
           fechaFin: null,
           alumno: ''        });        setSelectedStudent(null);
         setCodigoInputValue('');
+        setAutoCompleteValue('');
         setIsStudentAlreadyAssigned(false);
       }
     }
   }, [visible, mode, initialData, form]);
-  // Function to check if a student is already assigned to this route or any other route
+
+  // Helper function to check if two date ranges overlap
+  const dateRangesOverlap = (
+    start1: string | dayjs.Dayjs, 
+    end1: string | dayjs.Dayjs | null | undefined, 
+    start2: string, 
+    end2: string | null | undefined
+  ): boolean => {
+    const s1 = dayjs(start1);
+    const e1 = end1 ? dayjs(end1) : null; // null means ongoing (no end date)
+    const s2 = dayjs(start2);
+    const e2 = end2 ? dayjs(end2) : null; // null means ongoing (no end date)
+
+    // If either range is ongoing (no end date), check for overlap differently
+    if (!e1 && !e2) {
+      // Both are ongoing, they overlap if they start on different dates
+      return true;
+    }
+    
+    if (!e1) {
+      // Range 1 is ongoing, overlap if start1 <= end2
+      return e2 ? s1.isBefore(e2) || s1.isSame(e2) : true;
+    }
+    
+    if (!e2) {
+      // Range 2 is ongoing, overlap if start2 <= end1
+      return s2.isBefore(e1) || s2.isSame(e1);
+    }
+    
+    // Both ranges have end dates, standard overlap check
+    return (s1.isBefore(e2) || s1.isSame(e2)) && (s2.isBefore(e1) || s2.isSame(e1));
+  };
+
+  // Function to validate date overlaps with existing assignments
+  const validateDateOverlaps = (newStart: dayjs.Dayjs, newEnd: dayjs.Dayjs | null, existingAssignments: AlumnoRuta[]) => {
+    for (const assignment of existingAssignments) {
+      if (dateRangesOverlap(newStart, newEnd, assignment.fechaInicio, assignment.fechaFin)) {
+        return {
+          hasOverlap: true,
+          conflictingAssignment: assignment
+        };
+      }
+    }
+    return { hasOverlap: false };
+  };
+
+  // Function to check if a student assignment overlaps with existing assignments
   const checkStudentAssignment = async (studentId: number) => {
     setCheckingAssignment(true);
     try {
       // Get all route assignments for this student
       const allAssignments = await routeAssignmentService.getStudentAllRouteAssignments(studentId);
       
-      if (allAssignments.length > 0) {        // Check if student is assigned to the current route
-        const currentRouteAssignment = allAssignments.find(assignment => 
-          assignment.rubroTransporteId === rubroTransporteId
-        );
-        
-        if (currentRouteAssignment) {
-          // Student is assigned to the current route
-          setIsStudentAlreadyAssigned(true);
-          toast.warning('Este estudiante ya está asignado a esta ruta de transporte.');        } else {
-          // Student is assigned to a different route
-          setIsStudentAlreadyAssigned(true);
-          toast.error('Este estudiante ya está asignado a otra ruta de transporte. Debe remover al estudiante de esa ruta primero antes de asignarlo a esta ruta.');
+      if (allAssignments.length > 0) {
+        // In edit mode, we need to exclude the current assignment from validation
+        const assignmentsToCheck = mode === 'edit' && initialData 
+          ? allAssignments.filter(assignment => assignment.rubroTransporteId !== rubroTransporteId)
+          : allAssignments;
+
+        // Check if student is assigned to the current route (only relevant for add mode)
+        if (mode === 'add') {
+          const currentRouteAssignment = allAssignments.find(assignment => 
+            assignment.rubroTransporteId === rubroTransporteId
+          );
+          
+          if (currentRouteAssignment) {
+            // Check if the current route assignment is still active (no end date or end date is in the future)
+            const isActive = !currentRouteAssignment.fechaFin || dayjs(currentRouteAssignment.fechaFin).isAfter(dayjs(), 'day');
+            
+            if (isActive) {
+              setIsStudentAlreadyAssigned(true);
+              toast.warning('Este estudiante ya está asignado a esta ruta de transporte con fechas que se superponen.');
+              return;
+            }
+          }
         }
+
+        // Store assignments for later date overlap validation when form is submitted
+        setIsStudentAlreadyAssigned(false);
+        
+        // Store the assignments for validation during form submission
+        setSelectedStudent(prev => prev ? { ...prev, existingAssignments: assignmentsToCheck } : null);
       } else {
         // Student is not assigned to any route
         setIsStudentAlreadyAssigned(false);
@@ -132,25 +200,87 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
   };
 
   const handleStudentSearch = async (query: string) => {
-    if (!query || query.length < 2) {
+    console.log("handleStudentSearch called with query:", query); // Debug log
+    setAutoCompleteValue(query);
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) {
       setStudentOptions([]);
       return;
     }
 
     setSearchLoading(true);
     try {
-      const students = await routeAssignmentService.searchStudents(query);
-      setStudentOptions(students);    } catch (error) {
+      // Use the same API endpoint as Tuitions component for consistency
+      const response = await makeApiRequest<{ id: number; codigo: string; fullName: string }[]>(`/alumnos/full`, 'GET');
+      const filtered = response.filter((alumno) =>
+        alumno.fullName.toLowerCase().includes(trimmedQuery.toLowerCase())
+      );
+      const options = filtered.map((alumno) => ({
+        value: alumno.id.toString(),
+        label: alumno.fullName,
+        codigo: alumno.codigo,
+        id: alumno.id,
+        primerNombre: '',
+        segundoNombre: '',
+        tercerNombre: '',
+        primerApellido: '',
+        segundoApellido: '',
+        grado: '',
+        seccion: '',
+        sede: ''
+      }));
+      setStudentOptions(options);
+    } catch (error) {
       console.error('Error searching students:', error);
       toast.error('Error al buscar estudiantes');
     } finally {
       setSearchLoading(false);
     }
-  };  const handleStudentSelect = (_value: string, option: AlumnoOption) => {
-    setSelectedStudent(option);
+  };
+
+  // Add explicit focus handler to prevent unwanted behavior
+  const handleAutoCompleteFocus = () => {
+    console.log("AutoComplete focused"); // Debug log
+    // Don't trigger search on focus if input is empty
+    if (!autoCompleteValue.trim()) {
+      setStudentOptions([]);
+    }
+  };
+
+  const handleStudentSelect = async (_value: string, option: AlumnoOption) => {
+    setAutoCompleteValue(option.label);
     form.setFieldsValue({ alumno: option.label });
-    // Check if this student is already assigned to this route
-    checkStudentAssignment(option.id);
+    
+    try {
+      // Get complete student details, similar to Tuitions component
+      const response = await makeApiRequest<StudentByCodigoResponse>(`/alumnos/${option.id}`, 'GET');
+      if (response) {
+        const student: AlumnoOption = {
+          id: response.id,
+          value: response.id.toString(),
+          label: `${response.primerNombre} ${response.segundoNombre} ${response.tercerNombre} ${response.primerApellido} ${response.segundoApellido}`
+            .replace(/\s+/g, ' ')
+            .trim(),
+          codigo: response.codigo,
+          primerNombre: response.primerNombre,
+          segundoNombre: response.segundoNombre,
+          tercerNombre: response.tercerNombre,
+          primerApellido: response.primerApellido,
+          segundoApellido: response.segundoApellido,
+          grado: response.gradoNombre,
+          seccion: response.seccion || '',
+          sede: response.sedeNombre
+        };
+        setSelectedStudent(student);
+        // Check if this student is already assigned to this route
+        checkStudentAssignment(student.id);
+      }
+    } catch (error) {
+      console.error('Error fetching student details:', error);
+      // Fallback to the option data if detailed fetch fails
+      setSelectedStudent(option);
+      checkStudentAssignment(option.id);
+    }
   };
   const handleCodigoSearch = async (codigo: string) => {    if (!codigo.trim()) {
       toast.warning('Por favor ingrese un código válido');
@@ -164,7 +294,7 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
         const student: AlumnoOption = {
           id: response.id,
           value: response.id.toString(),
-          label: `${response.primerApellido} ${response.segundoApellido}, ${response.primerNombre} ${response.segundoNombre} ${response.tercerNombre}`
+          label: `${response.primerNombre} ${response.segundoNombre} ${response.tercerNombre} ${response.primerApellido} ${response.segundoApellido}`
             .replace(/\s+/g, ' ')
             .trim(),
           codigo: response.codigo,
@@ -178,6 +308,7 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
           sede: response.sedeNombre
         };        setSelectedStudent(student);
         form.setFieldsValue({ alumno: student.label });
+        setAutoCompleteValue(student.label);
         setCodigoInputValue('');
         // Check if this student is already assigned to this route
         checkStudentAssignment(student.id);
@@ -204,7 +335,28 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
       console.log('Setting loading to true');
       setLoading(true);
 
-      const assignmentData = {
+      // Perform date overlap validation if the student has existing assignments
+      if (selectedStudent?.existingAssignments && selectedStudent.existingAssignments.length > 0) {
+        const overlapResult = validateDateOverlaps(
+          values.fechaInicio, 
+          values.fechaFin, 
+          selectedStudent.existingAssignments
+        );
+
+        if (overlapResult.hasOverlap && overlapResult.conflictingAssignment) {
+          const conflictStart = dayjs(overlapResult.conflictingAssignment.fechaInicio).format('DD/MM/YYYY');
+          const conflictEnd = overlapResult.conflictingAssignment.fechaFin 
+            ? dayjs(overlapResult.conflictingAssignment.fechaFin).format('DD/MM/YYYY')
+            : 'Activa';
+          
+          toast.error(`Las fechas se superponen con una asignación existente (${conflictStart} - ${conflictEnd}). Por favor ajuste las fechas.`);
+          setLoading(false);
+          return;
+        }
+      }
+
+      const assignmentData: AlumnoRuta = {
+        id: 0, // For new assignments, the backend will generate the ID
         alumnoId: mode === 'edit' ? initialData!.alumnoId : selectedStudent!.id,
         rubroTransporteId,
         fechaInicio: values.fechaInicio.format('YYYY-MM-DD'),
@@ -242,13 +394,18 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
         }
       } else {
         console.log('=== EDIT MODE - UPDATING ASSIGNMENT ===');
+        if (!initialData?.assignmentId) {
+          toast.error('Error: ID de asignación no disponible para editar');
+          return;
+        }
+        
         await routeAssignmentService.updateStudentRouteAssignment(
-          assignmentData.alumnoId,
-          assignmentData.rubroTransporteId,
+          initialData.assignmentId,
           {
             fechaInicio: assignmentData.fechaInicio,
             fechaFin: assignmentData.fechaFin
-          }        );
+          }
+        );
         toast.success('Asignación actualizada exitosamente');
       }
 
@@ -267,6 +424,7 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
     setSelectedStudent(null);
     setStudentOptions([]);
     setCodigoInputValue('');
+    setAutoCompleteValue('');
     onCancel();
   };
 
@@ -309,18 +467,24 @@ const StudentRouteModal: React.FC<StudentRouteModalProps> = ({
                   name="alumno"
                   rules={[{ required: true, message: 'Por favor selecciona un estudiante' }]}
                 >                  <AutoComplete
+                    value={autoCompleteValue}
                     placeholder="Buscar por código, nombre o apellido..."
                     onSearch={handleStudentSearch}
                     onSelect={handleStudentSelect}
+                    onFocus={handleAutoCompleteFocus}
                     options={studentOptions}
                     filterOption={false}
                     notFoundContent={searchLoading ? 'Buscando...' : 'No se encontraron estudiantes'}
                     style={{ width: '100%' }}
-                    allowClear                    onClear={() => {
+                    allowClear
+                    defaultActiveFirstOption={false}
+                    onClear={() => {
                       setSelectedStudent(null);
                       setStudentOptions([]);
+                      setAutoCompleteValue('');
                       setIsStudentAlreadyAssigned(false);
                     }}
+                    fieldNames={{ label: "label", value: "value" }}
                   />
                 </Form.Item>
               </Col>

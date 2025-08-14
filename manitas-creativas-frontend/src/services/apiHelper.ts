@@ -39,13 +39,16 @@ export async function makeApiRequest<T>(
     if (userId > 0) {
       requestData = { ...data };
       
-      // Add user ID for creation on new entities
-      if (method === "POST" && !requestData.usuarioCreacionId) {
+      // Skip adding audit fields for user creation/update endpoints
+      const isUserEndpoint = endpoint === '/usuarios' || endpoint.startsWith('/usuarios/');
+      
+      // Add user ID for creation on new entities (except users)
+      if (method === "POST" && !requestData.usuarioCreacionId && !isUserEndpoint) {
         requestData.usuarioCreacionId = userId;
       }
       
-      // Add user ID for updates on existing entities
-      if (method === "PUT" && !requestData.usuarioActualizacionId) {
+      // Add user ID for updates on existing entities (except users)
+      if (method === "PUT" && !requestData.usuarioActualizacionId && !isUserEndpoint) {
         requestData.usuarioActualizacionId = userId;
       }
     }

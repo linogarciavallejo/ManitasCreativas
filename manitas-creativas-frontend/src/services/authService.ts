@@ -1,5 +1,6 @@
 import { makeApiRequest } from '../services/apiHelper';
 import { Usuario } from '../types/usuario';
+import { featureFlagsService } from './featureFlagsService';
 
 // Local storage keys
 const USER_KEY = 'manitasCreativas_user';
@@ -86,6 +87,30 @@ export const isCurrentUserAdmin = (): boolean => {
 // Check if user has admin role authorization
 export const hasAdminAccess = (): boolean => {
   return isAuthenticated() && isCurrentUserAdmin();
+};
+
+// Check if a specific feature is available for the current user
+export const isFeatureAvailable = async (featureName: string): Promise<boolean> => {
+  const user = getCurrentUser();
+  if (!user) return false;
+  
+  await featureFlagsService.ensureLoaded();
+  return featureFlagsService.isFeatureAvailableForUser(featureName, {
+    esAdmin: user.esAdmin,
+    rol: user.rol
+  });
+};
+
+// Get all available features for the current user
+export const getAvailableFeatures = async (): Promise<string[]> => {
+  const user = getCurrentUser();
+  if (!user) return [];
+  
+  await featureFlagsService.ensureLoaded();
+  return featureFlagsService.getAvailableFeatures({
+    esAdmin: user.esAdmin,
+    rol: user.rol
+  });
 };
 
 // Sign out user

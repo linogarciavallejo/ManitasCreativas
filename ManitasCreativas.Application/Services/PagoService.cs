@@ -159,6 +159,67 @@ public class PagoService : IPagoService
             throw new Exception($"Usuario with ID {pagoDto.UsuarioCreacionId} not found.");
         }
 
+        // Validate for duplicate tuition payments
+        if (pagoDto.EsColegiatura)
+        {
+            var existingTuitionPayments = await _pagoRepository.GetAllAsync();
+            var duplicatePayment = existingTuitionPayments.FirstOrDefault(p =>
+                p.AlumnoId == pagoDto.AlumnoId &&
+                p.CicloEscolar == pagoDto.CicloEscolar &&
+                p.MesColegiatura == pagoDto.MesColegiatura &&
+                p.EsColegiatura == true &&
+                p.EsAnulado != true // Only check non-voided payments
+            );
+
+            if (duplicatePayment != null)
+            {
+                var monthNames = new string[]
+                {
+                    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+                };
+                var monthName = pagoDto.MesColegiatura > 0 && pagoDto.MesColegiatura <= 12 
+                    ? monthNames[pagoDto.MesColegiatura - 1] 
+                    : pagoDto.MesColegiatura.ToString();
+                    
+                throw new InvalidOperationException(
+                    $"Ya existe un pago de colegiatura para el alumno {alumno.PrimerNombre} {alumno.PrimerApellido} " +
+                    $"en {monthName} {pagoDto.CicloEscolar}. No se pueden registrar pagos duplicados para el mismo mes y año escolar."
+                );
+            }
+        }
+
+        // Validate for duplicate transport payments
+        if (pagoDto.EsPagoDeTransporte == true)
+        {
+            var existingTransportPayments = await _pagoRepository.GetAllAsync();
+            var duplicatePayment = existingTransportPayments.FirstOrDefault(p =>
+                p.AlumnoId == pagoDto.AlumnoId &&
+                p.CicloEscolar == pagoDto.CicloEscolar &&
+                p.MesColegiatura == pagoDto.MesColegiatura &&
+                p.RubroId == pagoDto.RubroId &&
+                p.EsPagoDeTransporte == true &&
+                p.EsAnulado != true // Only check non-voided payments
+            );
+
+            if (duplicatePayment != null)
+            {
+                var monthNames = new string[]
+                {
+                    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+                };
+                var monthName = pagoDto.MesColegiatura > 0 && pagoDto.MesColegiatura <= 12 
+                    ? monthNames[pagoDto.MesColegiatura - 1] 
+                    : pagoDto.MesColegiatura.ToString();
+                    
+                throw new InvalidOperationException(
+                    $"Ya existe un pago de {rubro.Descripcion.ToLower()} para el alumno {alumno.PrimerNombre} {alumno.PrimerApellido} " +
+                    $"en {monthName} {pagoDto.CicloEscolar}. No se pueden registrar pagos duplicados para el mismo mes y año escolar."
+                );
+            }
+        }
+
         // Create new pago entity
         var pago = new Pago
         {
@@ -493,9 +554,9 @@ public class PagoService : IPagoService
                         foreach (var pago in rubroPagos)
                         {                            // Handle potential null/zero MesColegiatura by using 0 as default key for non-month payments
                             var mesKey = pago.MesColegiatura == 0 ? 0 : pago.MesColegiatura;
-                            if (!pagosPorMes.ContainsKey(mesKey))
+                            if (!pagosPorMes.ContainsKey((int)mesKey))
                             {
-                                pagosPorMes[mesKey] = new PagoReportItemDto
+                                pagosPorMes[(int)mesKey] = new PagoReportItemDto
                                 {
                                     Id = pago.Id,
                                     Monto = pago.Monto,
@@ -769,10 +830,10 @@ public class PagoService : IPagoService
             foreach (var pago in alumnoPagos)
             {
                 // Use MesColegiatura instead of Fecha.Month to accurately represent which month the payment covers
-                int mes = pago.MesColegiatura;
-                if (!pagosPorMes.ContainsKey(mes))
+                int? mes = pago.MesColegiatura;
+                if (mes.HasValue && !pagosPorMes.ContainsKey(mes.Value))
                 {
-                    pagosPorMes[mes] = new PagoReportItemDto
+                    pagosPorMes[mes ?? 0] = new PagoReportItemDto
                     {
                         Id = pago.Id,
                         Monto = pago.Monto,
@@ -788,11 +849,11 @@ public class PagoService : IPagoService
                 else
                 {
                     // If multiple payments in the same month, sum the amounts
-                    pagosPorMes[mes].Monto += pago.Monto;
+                    pagosPorMes[mes ?? 0].Monto += pago.Monto;
                     // Keep the latest payment's notes if any
                     if (!string.IsNullOrEmpty(pago.Notas))
                     {
-                        pagosPorMes[mes].Notas = pago.Notas;
+                        pagosPorMes[mes ?? 0].Notas = pago.Notas;
                     }
                 }
             }
