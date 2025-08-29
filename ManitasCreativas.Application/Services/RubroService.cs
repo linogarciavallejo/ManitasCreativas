@@ -31,6 +31,7 @@ public class RubroService : IRubroService
             Descripcion = r.Descripcion,
             Tipo = (int)r.Tipo,
             TipoDescripcion = r.Tipo.ToString(),
+            CicloEscolar = r.CicloEscolar,
             PenalizacionPorMoraMonto = r.PenalizacionPorMoraMonto,
             PenalizacionPorMoraPorcentaje = r.PenalizacionPorMoraPorcentaje,
             FechaLimitePagoAmarillo = r.FechaLimitePagoAmarillo,
@@ -67,6 +68,7 @@ public class RubroService : IRubroService
             Descripcion = rubro.Descripcion,
             Tipo = (int)rubro.Tipo,
             TipoDescripcion = rubro.Tipo.ToString(),
+            CicloEscolar = rubro.CicloEscolar,
             PenalizacionPorMoraMonto = rubro.PenalizacionPorMoraMonto,
             PenalizacionPorMoraPorcentaje = rubro.PenalizacionPorMoraPorcentaje,
             FechaLimitePagoAmarillo = rubro.FechaLimitePagoAmarillo,
@@ -121,6 +123,7 @@ public class RubroService : IRubroService
         {
             Descripcion = rubroDto.Descripcion,
             Tipo = (TipoRubro)rubroDto.Tipo,
+            CicloEscolar = rubroDto.CicloEscolar,
             PenalizacionPorMoraMonto = rubroDto.PenalizacionPorMoraMonto,
             PenalizacionPorMoraPorcentaje = rubroDto.PenalizacionPorMoraPorcentaje,
             FechaLimitePagoAmarillo = rubroDto.FechaLimitePagoAmarillo?.Kind == DateTimeKind.Utc 
@@ -199,6 +202,7 @@ public class RubroService : IRubroService
 
         existingRubro.Descripcion = rubroDto.Descripcion;
         existingRubro.Tipo = (TipoRubro)rubroDto.Tipo;
+        existingRubro.CicloEscolar = rubroDto.CicloEscolar;
         existingRubro.PenalizacionPorMoraMonto = rubroDto.PenalizacionPorMoraMonto;
         existingRubro.PenalizacionPorMoraPorcentaje = rubroDto.PenalizacionPorMoraPorcentaje;        existingRubro.FechaLimitePagoAmarillo = rubroDto.FechaLimitePagoAmarillo?.Kind == DateTimeKind.Utc 
             ? rubroDto.FechaLimitePagoAmarillo 
@@ -253,6 +257,7 @@ public class RubroService : IRubroService
             Descripcion = r.Descripcion,
             Tipo = (int)r.Tipo,
             TipoDescripcion = r.Tipo.ToString(),
+            CicloEscolar = r.CicloEscolar,
             PenalizacionPorMoraMonto = r.PenalizacionPorMoraMonto,
             PenalizacionPorMoraPorcentaje = r.PenalizacionPorMoraPorcentaje,
             FechaLimitePagoAmarillo = r.FechaLimitePagoAmarillo,

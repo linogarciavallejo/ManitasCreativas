@@ -8,6 +8,7 @@ public class RubroDto
     public string Descripcion { get; set; } = string.Empty;
     public int Tipo { get; set; }
     public string TipoDescripcion { get; set; } = string.Empty;
+    public int? CicloEscolar { get; set; }
     public decimal? PenalizacionPorMoraMonto { get; set; }
     public decimal? PenalizacionPorMoraPorcentaje { get; set; }
     public DateTime? FechaLimitePagoAmarillo { get; set; }

@@ -5,6 +5,7 @@ export interface Rubro {
   id: number;
   descripcion: string;
   tipo: number; // Fixed: Changed back to number to match backend RubroDto
+  cicloEscolar?: number;
   penalizacionPorMoraMonto?: number;
   penalizacionPorMoraPorcentaje?: number;
   fechaLimitePagoAmarillo?: string;
@@ -17,7 +18,7 @@ export interface Rubro {
   nivelEducativoNombre?: string;
   gradoId?: number;
   gradoNombre?: string;
-  cicloEscolar?: number;  montoPreestablecido?: number;
+  montoPreestablecido?: number;
   fechaInicioPromocion?: string; // Added: new field for promotion start date
   fechaFinPromocion?: string; // Added: new field for promotion end date
   notas?: string;

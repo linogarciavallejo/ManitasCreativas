@@ -10,6 +10,7 @@ namespace ManitasCreativas.Domain.Enums
     {
         Activo = 1,
         Inactivo = 2,
-        Retirado = 3
+        Retirado = 3,
+        Trasladado = 4,
     }
 }

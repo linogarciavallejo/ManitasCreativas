@@ -78,6 +78,7 @@ public class RubroRepository : IRubroRepository
                 UPDATE ""Rubros""
                 SET ""Descripcion"" = @Descripcion,
                     ""Tipo"" = @Tipo,
+                    ""CicloEscolar"" = @CicloEscolar,
                     ""PenalizacionPorMoraMonto"" = @PenalizacionPorMoraMonto,
                     ""PenalizacionPorMoraPorcentaje"" = @PenalizacionPorMoraPorcentaje,
                     ""EsColegiatura"" = @EsColegiatura,
@@ -104,6 +105,7 @@ public class RubroRepository : IRubroRepository
                 new Npgsql.NpgsqlParameter("@Descripcion", rubro.Descripcion),
                 // Convert enum to int for PostgreSQL
                 new Npgsql.NpgsqlParameter("@Tipo", (int)rubro.Tipo),
+                new Npgsql.NpgsqlParameter("@CicloEscolar", (object)rubro.CicloEscolar ?? DBNull.Value),
                 new Npgsql.NpgsqlParameter("@PenalizacionPorMoraMonto", (object)rubro.PenalizacionPorMoraMonto ?? DBNull.Value),
                 new Npgsql.NpgsqlParameter("@PenalizacionPorMoraPorcentaje", (object)rubro.PenalizacionPorMoraPorcentaje ?? DBNull.Value),
                 new Npgsql.NpgsqlParameter("@EsColegiatura", (object)rubro.EsColegiatura ?? DBNull.Value),

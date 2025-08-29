@@ -191,20 +191,23 @@ const Rubros: React.FC = () => {
     const tipo = form.getFieldValue('tipo');
     const montoPreestablecido = form.getFieldValue('montoPreestablecido');
     const nivelEducativoId = form.getFieldValue('nivelEducativoId');
-    
-    const isValid = Boolean(
-      descripcion && 
-      descripcion.trim() !== '' && 
-      tipo !== undefined && 
-      tipo !== null && 
-      montoPreestablecido !== undefined && 
-      montoPreestablecido !== null && 
+    const cicloEscolar = form.getFieldValue('cicloEscolar');
+
+    const baseValid = Boolean(
+      descripcion &&
+      descripcion.trim() !== '' &&
+      tipo !== undefined &&
+      tipo !== null &&
+      montoPreestablecido !== undefined &&
+      montoPreestablecido !== null &&
       montoPreestablecido > 0 &&
-      nivelEducativoId !== undefined && 
+      nivelEducativoId !== undefined &&
       nivelEducativoId !== null
     );
-    
-    setIsFormValid(isValid);
+
+    const colegiaturaValid = tipo === 4 ? cicloEscolar !== undefined && cicloEscolar !== null : true;
+
+    setIsFormValid(baseValid && colegiaturaValid);
   };
 
   // Columns for the table
@@ -548,6 +551,7 @@ const Rubros: React.FC = () => {
             <Form.Item
               label="Ciclo Escolar"
               name="cicloEscolar"
+              rules={[{ required: true, message: 'Por favor ingrese el ciclo escolar!' }]}
             >
               <InputNumber 
                 placeholder="Año del ciclo escolar" 
@@ -736,6 +740,14 @@ const Rubros: React.FC = () => {
           >
             <Select 
               placeholder="Seleccione el tipo de rubro"
+              onChange={(value) => {
+                // If changing to Colegiatura and ciclo not set, prefill with current year
+                if (value === 4 && (form.getFieldValue('cicloEscolar') === undefined || form.getFieldValue('cicloEscolar') === null)) {
+                  form.setFieldsValue({ cicloEscolar: new Date().getFullYear() });
+                }
+                // Revalidate when type changes
+                setTimeout(validateForm, 0);
+              }}
             >
               {tipoRubroOptions.map(option => (
                 <Option key={option.value} value={option.value}>{option.label}</Option>

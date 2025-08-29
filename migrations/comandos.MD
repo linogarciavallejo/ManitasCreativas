@@ -15,9 +15,9 @@ Cuota Anual
 python .\generate_sql_openai_v4.py --excel .\Pagos-Parvulos2-Kinder-A.xlsx --csv .\data-1753744983072.csv --sql-template .\insert-pago-example.sql --rubro-id 19 --month 1 --year 2025 --cell-range B3:B21 --fee-col H
 ```
 
-Colegiaturas
+Carnet
 ```
-python .\generate_sql_multi_mes.py --excel .\Pagos-QuintoBachEduca.xlsx --csv .\data-1754952225509.csv --sql-template .\insert-pago-example.sql --rubro-id 24 --month 1 --year 2025 --cell-range B3:B3 --fee-cols H-Q
+python .\generate_sql_openai_carnet.py --excel .\Pagos-SegundoPrimaria-A.xlsx --csv .\data-1754186378737.csv --sql-template .\insert-pago-example.sql --rubro-id 20 --month 1 --year 2025 --cell-range B3:B21 --fee-col G --carnet
 ```
 
 

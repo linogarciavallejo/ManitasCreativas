@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Form,
   Input,
@@ -121,6 +121,16 @@ const Tuitions: React.FC = () => {
     form.setFieldsValue({ rubroId: dinamicRubroId });
   }, [dinamicRubroId, form]);
 
+  // Helper to get the tuition rubro matching Nivel + Ciclo
+  const findTuitionRubro = useCallback(async (nivelEducativoId: number, cicloEscolar: number) => {
+    const activeRubros = await rubroService.getActiveRubros();
+    const tuitionRubros = activeRubros.filter(r =>
+      r.nivelEducativoId === nivelEducativoId && r.esColegiatura === true && r.cicloEscolar === cicloEscolar
+    );
+    if (tuitionRubros.length === 0) return null;
+    return tuitionRubros.find(r => r.montoPreestablecido !== undefined) || tuitionRubros[0];
+  }, []);
+
   // Function to check if all required form fields are filled
   const checkFormValidity = useCallback(() => {
     try {
@@ -203,20 +213,15 @@ const Tuitions: React.FC = () => {
         return;
       }
 
-      // Step 2: Get all active Rubros
-      const activeRubros = await rubroService.getActiveRubros();
+      // Step 2/3: Find tuition Rubro that also matches current ciclo escolar
+      const cicloFromForm = parseInt((form.getFieldValue('cicloEscolar') ?? currentYear).toString());
+      const selectedRubro = await findTuitionRubro(nivelEducativoId, cicloFromForm);
 
-      // Step 3: Filter Rubros for the matching NivelEducativoId and EsColegiatura=true
-      const tuitionRubros = activeRubros.filter(
-        (rubro) =>
-          rubro.nivelEducativoId === nivelEducativoId &&
-          rubro.esColegiatura === true
-      );
-
-      if (tuitionRubros.length === 0) {
+      if (!selectedRubro) {
         console.warn(
-          "No matching tuition Rubro found for NivelEducativoId:",
-          nivelEducativoId
+          "No matching tuition Rubro found for NivelEducativoId and ciclo:",
+          nivelEducativoId,
+          cicloFromForm
         );
         setHasValidRubro(false);
         setDinamicRubroId(""); // Clear the rubro ID
@@ -224,11 +229,6 @@ const Tuitions: React.FC = () => {
         // Don't show toast error immediately, let the UI component handle it elegantly
         return;
       }
-
-      // If multiple matches, preferably take the one with montoPreestablecido
-      const selectedRubro =
-        tuitionRubros.find((r) => r.montoPreestablecido !== undefined) ||
-        tuitionRubros[0];
 
       // Step 4: Update the RubroId state and form value
       setDinamicRubroId(selectedRubro.id.toString());
@@ -278,6 +278,48 @@ const Tuitions: React.FC = () => {
     setRubroValidationComplete(false); // Reset validation completion state
     form.setFieldsValue({ rubroId: "1" });
   };
+
+  // Debounced lookup on Ciclo Escolar blur
+  const cicloLookupTimeout = useRef<number | undefined>(undefined);
+  const handleCicloEscolarBlur = useCallback(() => {
+    if (cicloLookupTimeout.current) {
+      clearTimeout(cicloLookupTimeout.current);
+    }
+    cicloLookupTimeout.current = window.setTimeout(async () => {
+      const raw = form.getFieldValue('cicloEscolar');
+      const ciclo = parseInt((raw ?? '').toString());
+      if (isNaN(ciclo)) return;
+      if (!selectedStudentDetails?.gradoId) return;
+
+      try {
+        setLoadingRubro(true);
+        const gradoDetails = await gradoService.getGradoById(selectedStudentDetails.gradoId);
+        const nivelEducativoId = gradoDetails.nivelEducativoId;
+        if (!nivelEducativoId) return;
+
+        const rubro = await findTuitionRubro(nivelEducativoId, ciclo);
+        if (!rubro) {
+          setHasValidRubro(false);
+          setDinamicRubroId("");
+          form.setFieldsValue({ rubroId: "" });
+          toast.error(`No se encontró un rubro de colegiatura para el ciclo escolar ${ciclo}.`);
+          return;
+        }
+
+        setHasValidRubro(true);
+        setDinamicRubroId(rubro.id.toString());
+        form.setFieldsValue({ rubroId: rubro.id.toString() });
+        if (rubro.montoPreestablecido) {
+          form.setFieldsValue({ monto: rubro.montoPreestablecido });
+        }
+      } catch (err) {
+        console.error('Error al buscar rubro por ciclo escolar:', err);
+        toast.error('Error al buscar rubro por ciclo escolar.');
+      } finally {
+        setLoadingRubro(false);
+      }
+    }, 300);
+  }, [findTuitionRubro, form, selectedStudentDetails?.gradoId]);
 
   // Function to check for duplicate tuition payments
   const checkForDuplicatePayment = (cicloEscolar: number, mes: number): boolean => {
@@ -740,7 +782,7 @@ const Tuitions: React.FC = () => {
             { required: true, message: "¡Por favor ingrese el ciclo escolar!" },
           ]}
         >
-          <Input placeholder="Ingrese el ciclo escolar" />
+          <Input placeholder="Ingrese el ciclo escolar" onBlur={handleCicloEscolarBlur} />
         </Form.Item>{" "}
         <Form.Item
           label="Fecha de Pago"

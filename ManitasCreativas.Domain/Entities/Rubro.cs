@@ -13,6 +13,7 @@ namespace ManitasCreativas.Domain.Entities
         public int Id { get; set; }
         public required string Descripcion { get; set; }
         public TipoRubro Tipo { get; set; }
+        public int? CicloEscolar { get; set; }
         public decimal? PenalizacionPorMoraMonto { get; set; }
         public decimal? PenalizacionPorMoraPorcentaje { get; set; }
 
