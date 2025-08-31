@@ -168,6 +168,10 @@ const EditPayments: React.FC = () => {
       form.setFieldsValue({ gradoId: null });
       // Clear the código input after successful search
       setCodigoInputValue("");
+      
+      // Clear payments table when new student is selected
+      setPayments([]);
+      setSearchPerformed(false);
     } catch (error) {
       console.error("Error fetching student by code:", error);
       toast.error("No se encontró ningún alumno con ese código.");
@@ -209,6 +213,10 @@ const EditPayments: React.FC = () => {
     setActiveFilter("alumno");
     setSelectedGradoId(null);
     form.setFieldsValue({ gradoId: null });
+
+    // Clear payments table when new student is selected
+    setPayments([]);
+    setSearchPerformed(false);
 
     try {
       const response = await makeApiRequest<AlumnoDetails>(
@@ -540,6 +548,9 @@ const EditPayments: React.FC = () => {
                     setSelectedStudentDetails(null);
                     setCodigoInputValue("");
                     setActiveFilter(null);
+                    // Clear payments table when student selection is cleared
+                    setPayments([]);
+                    setSearchPerformed(false);
                   }}
                   fieldNames={{ label: "label", value: "value" }}
                 />
@@ -607,6 +618,9 @@ const EditPayments: React.FC = () => {
                   setAutoCompleteValue("");
                   setCodigoInputValue("");
                   setActiveFilter(null); // Reset the active filter state
+                  // Clear payments table when student selection is cleared
+                  setPayments([]);
+                  setSearchPerformed(false);
                 }}
               >
                 Limpiar
