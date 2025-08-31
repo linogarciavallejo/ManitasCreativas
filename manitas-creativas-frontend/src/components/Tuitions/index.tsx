@@ -17,7 +17,7 @@ import { makeApiRequest } from "../../services/apiHelper";
 import { getCurrentUserId } from "../../services/authService";
 import { gradoService } from "../../services/gradoService";
 import { rubroService } from "../../services/rubroService";
-import DatePickerES from "../common/DatePickerES"; // Import our custom DatePicker
+import DatePickerES from "../common/DatePickerES";
 import QRCodeModal from "../shared/QRCodeModal";
 import PaymentHistoryTable from "../shared/PaymentHistoryTable";
 import "antd/dist/reset.css";
@@ -76,7 +76,6 @@ interface AlumnoDetails {
     mesColegiatura?: number;
     anioColegiatura?: number;
     esColegiatura?: boolean;
-    // Add other payment fields as needed
   }>;
   contactos: Contacto[];
 }
@@ -95,12 +94,11 @@ const Tuitions: React.FC = () => {
   const [autoCompleteValue, setAutoCompleteValue] = useState<string>("");
   const [codigoSearchValue, setCodigoSearchValue] = useState<string>("");
   const [contactos, setContactos] = useState<Contacto[]>([]);
-  const [dinamicRubroId, setDinamicRubroId] = useState<string>("1"); // Default to "1" but will be updated
-  const [hasValidRubro, setHasValidRubro] = useState<boolean>(false); // Track if student has valid tuition rubro
-  const [rubroValidationComplete, setRubroValidationComplete] = useState<boolean>(false); // Track if rubro validation has completed
+  const [dinamicRubroId, setDinamicRubroId] = useState<string>("1");
+  const [hasValidRubro, setHasValidRubro] = useState<boolean>(false);
+  const [rubroValidationComplete, setRubroValidationComplete] = useState<boolean>(false);
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
-  // const [gradoId, setGradoId] = useState<number | null>(null); // Currently unused
-  const [form] = Form.useForm(); // Add Form instance
+  const [form] = Form.useForm();
 
   // QR Code modal state
   const [qrModalVisible, setQrModalVisible] = useState<boolean>(false);
@@ -114,7 +112,11 @@ const Tuitions: React.FC = () => {
   } | null>(null);
 
   const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth() + 1; // 1-based month number  // Function to get month name for display
+  const currentMonth = new Date().getMonth() + 1;
+
+  // Refs for debouncing
+  const cicloLookupTimeout = useRef<number | undefined>(undefined);
+  const isUpdatingRubro = useRef<boolean>(false);
 
   // Update form values when dinamicRubroId changes
   useEffect(() => {
@@ -137,12 +139,10 @@ const Tuitions: React.FC = () => {
       const values = form.getFieldsValue();
       const required = ['cicloEscolar', 'fechaPago', 'monto'];
       
-      // Check if all required fields have values
       const hasAllRequiredFields = required.every(field => {
         const value = values[field];
         
         if (field === 'fechaPago') {
-          // For DatePicker, be very strict about what constitutes a valid value
           if (!value) return false;
           if (value === null || value === undefined) return false;
           if (typeof value !== 'object') return false;
@@ -150,15 +150,13 @@ const Tuitions: React.FC = () => {
           return value.isValid();
         }
         
-        // For other fields, check they have meaningful values
         if (value === undefined || value === null || value === '') return false;
         if (typeof value === 'string' && value.trim() === '') return false;
         return true;
       });
       
-      const isValid = hasAllRequiredFields && !!alumnoId && hasValidRubro;
+      const isValid = hasAllRequiredFields && !!alumnoId && hasValidRubro && !loadingRubro;
       
-      // Force update if the validity state has changed
       if (isValid !== isFormValid) {
         setIsFormValid(isValid);
       }
@@ -169,14 +167,12 @@ const Tuitions: React.FC = () => {
       setIsFormValid(false);
       return false;
     }
-  }, [form, alumnoId, hasValidRubro, isFormValid]);
+  }, [form, alumnoId, hasValidRubro, isFormValid, loadingRubro]);
 
   // Watch for form field changes
   useEffect(() => {
     checkFormValidity();
     
-    // Set up a polling mechanism to check form validity every 100ms
-    // This ensures we catch any changes that might not trigger the normal events
     const interval = setInterval(() => {
       checkFormValidity();
     }, 100);
@@ -184,11 +180,119 @@ const Tuitions: React.FC = () => {
     return () => clearInterval(interval);
   }, [checkFormValidity]);
 
-  // Additional effect to watch specifically for form changes
   useEffect(() => {
-    // Force a validation check whenever dependencies change
     checkFormValidity();
-  }, [alumnoId, hasValidRubro, checkFormValidity]);
+  }, [alumnoId, hasValidRubro, loadingRubro, checkFormValidity]);
+
+  // Debounced function to fetch rubro based on ciclo escolar
+  const debouncedFetchRubro = useCallback(async (cicloEscolar: string | number) => {
+    if (cicloLookupTimeout.current) {
+      clearTimeout(cicloLookupTimeout.current);
+    }
+
+    cicloLookupTimeout.current = window.setTimeout(async () => {
+      const ciclo = parseInt(cicloEscolar.toString());
+      
+      // Validate ciclo escolar
+      if (isNaN(ciclo) || ciclo < 2000 || ciclo > 2100) {
+        console.log('Invalid ciclo escolar, skipping rubro fetch');
+        return;
+      }
+
+      if (!selectedStudentDetails?.gradoId) {
+        console.log('No student selected or gradoId missing, skipping rubro fetch');
+        return;
+      }
+
+      try {
+        setLoadingRubro(true);
+        setRubroValidationComplete(false);
+        isUpdatingRubro.current = true;
+
+        console.log(`Fetching rubro for ciclo: ${ciclo}, gradoId: ${selectedStudentDetails.gradoId}`);
+
+        const gradoDetails = await gradoService.getGradoById(selectedStudentDetails.gradoId);
+        const nivelEducativoId = gradoDetails.nivelEducativoId;
+        
+        if (!nivelEducativoId) {
+          console.warn('No nivelEducativoId found for grado');
+          setHasValidRubro(false);
+          setDinamicRubroId("");
+          return;
+        }
+
+        const rubro = await findTuitionRubro(nivelEducativoId, ciclo);
+        
+        if (!rubro) {
+          console.warn(`No tuition rubro found for ciclo ${ciclo} and nivel ${nivelEducativoId}`);
+          setHasValidRubro(false);
+          setDinamicRubroId("");
+          
+          // Clear monto field when no rubro is found
+          form.setFieldsValue({ 
+            rubroId: "",
+            monto: undefined 
+          });
+          
+          toast.error(`No se encontró un rubro de colegiatura para el ciclo escolar ${ciclo}.`);
+          return;
+        }
+
+        console.log(`Found rubro: ${rubro.id}, monto: ${rubro.montoPreestablecido}`);
+        
+        // Update states
+        setHasValidRubro(true);
+        setDinamicRubroId(rubro.id.toString());
+        
+        // Update form fields in a batch to ensure consistency
+        const newValues: { rubroId: string; monto?: number } = {
+          rubroId: rubro.id.toString()
+        };
+        
+        if (rubro.montoPreestablecido) {
+          newValues.monto = rubro.montoPreestablecido;
+        }
+        
+        form.setFieldsValue(newValues);
+        
+        // Force form validation after update
+        setTimeout(() => {
+          form.validateFields(['rubroId', 'monto']).catch(() => {
+            // Ignore validation errors
+          });
+        }, 100);
+        
+        console.log('Rubro and form updated successfully');
+        
+      } catch (error) {
+        console.error('Error fetching rubro:', error);
+        setHasValidRubro(false);
+        setDinamicRubroId("");
+        form.setFieldsValue({ 
+          rubroId: "",
+          monto: undefined 
+        });
+        toast.error('Error al buscar rubro por ciclo escolar.');
+      } finally {
+        setLoadingRubro(false);
+        setRubroValidationComplete(true);
+        isUpdatingRubro.current = false;
+      }
+    }, 500); // 500ms debounce delay
+  }, [findTuitionRubro, form, selectedStudentDetails?.gradoId]);
+
+  // Handle ciclo escolar changes
+  const handleCicloEscolarChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    
+    // Update form field immediately
+    form.setFieldsValue({ cicloEscolar: value });
+    
+    // If we have a selected student, trigger debounced rubro fetch
+    if (selectedStudentDetails?.gradoId && value.trim()) {
+      debouncedFetchRubro(value);
+    }
+  }, [form, selectedStudentDetails?.gradoId, debouncedFetchRubro]);
 
   // Function to fetch the appropriate RubroId for a student's grade
   const fetchRubroIdForGrado = async (studentGradoId: number) => {
@@ -200,9 +304,8 @@ const Tuitions: React.FC = () => {
 
     try {
       setLoadingRubro(true);
-      setRubroValidationComplete(false); // Reset validation state
+      setRubroValidationComplete(false);
 
-      // Step 1: Get the Grado details to find the NivelEducativoId
       const gradoDetails = await gradoService.getGradoById(studentGradoId);
       const nivelEducativoId = gradoDetails.nivelEducativoId;
 
@@ -213,7 +316,6 @@ const Tuitions: React.FC = () => {
         return;
       }
 
-      // Step 2/3: Find tuition Rubro that also matches current ciclo escolar
       const cicloFromForm = parseInt((form.getFieldValue('cicloEscolar') ?? currentYear).toString());
       const selectedRubro = await findTuitionRubro(nivelEducativoId, cicloFromForm);
 
@@ -224,116 +326,68 @@ const Tuitions: React.FC = () => {
           cicloFromForm
         );
         setHasValidRubro(false);
-        setDinamicRubroId(""); // Clear the rubro ID
+        setDinamicRubroId("");
         setRubroValidationComplete(true);
-        // Don't show toast error immediately, let the UI component handle it elegantly
         return;
       }
 
-      // Step 4: Update the RubroId state and form value
       setDinamicRubroId(selectedRubro.id.toString());
-      setHasValidRubro(true); // Mark that we found a valid rubro
+      setHasValidRubro(true);
       setRubroValidationComplete(true);
       console.log("Selected RubroId for tuition payment:", selectedRubro.id);
 
-      // Update the form's rubroId field with the dynamic value
       form.setFieldsValue({ rubroId: selectedRubro.id.toString() });
 
-      // Optionally pre-fill the monto if available
       if (selectedRubro.montoPreestablecido) {
-        // Update the form's monto field if a predefined amount exists
         form.setFieldsValue({ monto: selectedRubro.montoPreestablecido });
       }
     } catch (error) {
       console.error("Error fetching appropriate RubroId:", error);
       setHasValidRubro(false);
-      setDinamicRubroId(""); // Clear the rubro ID
+      setDinamicRubroId("");
       setRubroValidationComplete(true);
-      // Don't show toast error immediately, let the UI component handle it elegantly
     } finally {
       setLoadingRubro(false);
     }
-  };  // Function to reset the form after a successful submission
+  };
+
+  // Function to reset the form after a successful submission
   const resetForm = () => {
-    // Reset form but keep these fields
     form.setFieldsValue({
       cicloEscolar: currentYear,
       fechaPago: dayjs().startOf('day'),
       mes: currentMonth.toString(),
       medioPago: "1",
       notas: "",
-      monto: undefined, // Explicitly set monto to undefined to clear the field
+      monto: undefined,
       imagenesPago: [],
-    }); // Clear student selection
+    });
+
     setSelectedStudent(null);
     setAlumnoId(null);
     setSelectedCodigo(null);
-    setSelectedStudentDetails(null); // Explicitly clear student details
+    setSelectedStudentDetails(null);
     setAutoCompleteValue("");
     setCodigoSearchValue("");
     setTypeaheadOptions([]);
     setContactos([]);
-    setDinamicRubroId("1"); // Reset to default
-    setHasValidRubro(false); // Reset valid rubro state
-    setRubroValidationComplete(false); // Reset validation completion state
+    setDinamicRubroId("1");
+    setHasValidRubro(false);
+    setRubroValidationComplete(false);
     form.setFieldsValue({ rubroId: "1" });
   };
-
-  // Debounced lookup on Ciclo Escolar blur
-  const cicloLookupTimeout = useRef<number | undefined>(undefined);
-  const handleCicloEscolarBlur = useCallback(() => {
-    if (cicloLookupTimeout.current) {
-      clearTimeout(cicloLookupTimeout.current);
-    }
-    cicloLookupTimeout.current = window.setTimeout(async () => {
-      const raw = form.getFieldValue('cicloEscolar');
-      const ciclo = parseInt((raw ?? '').toString());
-      if (isNaN(ciclo)) return;
-      if (!selectedStudentDetails?.gradoId) return;
-
-      try {
-        setLoadingRubro(true);
-        const gradoDetails = await gradoService.getGradoById(selectedStudentDetails.gradoId);
-        const nivelEducativoId = gradoDetails.nivelEducativoId;
-        if (!nivelEducativoId) return;
-
-        const rubro = await findTuitionRubro(nivelEducativoId, ciclo);
-        if (!rubro) {
-          setHasValidRubro(false);
-          setDinamicRubroId("");
-          form.setFieldsValue({ rubroId: "" });
-          toast.error(`No se encontró un rubro de colegiatura para el ciclo escolar ${ciclo}.`);
-          return;
-        }
-
-        setHasValidRubro(true);
-        setDinamicRubroId(rubro.id.toString());
-        form.setFieldsValue({ rubroId: rubro.id.toString() });
-        if (rubro.montoPreestablecido) {
-          form.setFieldsValue({ monto: rubro.montoPreestablecido });
-        }
-      } catch (err) {
-        console.error('Error al buscar rubro por ciclo escolar:', err);
-        toast.error('Error al buscar rubro por ciclo escolar.');
-      } finally {
-        setLoadingRubro(false);
-      }
-    }, 300);
-  }, [findTuitionRubro, form, selectedStudentDetails?.gradoId]);
 
   // Function to check for duplicate tuition payments
   const checkForDuplicatePayment = (cicloEscolar: number, mes: number): boolean => {
     if (!selectedStudentDetails || !selectedStudentDetails.pagos) {
-      return false; // No existing payments to check against
+      return false;
     }
 
-    // Filter for tuition payments that are not voided/canceled
     const existingTuitionPayments = selectedStudentDetails.pagos.filter(pago => 
       pago.esColegiatura === true && 
       pago.esAnulado !== true
     );
 
-    // Check if there's already a payment for this student, school year, and month
     const duplicatePayment = existingTuitionPayments.find(pago => 
       pago.cicloEscolar === cicloEscolar && 
       pago.mesColegiatura === mes
@@ -357,28 +411,22 @@ const Tuitions: React.FC = () => {
           .trim()
       );
       setSelectedStudentDetails(response);
-
-      // Update contactos info from the response
       setContactos(response.contactos || []);
 
-      // Set gradoId and fetch appropriate RubroId
       const studentGradoId = response.gradoId;
-      // setGradoId(studentGradoId); // Currently unused      // Call the function to fetch the correct RubroId for this student's grade
       if (studentGradoId) {
         await fetchRubroIdForGrado(studentGradoId);
       }
 
-      // Clear the search input after successful search
       setCodigoSearchValue("");
-
-      // No need for toast notification when student is found by code
     } catch (error: unknown) {
       console.error("Error fetching student by code:", error);
       toast.error("No se encontró ningún alumno con ese código.");
     }
   };
+
   const handleTypeaheadSearch = async (query: string) => {
-    console.log("handleTypeaheadSearch called with query:", query); // Debug log
+    console.log("handleTypeaheadSearch called with query:", query);
     setAutoCompleteValue(query);
     const trimmedQuery = query.trim();
     if (!trimmedQuery) {
@@ -402,10 +450,8 @@ const Tuitions: React.FC = () => {
     }
   };
 
-  // Add explicit focus handler to prevent unwanted behavior
   const handleAutoCompleteFocus = () => {
-    console.log("AutoComplete focused"); // Debug log
-    // Don't trigger search on focus if input is empty
+    console.log("AutoComplete focused");
     if (!autoCompleteValue.trim()) {
       setTypeaheadOptions([]);
     }
@@ -422,17 +468,12 @@ const Tuitions: React.FC = () => {
       );
       setSelectedCodigo(response.codigo);
       setSelectedStudentDetails(response);
-      // Update contactos info from the response
-      setContactos(response.contactos || []); // Set gradoId and fetch appropriate RubroId
-      const studentGradoId = response.gradoId;
-      // setGradoId(studentGradoId); // Currently unused
+      setContactos(response.contactos || []);
 
-      // Call the function to fetch the correct RubroId for this student's grade
+      const studentGradoId = response.gradoId;
       if (studentGradoId) {
         await fetchRubroIdForGrado(studentGradoId);
       }
-
-      // Success notification removed as it's not necessary
     } catch (error: unknown) {
       console.error("Error fetching student details:", error);
       toast.error("Error al obtener los datos del alumno seleccionado.");
@@ -449,7 +490,13 @@ const Tuitions: React.FC = () => {
     rubroId: string;
     imagenesPago?: { originFileObj?: File }[];
   }) => {
-    console.log("Form submitted with values:", values); // Debugging log
+    console.log("Form submitted with values:", values);
+
+    // Prevent submission if rubro is still being updated
+    if (isUpdatingRubro.current || loadingRubro) {
+      toast.warning("Por favor espere mientras se valida el rubro de colegiatura.");
+      return;
+    }
 
     if (!alumnoId) {
       toast.error("Por favor seleccione un alumno antes de enviar el pago.");
@@ -461,7 +508,10 @@ const Tuitions: React.FC = () => {
       return;
     }
 
-    // Check for duplicate payment validation
+    // Validate that we have the expected monto value
+    console.log("Submitted monto value:", values.monto);
+    console.log("Current form monto value:", form.getFieldValue('monto'));
+
     const cicloEscolar = parseInt(values.cicloEscolar.toString());
     const mes = parseInt(values.mes.toString());
     
@@ -491,15 +541,9 @@ const Tuitions: React.FC = () => {
       formData.append("AnioColegiatura", new Date().getFullYear().toString());
       if (values.notas) formData.append("Notas", values.notas);
 
-      // Get the current user ID from localStorage and use it for UsuarioCreacionId
       const userId = getCurrentUserId();
-      console.log("Current user ID for form submission:", userId); // Debug log for user ID
-
-      // Append the user ID for the UsuarioCreacionId field
       formData.append("UsuarioCreacionId", userId.toString());
-      // The old code was using "UsuarioId" with a hardcoded "1", which doesn't match the API's requirements
 
-      // Check if imagenesPago exists and is an array before iterating
       if (values.imagenesPago && Array.isArray(values.imagenesPago)) {
         values.imagenesPago.forEach((file, index) => {
           if (file.originFileObj) {
@@ -508,7 +552,7 @@ const Tuitions: React.FC = () => {
         });
       }
 
-      console.log("Sending API request to /pagos with FormData"); // Debug log
+      console.log("Sending API request to /pagos with FormData");
 
       // Log FormData entries for debugging
       console.log("FormData contents:");
@@ -548,11 +592,11 @@ const Tuitions: React.FC = () => {
         mes: currentMonth.toString(),
         medioPago: "1",
         notas: "",
-        monto: undefined, // Clear the amount field
+        monto: undefined,
         imagenesPago: [],
       });
     } catch (err: unknown) {
-      console.error("Error details:", err); // Add detailed error logging
+      console.error("Error details:", err);
       toast.error("Error al enviar el pago. Por favor, inténtelo de nuevo.");
     } finally {
       setLoading(false);
@@ -600,7 +644,6 @@ const Tuitions: React.FC = () => {
       />
       <h2>Realizar un Pago de Colegiatura</h2>
       <div style={{ marginBottom: "20px" }}>
-        {" "}
         <Input.Search
           value={codigoSearchValue}
           placeholder="Buscar por Código"
@@ -608,7 +651,7 @@ const Tuitions: React.FC = () => {
           onSearch={handleCodigoSearch}
           onChange={(e) => setCodigoSearchValue(e.target.value)}
           style={{ marginBottom: "10px" }}
-        />{" "}
+        />
         <div style={{ marginBottom: "15px" }}>
           <AutoComplete
             value={autoCompleteValue}
@@ -626,8 +669,8 @@ const Tuitions: React.FC = () => {
               setAlumnoId(null);
               setSelectedStudent(null);
               setSelectedStudentDetails(null);
-              setHasValidRubro(false); // Reset valid rubro state
-              setRubroValidationComplete(false); // Reset validation completion state
+              setHasValidRubro(false);
+              setRubroValidationComplete(false);
             }}
             fieldNames={{ label: "label", value: "value" }}
           />
@@ -641,7 +684,7 @@ const Tuitions: React.FC = () => {
               borderRadius: "4px",
             }}
           >
-            <strong>Alumno seleccionado:</strong> {selectedStudent}{" "}
+            <strong>Alumno seleccionado:</strong> {selectedStudent}
             {selectedStudentDetails &&
               (selectedStudentDetails.gradoNombre ||
                 selectedStudentDetails.seccion) && (
@@ -660,7 +703,7 @@ const Tuitions: React.FC = () => {
                   {selectedStudentDetails.seccion &&
                     `Sección: ${selectedStudentDetails.seccion}`}
                 </div>
-              )}{" "}
+              )}
             <Button
               type="link"
               style={{ marginLeft: "10px", padding: "0" }}
@@ -711,7 +754,7 @@ const Tuitions: React.FC = () => {
       )}
 
       {/* Show loading state for rubro validation */}
-      {selectedStudent && !rubroValidationComplete && loadingRubro && (
+      {selectedStudent && loadingRubro && (
         <div 
           style={{ 
             marginBottom: "20px", 
@@ -734,7 +777,8 @@ const Tuitions: React.FC = () => {
       {contactos.length > 0 && (
         <div style={{ marginBottom: "20px" }}>
           <h3>Contactos</h3>
-          <ul style={{ paddingLeft: "20px" }}>            {contactos.map((contacto) => (
+          <ul style={{ paddingLeft: "20px" }}>
+            {contactos.map((contacto) => (
               <li key={contacto.contactoId}>
                 <strong>{contacto.parentesco}:</strong>{" "}
                 {contacto.contacto.nombre} — {contacto.contacto.telefonoTrabajo || contacto.contacto.celular || 'Sin teléfono'} —{" "}
@@ -759,7 +803,8 @@ const Tuitions: React.FC = () => {
             pago.esColegiatura === true
           }
         />
-      )}{" "}
+      )}
+
       <Form
         form={form}
         name="payments"
@@ -770,9 +815,9 @@ const Tuitions: React.FC = () => {
         className="payments-form"
         initialValues={{
           cicloEscolar: currentYear,
-          mes: currentMonth.toString(), // Convert to string to match Option values
+          mes: currentMonth.toString(),
           fechaPago: dayjs().startOf('day'),
-          rubroId: dinamicRubroId, // Initialize with the dynamic RubroId
+          rubroId: dinamicRubroId,
         }}
       >
         <Form.Item
@@ -782,8 +827,14 @@ const Tuitions: React.FC = () => {
             { required: true, message: "¡Por favor ingrese el ciclo escolar!" },
           ]}
         >
-          <Input placeholder="Ingrese el ciclo escolar" onBlur={handleCicloEscolarBlur} />
-        </Form.Item>{" "}
+          <Input 
+            placeholder="Ingrese el ciclo escolar" 
+            onChange={handleCicloEscolarChange}
+            disabled={loadingRubro}
+            addonAfter={loadingRubro ? "🔄" : null}
+          />
+        </Form.Item>
+
         <Form.Item
           label="Fecha de Pago"
           name="fechaPago"
@@ -799,15 +850,12 @@ const Tuitions: React.FC = () => {
             placeholder="Seleccione la fecha de pago"
             defaultValue={dayjs().startOf('day')}
             onChange={(date) => {
-              // Immediately update the form field
               form.setFieldsValue({ fechaPago: date });
               
-              // Trigger form field validation immediately
               form.validateFields(['fechaPago']).catch(() => {
-                // Ignore validation errors, they will be shown in the UI
+                // Ignore validation errors
               });
               
-              // Check validity immediately and with delays
               const checkWithDelay = () => {
                 const isValid = checkFormValidity();
                 console.log(`Form validity check: ${isValid}, date value:`, date);
@@ -821,13 +869,16 @@ const Tuitions: React.FC = () => {
             }}
           />
         </Form.Item>
+        
         <Form.Item
           name="rubroId"
           initialValue={dinamicRubroId}
           style={{ display: "none" }}
         >
           <Input type="hidden" disabled={loadingRubro} />
-        </Form.Item>{" "}        <Form.Item label="Mes" name="mes" rules={[{ required: false }]}>
+        </Form.Item>
+
+        <Form.Item label="Mes" name="mes" rules={[{ required: false }]}>
           <Select>
             <Option value="1">Enero</Option>
             <Option value="2">Febrero</Option>
@@ -841,6 +892,7 @@ const Tuitions: React.FC = () => {
             <Option value="10">Octubre</Option>
           </Select>
         </Form.Item>
+        
         <Form.Item
           label="Monto"
           name="monto"
@@ -849,6 +901,7 @@ const Tuitions: React.FC = () => {
           <InputNumber
             style={{ width: "100%" }}
             placeholder="Ingrese el monto"
+            disabled={loadingRubro}
             formatter={(value) =>
               `Q ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             }
@@ -860,6 +913,7 @@ const Tuitions: React.FC = () => {
             }}
           />
         </Form.Item>
+        
         <Form.Item
           label="Medio de Pago"
           name="medioPago"
@@ -878,15 +932,17 @@ const Tuitions: React.FC = () => {
             <Option value="7">Pago Móvil</Option>
           </Select>
         </Form.Item>
+        
         <Form.Item label="Notas" name="notas">
           <Input.TextArea placeholder="Agregar notas sobre el pago" rows={4} />
         </Form.Item>
+        
         <Form.Item
           label="Imágenes de Pago"
           name="imagenesPago"
           valuePropName="fileList"
           getValueFromEvent={(e) => {
-            console.log("Upload event:", e); // Debug log for upload event
+            console.log("Upload event:", e);
             return Array.isArray(e) ? e : e?.fileList;
           }}
           initialValue={[]}
@@ -896,12 +952,11 @@ const Tuitions: React.FC = () => {
             listType="picture-card"
             beforeUpload={() => false}
             onPreview={(file) => {
-              console.log("Preview clicked for file:", file); // Debug log
-              console.log("file.url:", file.url); // Debug file URL
-              console.log("file.originFileObj:", file.originFileObj); // Debug originFileObj
-              console.log("file keys:", Object.keys(file)); // Debug all file properties
+              console.log("Preview clicked for file:", file);
+              console.log("file.url:", file.url);
+              console.log("file.originFileObj:", file.originFileObj);
+              console.log("file keys:", Object.keys(file));
               
-              // Create a preview URL for the file
               let url = '';
               let createdUrl = false;
               
@@ -924,16 +979,13 @@ const Tuitions: React.FC = () => {
                 console.error("Error creating object URL:", error);
               }
               
-              console.log("Final generated URL:", url); // Debug generated URL
+              console.log("Final generated URL:", url);
               
               if (url) {
                 console.log("Opening modal with URL:", url);
-                
-                // Temporarily skip modal and just open in new tab
                 console.log("Opening image in new tab...");
                 window.open(url, '_blank');
                 
-                // Clean up the URL after a short delay
                 if (createdUrl && url) {
                   setTimeout(() => {
                     console.log("Cleaning up URL:", url);
@@ -942,11 +994,9 @@ const Tuitions: React.FC = () => {
                 }
               } else {
                 console.error("No URL available for preview", file);
-                // Try window.open as a fallback
                 if (file.originFileObj) {
                   const fallbackUrl = URL.createObjectURL(file.originFileObj);
                   window.open(fallbackUrl, '_blank');
-                  // Clean up after a delay
                   setTimeout(() => URL.revokeObjectURL(fallbackUrl), 1000);
                 } else {
                   Modal.error({
@@ -965,6 +1015,7 @@ const Tuitions: React.FC = () => {
             <Button icon={<UploadOutlined />}>Subir Imágenes de Pago</Button>
           </Upload>
         </Form.Item>
+        
         <Form.Item>
           <Button
             type="primary"
@@ -973,8 +1024,8 @@ const Tuitions: React.FC = () => {
             loading={loading || loadingRubro}
             disabled={!isFormValid}
           >
-            {loadingRubro ? "Obteniendo rubro..." : "Enviar Pago"}
-          </Button>{" "}
+            {loadingRubro ? "Validando rubro..." : "Enviar Pago"}
+          </Button>
         </Form.Item>
       </Form>
 
