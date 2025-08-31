@@ -264,6 +264,9 @@ const Tuitions: React.FC = () => {
         
         console.log('Rubro and form updated successfully');
         
+        // Show success toast when rubro is found and applied
+        toast.success(`El rubro de colegiatura ${ciclo} fue encontrado y aplicado.`);
+        
       } catch (error) {
         console.error('Error fetching rubro:', error);
         setHasValidRubro(false);
