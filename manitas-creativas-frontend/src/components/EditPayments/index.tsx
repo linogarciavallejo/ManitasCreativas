@@ -342,6 +342,9 @@ const EditPayments: React.FC = () => {
   const handleCloseDetailsModal = () => {
     setDetailsModalVisible(false);
     setSelectedPayment(null);
+    // Also ensure void modal is closed if it was open
+    setConfirmVoidModalVisible(false);
+    setVoidReason("");
   };
 
   // Handle opening edit modal
@@ -429,14 +432,17 @@ const EditPayments: React.FC = () => {
 
       toast.success(`Pago #${selectedPayment.id} anulado correctamente`);
 
+      // Close void confirmation modal first
+      setConfirmVoidModalVisible(false);
+      setVoidReason("");
+
       // Refresh the payments list
       await handleFilterSubmit();
 
-      // Close modals
-      setConfirmVoidModalVisible(false);
+      // Close the details modal and clear selected payment
       setDetailsModalVisible(false);
       setSelectedPayment(null);
-      setVoidReason("");
+
     } catch (error) {
       console.error("Error voiding payment:", error);
       toast.error("Error al anular el pago. Intente nuevamente.");

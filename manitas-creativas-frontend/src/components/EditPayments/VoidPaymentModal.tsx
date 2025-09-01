@@ -23,6 +23,7 @@ const VoidPaymentModal: React.FC<VoidPaymentModalProps> = ({
       title="Anular Pago"
       open={visible}
       onCancel={onCancel}
+      zIndex={1001}
       footer={[
         <Button key="cancel" onClick={onCancel}>
           Cancelar
