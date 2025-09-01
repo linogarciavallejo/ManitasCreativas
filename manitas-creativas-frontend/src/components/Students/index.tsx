@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Table, Form, Input, Button, Select, Space, Typography, Popconfirm, Card, Row, Col, Modal, Tooltip } from 'antd';
+import type { Key } from 'antd/es/table/interface';
 import { EditOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, InfoCircleOutlined, TeamOutlined } from '@ant-design/icons';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -13,11 +14,12 @@ const { Title } = Typography;
 const { Option } = Select;
 
 // Estado Alumno representation
-// const estadoAlumnoOptions = [
-//   { value: 1, label: 'Activo', color: 'green' },
-//   { value: 2, label: 'Inactivo', color: 'red' },
-//   { value: 3, label: 'Retirado', color: 'orange' }
-// ];
+const estadoAlumnoOptions = [
+  { value: 1, label: 'Activo', color: 'green' },
+  { value: 2, label: 'Inactivo', color: 'red' },
+  { value: 3, label: 'Retirado', color: 'orange' },
+  { value: 4, label: 'Trasladado', color: 'blue' }
+];
 
 const Students: React.FC = () => {
   const [form] = Form.useForm();
@@ -43,6 +45,7 @@ const Students: React.FC = () => {
   const [searchSeccion, setSearchSeccion] = useState<string>('');
   const [selectedSedeId, setSelectedSedeId] = useState<number | null>(null);
   const [selectedGradoId, setSelectedGradoId] = useState<number | null>(null);
+  const [selectedEstado, setSelectedEstado] = useState<number | null>(null);
   
   // Lookup data
   const [sedes, setSedes] = useState<Sede[]>([]);
@@ -101,8 +104,15 @@ const Students: React.FC = () => {
       );
     }
     
+    // Filter by Estado
+    if (selectedEstado) {
+      filtered = filtered.filter(alumno => 
+        alumno.estado === selectedEstado
+      );
+    }
+    
     setFilteredData(filtered);
-  }, [data, searchText, searchCodigo, searchSeccion, selectedSedeId, selectedGradoId]);
+  }, [data, searchText, searchCodigo, searchSeccion, selectedSedeId, selectedGradoId, selectedEstado]);
 
   // Apply filters when data or filter criteria change
   useEffect(() => {
@@ -245,6 +255,7 @@ const Students: React.FC = () => {
     setSearchSeccion('');
     setSelectedSedeId(null);
     setSelectedGradoId(null);
+    setSelectedEstado(null);
   };
 
   const handleEdit = (record: Alumno) => {
@@ -283,7 +294,7 @@ const Students: React.FC = () => {
     if (!modalVisible) return;
     
     const values = form.getFieldsValue();
-    const requiredFields = ['codigo', 'primerNombre', 'primerApellido', 'sedeId', 'gradoId'];
+    const requiredFields = ['codigo', 'primerNombre', 'primerApellido', 'sedeId', 'gradoId', 'estado'];
     
     // Check if all required fields have values
     const hasAllRequiredFields = requiredFields.every(field => {
@@ -425,6 +436,29 @@ const Students: React.FC = () => {
       }
     },
     {
+      title: 'Estado',
+      key: 'estado',
+      dataIndex: 'estado',
+      width: 100,
+      render: (estado: number) => {
+        const estadoOption = estadoAlumnoOptions.find(option => option.value === estado);
+        return (
+          <span style={{ 
+            color: estadoOption?.color || 'black',
+            fontWeight: 'bold'
+          }}>
+            {estadoOption?.label || 'Desconocido'}
+          </span>
+        );
+      },
+      sorter: (a: Alumno, b: Alumno) => a.estado - b.estado,
+      filters: estadoAlumnoOptions.map(option => ({
+        text: option.label,
+        value: option.value,
+      })),
+      onFilter: (value: boolean | Key, record: Alumno) => record.estado === Number(value),
+    },
+    {
       title: 'Observaciones',
       key: 'observaciones',
       dataIndex: 'observaciones',
@@ -556,6 +590,24 @@ const Students: React.FC = () => {
                 >
                   {grados.map(grado => (
                     <Option key={grado.id} value={grado.id}>{grado.nombre}</Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+              <Form.Item label="Estado">
+                <Select 
+                  placeholder="Filtrar por estado"
+                  value={selectedEstado}
+                  onChange={(value) => setSelectedEstado(value)}
+                  allowClear
+                >
+                  {estadoAlumnoOptions.map(option => (
+                    <Option key={option.value} value={option.value}>
+                      <span style={{ color: option.color, fontWeight: 'bold' }}>
+                        {option.label}
+                      </span>
+                    </Option>
                   ))}
                 </Select>
               </Form.Item>
@@ -879,6 +931,29 @@ const Students: React.FC = () => {
           </Row>
 
           <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Estado del Alumno"
+                name="estado"
+                rules={[{ required: true, message: 'Por favor seleccione el estado del alumno!' }]}
+              >
+                <Select placeholder="Seleccione el estado">
+                  {estadoAlumnoOptions.map(option => (
+                    <Option key={option.value} value={option.value}>
+                      <span style={{ color: option.color, fontWeight: 'bold' }}>
+                        {option.label}
+                      </span>
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              {/* Empty column for symmetry */}
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
             <Col span={24}>
               <Form.Item
                 label="Dirección"
@@ -937,10 +1012,6 @@ const Students: React.FC = () => {
               </Form.Item>
             </Col>
           </Row>
-
-          <Form.Item name="estado" hidden>
-            <Input type="number" />
-          </Form.Item>
 
           {editingId !== null && (
             <>
