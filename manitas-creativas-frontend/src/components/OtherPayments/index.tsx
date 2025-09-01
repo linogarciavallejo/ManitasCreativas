@@ -120,7 +120,7 @@ const OtherPayments: React.FC = () => {
   const checkFormValidity = useCallback(() => {
     try {
       const values = form.getFieldsValue();
-      const required = ['cicloEscolar', 'fechaPago', 'monto', 'rubroId'];
+      const required = ['cicloEscolar', 'fechaPago', 'monto', 'rubroId', 'medioPago'];
       
       // Check if all required fields have values
       const hasAllRequiredFields = required.every(field => {
@@ -589,7 +589,7 @@ const OtherPayments: React.FC = () => {
           mes: null, // Changed from currentMonth to null to make "Sin mes específico" the default
           monto: 150,
           fechaPago: dayjs().startOf("day"), // Set to start of the current day
-          medioPago: "1", // Set "Efectivo" as default
+          // medioPago removed - user must manually select
         }}
       >
         <Form.Item
@@ -702,11 +702,9 @@ const OtherPayments: React.FC = () => {
           label="Medio de Pago"
           name="medioPago"
           rules={[
-            { required: true, message: "¡Por favor ingrese el medio de pago!" },
+            { required: true, message: "¡Por favor seleccione el medio de pago!" },
           ]}
-          initialValue="1"
         >
-          {" "}
           <Select placeholder="Seleccione el medio de pago">
             <Option value="1">Efectivo</Option>
             <Option value="2">Tarjeta de Crédito</Option>
