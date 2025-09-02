@@ -9,6 +9,8 @@ import { sedeService, Sede } from '../../services/sedeService';
 import { gradoService, Grado } from '../../services/gradoService';
 import { getCurrentUserId } from '../../services/authService';
 import ContactosModal from '../ContactosModal';
+import DatePickerES from '../common/DatePickerES';
+import dayjs from 'dayjs';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -45,7 +47,7 @@ const Students: React.FC = () => {
   const [searchSeccion, setSearchSeccion] = useState<string>('');
   const [selectedSedeId, setSelectedSedeId] = useState<number | null>(null);
   const [selectedGradoId, setSelectedGradoId] = useState<number | null>(null);
-  const [selectedEstado, setSelectedEstado] = useState<number | null>(null);
+  const [selectedEstado, setSelectedEstado] = useState<number | null>(1); // Default to Activo
   
   // Lookup data
   const [sedes, setSedes] = useState<Sede[]>([]);
@@ -155,11 +157,8 @@ const Students: React.FC = () => {
         if (alumnosResponse.status === 'fulfilled') {
           const alumnos = alumnosResponse.value;
           
-          // Only show active students (estado = 1) by default
-          const activeAlumnos = alumnos.filter(alumno => alumno.estado === 1);
-          
           // Sort by full name by default
-          const sortedAlumnos = [...activeAlumnos].sort((a, b) => {
+          const sortedAlumnos = [...alumnos].sort((a, b) => {
             const fullNameA = getFullName(a);
             const fullNameB = getFullName(b);
             return fullNameA.localeCompare(fullNameB);
@@ -190,11 +189,8 @@ const Students: React.FC = () => {
       setFetchingData(true);
       const alumnos = await alumnoService.getAllAlumnos();
       
-      // Only show active students (estado = 1) by default
-      const activeAlumnos = alumnos.filter(alumno => alumno.estado === 1);
-      
       // Sort by full name by default
-      const sortedAlumnos = [...activeAlumnos].sort((a, b) => {
+      const sortedAlumnos = [...alumnos].sort((a, b) => {
         const fullNameA = getFullName(a);
         const fullNameB = getFullName(b);
         return fullNameA.localeCompare(fullNameB);
@@ -260,9 +256,15 @@ const Students: React.FC = () => {
 
   const handleEdit = (record: Alumno) => {
     setEditingId(record.id);
-    form.setFieldsValue({
-      ...record
-    });
+    
+    // Prepare the values for the form, handling the date field
+    const formValues = {
+      ...record,
+      fechaTraslado: record.fechaTraslado ? dayjs(record.fechaTraslado) : undefined,
+      fechaRetiro: record.fechaRetiro ? dayjs(record.fechaRetiro) : undefined
+    };
+    
+    form.setFieldsValue(formValues);
     setIsFormValid(false); // Reset form validity initially
     setModalVisible(true);
     // Check validity after form is populated (non-async)
@@ -302,9 +304,32 @@ const Students: React.FC = () => {
       return value !== undefined && value !== null && value !== '';
     });
     
-    // For now, just check if required fields are filled
-    // The detailed validation (including async codigo validation) happens on save
-    setIsFormValid(hasAllRequiredFields);
+    // If estado is "Trasladado" (4), also require fechaTraslado
+    let isValidForTraslado = true;
+    if (values.estado === 4) {
+      const fechaTraslado = values.fechaTraslado;
+      // Check if it's a valid dayjs object or a valid date string
+      isValidForTraslado = fechaTraslado !== undefined && 
+                          fechaTraslado !== null && 
+                          fechaTraslado !== '' &&
+                          (dayjs.isDayjs(fechaTraslado) ? fechaTraslado.isValid() : 
+                           (typeof fechaTraslado === 'string' && dayjs(fechaTraslado).isValid()));
+    }
+    
+    // If estado is "Retirado" (3), also require fechaRetiro
+    let isValidForRetiro = true;
+    if (values.estado === 3) {
+      const fechaRetiro = values.fechaRetiro;
+      // Check if it's a valid dayjs object or a valid date string
+      isValidForRetiro = fechaRetiro !== undefined && 
+                        fechaRetiro !== null && 
+                        fechaRetiro !== '' &&
+                        (dayjs.isDayjs(fechaRetiro) ? fechaRetiro.isValid() : 
+                         (typeof fechaRetiro === 'string' && dayjs(fechaRetiro).isValid()));
+    }
+    
+    // Form is valid if all required fields are filled AND both traslado and retiro validations pass
+    setIsFormValid(hasAllRequiredFields && isValidForTraslado && isValidForRetiro);
   }, [form, modalVisible]);
 
   // Effect to check form validity when modal opens
@@ -329,10 +354,25 @@ const Students: React.FC = () => {
         return;
       }
 
+      // Prepare the data for saving, converting date fields properly
+      const preparedValues = {
+        ...values,
+        fechaTraslado: values.fechaTraslado ? 
+          (dayjs.isDayjs(values.fechaTraslado) ? 
+            values.fechaTraslado.toISOString() : 
+            (typeof values.fechaTraslado === 'string' ? values.fechaTraslado : dayjs(values.fechaTraslado).toISOString())
+          ) : null,
+        fechaRetiro: values.fechaRetiro ? 
+          (dayjs.isDayjs(values.fechaRetiro) ? 
+            values.fechaRetiro.toISOString() : 
+            (typeof values.fechaRetiro === 'string' ? values.fechaRetiro : dayjs(values.fechaRetiro).toISOString())
+          ) : null
+      };
+
       if (editingId === null) {
         // Add new student
         const newStudent = {
-          ...values,
+          ...preparedValues,
           estado: 1, // Always set to Activo for new students
           usuarioCreacionId: currentUserId, // Set the creation user ID
         };
@@ -343,7 +383,7 @@ const Students: React.FC = () => {
       } else {
         // Update existing student
         await alumnoService.updateAlumno(editingId, { 
-          ...values, 
+          ...preparedValues, 
           id: editingId,
           usuarioActualizacionId: currentUserId // Set the update user ID
         });
@@ -949,7 +989,51 @@ const Students: React.FC = () => {
               </Form.Item>
             </Col>
             <Col span={12}>
-              {/* Empty column for symmetry */}
+              <Form.Item noStyle shouldUpdate={(prevValues, currentValues) => prevValues.estado !== currentValues.estado}>
+                {({ getFieldValue }) => {
+                  const estado = getFieldValue('estado');
+                  if (estado === 4) {
+                    return (
+                      <Form.Item
+                        label="Fecha de Traslado"
+                        name="fechaTraslado"
+                        rules={[
+                          {
+                            required: true,
+                            message: 'Por favor seleccione la fecha de traslado!'
+                          }
+                        ]}
+                      >
+                        <DatePickerES
+                          style={{ width: '100%' }}
+                          placeholder="Seleccione la fecha de traslado"
+                          format="DD/MM/YYYY"
+                        />
+                      </Form.Item>
+                    );
+                  } else if (estado === 3) {
+                    return (
+                      <Form.Item
+                        label="Fecha de Retiro"
+                        name="fechaRetiro"
+                        rules={[
+                          {
+                            required: true,
+                            message: 'Por favor seleccione la fecha de retiro!'
+                          }
+                        ]}
+                      >
+                        <DatePickerES
+                          style={{ width: '100%' }}
+                          placeholder="Seleccione la fecha de retiro"
+                          format="DD/MM/YYYY"
+                        />
+                      </Form.Item>
+                    );
+                  }
+                  return null;
+                }}
+              </Form.Item>
             </Col>
           </Row>
 

@@ -3,6 +3,12 @@ import { Table, Button, Tag, Space, Typography, Card, Divider } from 'antd';
 import { QrcodeOutlined } from '@ant-design/icons';
 import { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+// Configure dayjs with timezone support
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const { Title } = Typography;
 
@@ -78,10 +84,10 @@ const PaymentHistoryTable: React.FC<PaymentHistoryTableProps> = ({
       width: 80,
     },
     {
-      title: 'Fecha',
+      title: 'Fecha y Hora',
       dataIndex: 'fecha',
       key: 'fecha',
-      render: (fecha: string) => dayjs(fecha).format('DD/MM/YYYY'),
+      render: (fecha: string) => dayjs(fecha).tz("America/Guatemala").format('DD/MM/YYYY HH:mm:ss'),
       width: showStatusColumn || showMonthColumn ? 120 : undefined,
     },
     {

@@ -20,6 +20,8 @@ public class AlumnoDto
     public string? Direccion { get; set; } = string.Empty;
     public string? Observaciones { get; set; } = string.Empty;
     public int Estado { get; set; } = 1; // Default to Activo (1)
+    public DateTime? FechaTraslado { get; set; }
+    public DateTime? FechaRetiro { get; set; }
     public List<PagoReadDto> Pagos { get; set; } = new();
     public List<AlumnoContactoDto> Contactos { get; set; } = new();
     

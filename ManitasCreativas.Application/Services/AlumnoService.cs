@@ -44,6 +44,8 @@ public class AlumnoService : IAlumnoService
             Direccion = a.Direccion ?? string.Empty,
             Observaciones = a.Observaciones,
             Estado = (int)a.Estado,
+            FechaTraslado = a.FechaTraslado,
+            FechaRetiro = a.FechaRetiro,
             Pagos = (a.Pagos ?? Enumerable.Empty<Pago>()).Select(p => new PagoReadDto
             {
                 Id = p.Id,
@@ -76,6 +78,8 @@ public class AlumnoService : IAlumnoService
             Direccion = alumno.Direccion ?? string.Empty,
             Observaciones = alumno.Observaciones,
             Estado = (int)alumno.Estado,
+            FechaTraslado = alumno.FechaTraslado,
+            FechaRetiro = alumno.FechaRetiro,
             Pagos = (alumno.Pagos ?? Enumerable.Empty<Pago>()).Select(p => new PagoReadDto
             {
                 Id = p.Id,
@@ -141,7 +145,9 @@ public class AlumnoService : IAlumnoService
             Grado = grado,
             Observaciones = alumnoDto.Observaciones,
             FechaCreacion = DateTime.UtcNow,
-            UsuarioCreacionId = alumnoDto.UsuarioCreacionId, // Set the user ID from DTO
+            UsuarioCreacionId = alumnoDto.UsuarioCreacionId,
+            FechaTraslado = alumnoDto.FechaTraslado,
+            FechaRetiro = alumnoDto.FechaRetiro, // Set the user ID from DTO
         };
         
         await _alumnoRepository.AddAsync(alumno);
@@ -197,6 +203,8 @@ public class AlumnoService : IAlumnoService
         existingAlumno.Direccion = alumnoDto.Direccion;
         existingAlumno.Observaciones = alumnoDto.Observaciones;
         existingAlumno.Estado = (EstadoAlumno)alumnoDto.Estado;
+        existingAlumno.FechaTraslado = alumnoDto.FechaTraslado;
+        existingAlumno.FechaRetiro = alumnoDto.FechaRetiro;
         existingAlumno.SedeId = alumnoDto.SedeId;
         existingAlumno.GradoId = alumnoDto.GradoId;
         existingAlumno.Sede = sede;
@@ -233,6 +241,9 @@ public class AlumnoService : IAlumnoService
             BecaParcialPorcentaje = alumno.BecaParcialPorcentaje != null ? alumno.BecaParcialPorcentaje : 0,
             Direccion = alumno.Direccion ?? string.Empty,
             Observaciones = alumno.Observaciones,
+            Estado = (int)alumno.Estado,
+            FechaTraslado = alumno.FechaTraslado,
+            FechaRetiro = alumno.FechaRetiro,
             Pagos = (alumno.Pagos ?? Enumerable.Empty<Pago>()).Select(p => new PagoReadDto
             {
                 Id = p.Id,

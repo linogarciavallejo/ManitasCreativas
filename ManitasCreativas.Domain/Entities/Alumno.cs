@@ -32,6 +32,9 @@ namespace ManitasCreativas.Domain.Entities
 
         public EstadoAlumno Estado { get; set; } = EstadoAlumno.Activo;
 
+        public DateTime? FechaTraslado { get; set; }
+        public DateTime? FechaRetiro { get; set; }
+
         // Audit fields
         public DateTime FechaCreacion { get; set; }
         public DateTime? FechaActualizacion { get; set; }

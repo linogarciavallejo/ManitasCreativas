@@ -17,7 +17,6 @@ import { makeApiRequest } from "../../services/apiHelper";
 import { getCurrentUserId } from "../../services/authService";
 import { gradoService } from "../../services/gradoService";
 import { rubroService } from "../../services/rubroService";
-import DatePickerES from "../common/DatePickerES";
 import QRCodeModal from "../shared/QRCodeModal";
 import PaymentHistoryTable from "../shared/PaymentHistoryTable";
 import "antd/dist/reset.css";
@@ -145,9 +144,12 @@ const Tuitions: React.FC = () => {
         if (field === 'fechaPago') {
           if (!value) return false;
           if (value === null || value === undefined) return false;
-          if (typeof value !== 'object') return false;
-          if (!value.isValid || typeof value.isValid !== 'function') return false;
-          return value.isValid();
+          // For dayjs objects, check if it's valid
+          if (typeof value === 'object' && value.isValid && typeof value.isValid === 'function') {
+            return value.isValid();
+          }
+          // For other date representations, just check if it exists
+          return true;
         }
         
         if (value === undefined || value === null || value === '') return false;
@@ -358,7 +360,7 @@ const Tuitions: React.FC = () => {
   const resetForm = () => {
     form.setFieldsValue({
       cicloEscolar: currentYear,
-      fechaPago: dayjs().startOf('day'),
+      fechaPago: dayjs(),
       mes: currentMonth.toString(),
       medioPago: "1",
       notas: "",
@@ -533,7 +535,7 @@ const Tuitions: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append("Id", "0");
-      formData.append("Fecha", values.fechaPago.toISOString());
+      formData.append("Fecha", dayjs().toISOString()); // Use current date and time instead of form date
       formData.append("CicloEscolar", values.cicloEscolar.toString());
       formData.append("Monto", values.monto.toString());
       formData.append("MedioPago", values.medioPago.toString());
@@ -591,7 +593,7 @@ const Tuitions: React.FC = () => {
       // Reset the form after successful submission but keep student selected
       form.setFieldsValue({
         cicloEscolar: currentYear,
-        fechaPago: dayjs().startOf('day'),
+        fechaPago: dayjs(),
         mes: currentMonth.toString(),
         medioPago: "1",
         notas: "",
@@ -671,6 +673,7 @@ const Tuitions: React.FC = () => {
               setTypeaheadOptions([]);
               setAlumnoId(null);
               setSelectedStudent(null);
+              setSelectedCodigo(null);
               setSelectedStudentDetails(null);
               setHasValidRubro(false);
               setRubroValidationComplete(false);
@@ -818,8 +821,8 @@ const Tuitions: React.FC = () => {
         className="payments-form"
         initialValues={{
           cicloEscolar: currentYear,
+          fechaPago: dayjs(),
           mes: currentMonth.toString(),
-          fechaPago: dayjs().startOf('day'),
           rubroId: dinamicRubroId,
         }}
       >
@@ -837,41 +840,6 @@ const Tuitions: React.FC = () => {
             addonAfter={loadingRubro ? "🔄" : null}
           />
         </Form.Item>
-
-        <Form.Item
-          label="Fecha de Pago"
-          name="fechaPago"
-          rules={[
-            {
-              required: true,
-              message: "¡Por favor seleccione la fecha de pago!",
-            },
-          ]}
-        >
-          <DatePickerES
-            style={{ width: "100%" }}
-            placeholder="Seleccione la fecha de pago"
-            defaultValue={dayjs().startOf('day')}
-            onChange={(date) => {
-              form.setFieldsValue({ fechaPago: date });
-              
-              form.validateFields(['fechaPago']).catch(() => {
-                // Ignore validation errors
-              });
-              
-              const checkWithDelay = () => {
-                const isValid = checkFormValidity();
-                console.log(`Form validity check: ${isValid}, date value:`, date);
-              };
-              
-              checkWithDelay();
-              setTimeout(checkWithDelay, 10);
-              setTimeout(checkWithDelay, 50);
-              setTimeout(checkWithDelay, 100);
-              setTimeout(checkWithDelay, 200);
-            }}
-          />
-        </Form.Item>
         
         <Form.Item
           name="rubroId"
@@ -879,6 +847,14 @@ const Tuitions: React.FC = () => {
           style={{ display: "none" }}
         >
           <Input type="hidden" disabled={loadingRubro} />
+        </Form.Item>
+
+        <Form.Item
+          name="fechaPago"
+          initialValue={dayjs()}
+          style={{ display: "none" }}
+        >
+          <Input type="hidden" />
         </Form.Item>
 
         <Form.Item label="Mes" name="mes" rules={[{ required: false }]}>

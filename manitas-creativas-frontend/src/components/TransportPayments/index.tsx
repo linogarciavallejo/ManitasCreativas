@@ -18,7 +18,6 @@ import { getCurrentUserId } from "../../services/authService";
 import { rubroService } from "../../services/rubroService";
 import { routeAssignmentService } from "../../services/routeAssignmentService";
 import { AlumnoRuta } from "../../types/routeAssignment";
-import DatePickerES from "../common/DatePickerES"; // Import our custom DatePicker
 import QRCodeModal from "../shared/QRCodeModal";
 import PaymentHistoryTable from "../shared/PaymentHistoryTable";
 import "antd/dist/reset.css";
@@ -253,20 +252,11 @@ const TransportPayments: React.FC = () => {
   const checkFormValidity = useCallback(() => {
     try {
       const values = form.getFieldsValue();
-      const required = ['cicloEscolar', 'fechaPago', 'monto'];
+      const required = ['cicloEscolar', 'monto'];
       
       // Check if all required fields have values
       const hasAllRequiredFields = required.every(field => {
         const value = values[field];
-        
-        if (field === 'fechaPago') {
-          // For DatePicker, be very strict about what constitutes a valid value
-          if (!value) return false;
-          if (value === null || value === undefined) return false;
-          if (typeof value !== 'object') return false;
-          if (!value.isValid || typeof value.isValid !== 'function') return false;
-          return value.isValid();
-        }
         
         // For other fields, check they have meaningful values
         if (value === undefined || value === null || value === '') return false;
@@ -313,7 +303,6 @@ const TransportPayments: React.FC = () => {
     // Reset form but keep these fields
     form.setFieldsValue({
       cicloEscolar: currentYear,
-      fechaPago: dayjs().startOf('day'),
       mes: currentMonth.toString(),
       medioPago: "1",
       notas: "",
@@ -367,7 +356,6 @@ const TransportPayments: React.FC = () => {
     // Reset form fields but preserve student data
     form.setFieldsValue({
       cicloEscolar: currentYear,
-      fechaPago: dayjs().startOf('day'),
       mes: currentMonth.toString(),
       medioPago: "1",
       notas: "",
@@ -472,7 +460,6 @@ const TransportPayments: React.FC = () => {
 
   const handleSubmit = async (values: {
     cicloEscolar: string | number;
-    fechaPago: dayjs.Dayjs;
     monto: number;
     medioPago: string;
     mes: string | number;
@@ -513,7 +500,7 @@ const TransportPayments: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append("Id", "0");
-      formData.append("Fecha", values.fechaPago.toISOString());
+      formData.append("Fecha", dayjs().toISOString()); // Use current date and time
       formData.append("CicloEscolar", values.cicloEscolar.toString());
       formData.append("Monto", values.monto.toString());
       formData.append("MedioPago", values.medioPago.toString());
@@ -724,7 +711,6 @@ const TransportPayments: React.FC = () => {
         initialValues={{
           cicloEscolar: currentYear,
           mes: currentMonth.toString(), // Convert to string to match Option values
-          fechaPago: dayjs().startOf('day'),
           medioPago: "1",
           // Remove rubroId from initial values since it will be selected manually
         }}
@@ -737,43 +723,6 @@ const TransportPayments: React.FC = () => {
           ]}
         >
           <Input placeholder="Ingrese el ciclo escolar" />
-        </Form.Item>{" "}
-        <Form.Item
-          label="Fecha de Pago"
-          name="fechaPago"
-          rules={[
-            {
-              required: true,
-              message: "¡Por favor seleccione la fecha de pago!",
-            },
-          ]}
-        >
-          <DatePickerES
-            style={{ width: "100%" }}
-            placeholder="Seleccione la fecha de pago"
-            defaultValue={dayjs()}
-            onChange={(date) => {
-              // Immediately update the form field
-              form.setFieldsValue({ fechaPago: date });
-              
-              // Trigger form field validation immediately
-              form.validateFields(['fechaPago']).catch(() => {
-                // Ignore validation errors, they will be shown in the UI
-              });
-              
-              // Check validity immediately and with delays
-              const checkWithDelay = () => {
-                const isValid = checkFormValidity();
-                console.log(`Form validity check: ${isValid}, date value:`, date);
-              };
-              
-              checkWithDelay();
-              setTimeout(checkWithDelay, 10);
-              setTimeout(checkWithDelay, 50);
-              setTimeout(checkWithDelay, 100);
-              setTimeout(checkWithDelay, 200);
-            }}
-          />{" "}
         </Form.Item>
         
         {/* Display assigned route as static text instead of dropdown */}

@@ -1,7 +1,13 @@
 import React from "react";
 import { Modal, Button, Descriptions, Tag, Divider, Image } from "antd";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import { Pago } from "../../services/pagoService";
+
+// Configure dayjs with timezone support
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 interface PaymentDetailsModalProps {
   payment: Pago | null;
@@ -49,8 +55,8 @@ const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({
             {payment.esAnulado ? "Anulado" : "Activo"}
           </Tag>
         </Descriptions.Item>
-        <Descriptions.Item label="Fecha">
-          {dayjs(payment.fecha).format("DD/MM/YYYY")}
+        <Descriptions.Item label="Fecha y Hora">
+          {dayjs(payment.fecha).tz("America/Guatemala").format("DD/MM/YYYY HH:mm:ss")}
         </Descriptions.Item>{" "}
         <Descriptions.Item label="Monto">
           Q. {payment.monto.toFixed(2)}
@@ -118,7 +124,7 @@ const PaymentDetailsModal: React.FC<PaymentDetailsModalProps> = ({
             </Descriptions.Item>
             {payment.fechaAnulacion && (
               <Descriptions.Item label="Fecha Anulación" span={2}>
-                {dayjs(payment.fechaAnulacion).format("DD/MM/YYYY HH:mm")}
+                {dayjs(payment.fechaAnulacion).tz("America/Guatemala").format("DD/MM/YYYY HH:mm:ss")}
               </Descriptions.Item>
             )}
           </>

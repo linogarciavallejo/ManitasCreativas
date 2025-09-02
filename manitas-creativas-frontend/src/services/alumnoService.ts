@@ -18,6 +18,8 @@ export interface Alumno {
   direccion?: string;
   observaciones?: string;
   estado: number;
+  fechaTraslado?: string; // ISO date string, nullable
+  fechaRetiro?: string; // ISO date string, nullable
   contactos?: AlumnoContacto[];
   pagos?: any[];
 }

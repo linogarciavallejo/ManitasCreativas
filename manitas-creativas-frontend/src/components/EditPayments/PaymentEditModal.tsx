@@ -17,9 +17,15 @@ import {
 import { UploadOutlined, DeleteOutlined } from "@ant-design/icons";
 import { UploadFile } from "antd/es/upload/interface";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import { Pago, pagoService } from "../../services/pagoService";
 import DatePickerES from "../common/DatePickerES";
 import { getCurrentUserId } from "../../services/authService";
+
+// Configure dayjs with timezone support
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Extend UploadFile to include our custom properties
 interface ExtendedUploadFile extends UploadFile {
@@ -58,7 +64,7 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
       // Use a timeout to ensure the modal is fully rendered before setting values
       setTimeout(() => {
         form.setFieldsValue({
-          fecha: dayjs(payment.fecha),
+          fecha: dayjs(payment.fecha).tz("America/Guatemala"), // Convert to local timezone
           monto: payment.monto,
           medioPago: payment.medioPagoDescripcion,
           notas: payment.notas || "",
@@ -272,7 +278,7 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
-              label="Fecha de Pago"
+              label="Fecha y Hora de Pago"
               name="fecha"
               rules={[
                 {
@@ -283,7 +289,11 @@ const PaymentEditModal: React.FC<PaymentEditModalProps> = ({
             >
               <DatePickerES
                 style={{ width: "100%" }}
-                placeholder="Seleccione la fecha de pago"
+                placeholder="Seleccione la fecha y hora de pago"
+                format="DD/MM/YYYY HH:mm:ss"
+                showTime={{
+                  format: 'HH:mm:ss',
+                }}
                 disabled
               />
             </Form.Item>

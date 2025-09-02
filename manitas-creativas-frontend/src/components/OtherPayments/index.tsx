@@ -17,7 +17,6 @@ import { makeApiRequest } from "../../services/apiHelper";
 import { getCurrentUserId } from "../../services/authService";
 import { gradoService } from "../../services/gradoService";
 import { rubroService, Rubro } from "../../services/rubroService";
-import DatePickerES from "../common/DatePickerES"; // Import our custom DatePicker
 import QRCodeModal from "../shared/QRCodeModal";
 import PaymentHistoryTable from "../shared/PaymentHistoryTable";
 import "antd/dist/reset.css";
@@ -120,20 +119,11 @@ const OtherPayments: React.FC = () => {
   const checkFormValidity = useCallback(() => {
     try {
       const values = form.getFieldsValue();
-      const required = ['cicloEscolar', 'fechaPago', 'monto', 'rubroId', 'medioPago'];
+      const required = ['cicloEscolar', 'monto', 'rubroId', 'medioPago'];
       
       // Check if all required fields have values
       const hasAllRequiredFields = required.every(field => {
         const value = values[field];
-        
-        if (field === 'fechaPago') {
-          // For DatePicker, be very strict about what constitutes a valid value
-          if (!value) return false;
-          if (value === null || value === undefined) return false;
-          if (typeof value !== 'object') return false;
-          if (!value.isValid || typeof value.isValid !== 'function') return false;
-          return value.isValid();
-        }
         
         // For other fields, check they have meaningful values
         if (value === undefined || value === null || value === '') return false;
@@ -311,7 +301,6 @@ const OtherPayments: React.FC = () => {
   // Handle form submission
   const handleSubmit = async (values: {
     cicloEscolar: string;
-    fechaPago: dayjs.Dayjs;
     monto: number;
     medioPago: string;
     mes: string | null;
@@ -330,7 +319,7 @@ const OtherPayments: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append("Id", "0");
-      formData.append("Fecha", values.fechaPago.toISOString());
+      formData.append("Fecha", dayjs().toISOString()); // Use current date and time
       formData.append("CicloEscolar", values.cicloEscolar);
       formData.append("Monto", values.monto.toString());
       formData.append("MedioPago", values.medioPago);
@@ -405,7 +394,6 @@ const OtherPayments: React.FC = () => {
     form.resetFields();
     form.setFieldsValue({
       cicloEscolar: currentYear,
-      fechaPago: dayjs(),
       medioPago: "1",
       notas: "",
       monto: selectedRubro?.montoPreestablecido || undefined,
@@ -588,7 +576,6 @@ const OtherPayments: React.FC = () => {
           cicloEscolar: currentYear,
           mes: null, // Changed from currentMonth to null to make "Sin mes específico" the default
           monto: 150,
-          fechaPago: dayjs().startOf("day"), // Set to start of the current day
           // medioPago removed - user must manually select
         }}
       >
@@ -600,44 +587,7 @@ const OtherPayments: React.FC = () => {
           ]}
         >
           <Input placeholder="Ingrese el ciclo escolar" />
-        </Form.Item>{" "}
-        <Form.Item
-          label="Fecha de Pago"
-          name="fechaPago"
-          rules={[
-            {
-              required: true,
-              message: "¡Por favor seleccione la fecha de pago!",
-            },
-          ]}
-        >
-          <DatePickerES
-            style={{ width: "100%" }}
-            placeholder="Seleccione la fecha de pago"
-            defaultValue={dayjs().startOf('day')}
-            onChange={(date) => {
-              // Immediately update the form field
-              form.setFieldsValue({ fechaPago: date });
-              
-              // Trigger form field validation immediately
-              form.validateFields(['fechaPago']).catch(() => {
-                // Ignore validation errors, they will be shown in the UI
-              });
-              
-              // Check validity immediately and with delays
-              const checkWithDelay = () => {
-                const isValid = checkFormValidity();
-                console.log(`Form validity check: ${isValid}, date value:`, date);
-              };
-              
-              checkWithDelay();
-              setTimeout(checkWithDelay, 10);
-              setTimeout(checkWithDelay, 50);
-              setTimeout(checkWithDelay, 100);
-              setTimeout(checkWithDelay, 200);
-            }}
-          />
-        </Form.Item>{" "}
+        </Form.Item>
         <Form.Item
           label="Rubro"
           name="rubroId"

@@ -4,7 +4,6 @@ import {
   Input,
   Button,
   Select,
-  DatePicker,
   InputNumber,
   Upload,
   Card,
@@ -539,20 +538,11 @@ const UniformPayments: React.FC = () => {
   const checkFormValidity = useCallback(() => {
     try {
       const values = form.getFieldsValue();
-      const required = ['cicloEscolar', 'fechaPago', 'monto'];
+      const required = ['cicloEscolar', 'monto'];
       
       // Check if all required fields have values
       const hasAllRequiredFields = required.every(field => {
         const value = values[field];
-        
-        if (field === 'fechaPago') {
-          // For DatePicker, be very strict about what constitutes a valid value
-          if (!value) return false;
-          if (value === null || value === undefined) return false;
-          if (typeof value !== 'object') return false;
-          if (!value.isValid || typeof value.isValid !== 'function') return false;
-          return value.isValid();
-        }
         
         // For other fields, check they have meaningful values
         if (value === undefined || value === null || value === '') return false;
@@ -598,7 +588,6 @@ const UniformPayments: React.FC = () => {
   const resetForm = () => {
     form.setFieldsValue({
       cicloEscolar: currentYear,
-      fechaPago: dayjs(),
       medioPago: "1",
       notas: "",
       monto: undefined,
@@ -632,7 +621,6 @@ const UniformPayments: React.FC = () => {
     // Reset form fields but preserve student data
     form.setFieldsValue({
       cicloEscolar: currentYear,
-      fechaPago: dayjs(),
       medioPago: "1",
       notas: "",
       monto: payFullUniform ? (selectedRubro?.montoPreestablecido || totalAmount) : totalAmount,
@@ -761,7 +749,6 @@ const UniformPayments: React.FC = () => {
   // Submit form
   const handleSubmit = async (values: {
     cicloEscolar: string | number;
-    fechaPago: dayjs.Dayjs;
     monto: number;
     medioPago: string;
     notas?: string;
@@ -804,7 +791,7 @@ const UniformPayments: React.FC = () => {
       
       const formData = new FormData();
       formData.append("Id", "0");
-      formData.append("Fecha", values.fechaPago.toISOString());
+      formData.append("Fecha", dayjs().toISOString()); // Use current date and time
       formData.append("CicloEscolar", values.cicloEscolar.toString());
       formData.append("Monto", values.monto.toString());
       formData.append("MedioPago", values.medioPago.toString());
@@ -963,35 +950,6 @@ const UniformPayments: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
             <Form.Item label="Ciclo Escolar" name="cicloEscolar" initialValue={currentYear} rules={[{ required: true }]}>
               <InputNumber style={{ width: '100%' }} min={2020} max={2030} />
-            </Form.Item>
-
-            <Form.Item label="Fecha de Pago" name="fechaPago" initialValue={dayjs().startOf('day')} rules={[{ required: true, message: '¡Por favor seleccione la fecha de pago!' }]}>
-              <DatePicker 
-                style={{ width: '100%' }} 
-                format="DD/MM/YYYY" 
-                defaultValue={dayjs().startOf('day')}
-                onChange={(date) => {
-                  // Immediately update the form field
-                  form.setFieldsValue({ fechaPago: date });
-                  
-                  // Trigger form field validation immediately
-                  form.validateFields(['fechaPago']).catch(() => {
-                    // Ignore validation errors, they will be shown in the UI
-                  });
-                  
-                  // Check validity immediately and with delays
-                  const checkWithDelay = () => {
-                    const isValid = checkFormValidity();
-                    console.log(`Form validity check: ${isValid}, date value:`, date);
-                  };
-                  
-                  checkWithDelay();
-                  setTimeout(checkWithDelay, 10);
-                  setTimeout(checkWithDelay, 50);
-                  setTimeout(checkWithDelay, 100);
-                  setTimeout(checkWithDelay, 200);
-                }}
-              />
             </Form.Item>
 
             <Form.Item label="Uniforme" name="rubroId" rules={[{ required: true, message: 'Seleccione un uniforme' }]}>
