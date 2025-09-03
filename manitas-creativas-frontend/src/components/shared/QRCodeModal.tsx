@@ -1,18 +1,41 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Modal, Button, Spin, Alert, Typography, Space, Divider, message } from "antd";
+import {
+  Modal,
+  Button,
+  Spin,
+  Alert,
+  Typography,
+  Space,
+  Divider,
+  message,
+} from "antd";
 import { ReloadOutlined, PrinterOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { qrCodeService, QRCodeGenerateRequest, QRCodeGenerateResponse } from "../../services/qrCodeService";
+import {
+  qrCodeService,
+  QRCodeGenerateRequest,
+  QRCodeGenerateResponse,
+} from "../../services/qrCodeService";
 
 const { Title, Text, Paragraph } = Typography;
 
 // Helper function to convert month number to Spanish month name
 const getSpanishMonthName = (month: number): string => {
   const months = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
   ];
-  return months[month - 1] || 'Mes no válido';
+  return months[month - 1] || "Mes no válido";
 };
 
 // Unified payment interface that can work with both Pago and TuitionPayment
@@ -45,7 +68,9 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
   onClose,
 }) => {
   const [loading, setLoading] = useState(false);
-  const [qrCodeData, setQrCodeData] = useState<QRCodeGenerateResponse | null>(null);
+  const [qrCodeData, setQrCodeData] = useState<QRCodeGenerateResponse | null>(
+    null
+  );
   const [error, setError] = useState<string | null>(null);
 
   const loadOrGenerateQRCode = useCallback(async () => {
@@ -80,7 +105,7 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
     if (visible && payment && !payment.esAnulado) {
       loadOrGenerateQRCode();
     }
-    
+
     // Reset states when modal closes
     if (!visible) {
       setQrCodeData(null);
@@ -96,8 +121,8 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
   if (!payment) return null;
 
   // Get student name from payment object or prop
-  const displayStudentName = payment.alumnoNombre || studentName || 'N/A';
-  
+  const displayStudentName = payment.alumnoNombre || studentName || "N/A";
+
   const modalTitle = `Código QR - Pago #${payment.id}`;
 
   return (
@@ -110,11 +135,7 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
           Cerrar
         </Button>,
         qrCodeData && (
-          <Button
-            key="print"
-            icon={<PrinterOutlined />}
-            onClick={handlePrint}
-          >
+          <Button key="print" icon={<PrinterOutlined />} onClick={handlePrint}>
             Imprimir
           </Button>
         ),
@@ -163,49 +184,71 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
           ) : qrCodeData ? (
             <>
               <div style={{ textAlign: "center" }}>
-                <Title level={4}>Comprobante de Pago</Title>
+                <Title level={4}>Colegio Manitas Creativas</Title>
+                <Title level={5}>Comprobante de Pago</Title>
                 <Paragraph>
                   Este código QR sirve como comprobante digital de tu pago.
-                  Válido hasta: <Text strong>{dayjs(qrCodeData.fechaExpiracion).format("DD/MM/YYYY HH:mm")}</Text>
+                  Válido hasta:{" "}
+                  <Text strong>
+                    {dayjs(qrCodeData.fechaExpiracion).format(
+                      "DD/MM/YYYY HH:mm"
+                    )}
+                  </Text>
                 </Paragraph>
               </div>
-              
-              <div style={{ 
-                display: "flex", 
-                justifyContent: "center", 
-                padding: "20px",
-                backgroundColor: "#fafafa",
-                borderRadius: "8px"
-              }}>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  padding: "20px",
+                  backgroundColor: "#fafafa",
+                  borderRadius: "8px",
+                }}
+              >
                 <img
                   src={qrCodeData.qrCodeImageBase64}
                   alt="QR Code"
-                  style={{ 
-                    maxWidth: "200px", 
+                  style={{
+                    maxWidth: "200px",
                     maxHeight: "200px",
                     backgroundColor: "white",
                     padding: "10px",
-                    borderRadius: "4px"
+                    borderRadius: "4px",
                   }}
                 />
               </div>
 
               <Divider />
-              
+
               <Space direction="vertical" style={{ width: "100%" }}>
-                <Text><strong>Estudiante:</strong> {displayStudentName}</Text>
-                <Text><strong>Concepto:</strong> {payment.rubroDescripcion}</Text>
-                {(payment.esColegiatura && payment.mesColegiatura && payment.anioColegiatura) && (
-                  <Text>
-                    <strong>
-                      Colegiatura:
-                    </strong>{' '}
-                    {getSpanishMonthName(payment.mesColegiatura)} {payment.anioColegiatura}                   
+                <Text>
+                  <strong>Estudiante:</strong> {displayStudentName}
                 </Text>
+                <Text>
+                  <strong>Concepto:</strong> {payment.rubroDescripcion}
+                </Text>
+                {payment.esColegiatura &&
+                  payment.mesColegiatura &&
+                  payment.anioColegiatura && (
+                    <Text>
+                      <strong>Colegiatura:</strong>{" "}
+                      {getSpanishMonthName(payment.mesColegiatura)}{" "}
+                      {payment.anioColegiatura}
+                    </Text>
+                  )}
+                <Text>
+                  <strong>Monto:</strong> Q{payment.monto.toLocaleString()}
+                </Text>
+                <Text>
+                  <strong>Fecha de Pago:</strong>{" "}
+                  {dayjs(payment.fecha).format("DD/MM/YYYY")}
+                </Text>
+                {qrCodeData.pagoInfo && (
+                  <Text>
+                    <strong>Información:</strong> {qrCodeData.pagoInfo}
+                  </Text>
                 )}
-                <Text><strong>Monto:</strong> Q{payment.monto.toLocaleString()}</Text>
-                <Text><strong>Fecha de Pago:</strong> {dayjs(payment.fecha).format("DD/MM/YYYY")}</Text>
-                {qrCodeData.pagoInfo && <Text><strong>Información:</strong> {qrCodeData.pagoInfo}</Text>}
               </Space>
 
               <Alert
@@ -339,9 +382,12 @@ const printStyles = `
 `;
 
 // Inject styles with unique ID
-if (typeof document !== 'undefined' && !document.getElementById('qr-print-styles-shared')) {
-  const style = document.createElement('style');
-  style.id = 'qr-print-styles-shared';
+if (
+  typeof document !== "undefined" &&
+  !document.getElementById("qr-print-styles-shared")
+) {
+  const style = document.createElement("style");
+  style.id = "qr-print-styles-shared";
   style.textContent = printStyles;
   document.head.appendChild(style);
 }
