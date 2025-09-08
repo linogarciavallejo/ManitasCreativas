@@ -38,6 +38,11 @@ const getSpanishMonthName = (month: number): string => {
   return months[month - 1] || "Mes no válido";
 };
 
+// Helper function to convert PascalCase to readable format with spaces
+const formatPascalCase = (text: string): string => {
+  return text.replace(/([A-Z])/g, ' $1').trim();
+};
+
 // Unified payment interface that can work with both Pago and TuitionPayment
 interface PaymentData {
   id: number;
@@ -52,6 +57,10 @@ interface PaymentData {
   esColegiatura?: boolean;
   mesColegiatura?: number;
   anioColegiatura?: number;
+  // For Transport payments
+  esPagoDeTransporte?: boolean;
+  // Payment method
+  medioPagoDescripcion?: string;
 }
 
 interface QRCodeModalProps {
@@ -237,6 +246,15 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
                       {payment.anioColegiatura}
                     </Text>
                   )}
+                {payment.esPagoDeTransporte &&
+                  payment.mesColegiatura &&
+                  payment.anioColegiatura && (
+                    <Text>
+                      <strong>Mes:</strong>{" "}
+                      {getSpanishMonthName(payment.mesColegiatura)}{" "}
+                      {payment.anioColegiatura}
+                    </Text>
+                  )}
                 <Text>
                   <strong>Monto:</strong> Q{payment.monto.toLocaleString()}
                 </Text>
@@ -244,6 +262,11 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
                   <strong>Fecha de Pago:</strong>{" "}
                   {dayjs(payment.fecha).format("DD/MM/YYYY")}
                 </Text>
+                {payment.medioPagoDescripcion && (
+                  <Text>
+                    <strong>Medio de Pago:</strong> {formatPascalCase(payment.medioPagoDescripcion)}
+                  </Text>
+                )}
                 {qrCodeData.pagoInfo && (
                   <Text>
                     <strong>Información:</strong> {qrCodeData.pagoInfo}
