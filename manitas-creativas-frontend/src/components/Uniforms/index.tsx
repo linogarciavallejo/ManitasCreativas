@@ -5,7 +5,7 @@ import {
   AppstoreOutlined,
   InboxOutlined,
   ShoppingCartOutlined,
-  BarChartOutlined,
+  //BarChartOutlined,
   SettingOutlined
 } from '@ant-design/icons';
 
@@ -40,21 +40,22 @@ const UniformsMain: React.FC = () => {
       icon: <ShoppingCartOutlined style={{ fontSize: '32px', color: '#eb2f96' }} />,
       link: '/main/uniforms/uniform-payments',
       color: '#fff0f6'
-    },
-    {
-      title: 'Reportes',
-      description: 'Reportes de ventas, inventario y estadísticas de uniformes',
-      icon: <BarChartOutlined style={{ fontSize: '32px', color: '#722ed1' }} />,
-      link: '/main/uniforms/reports',
-      color: '#f9f0ff'
-    },
-    {
-      title: 'Configuración',
-      description: 'Configuración general del módulo de uniformes',
-      icon: <SettingOutlined style={{ fontSize: '32px', color: '#13c2c2' }} />,
-      link: '/main/uniforms/settings',
-      color: '#e6fffb'
     }
+    // ,
+    // {
+    //   title: 'Reportes',
+    //   description: 'Reportes de ventas, inventario y estadísticas de uniformes',
+    //   icon: <BarChartOutlined style={{ fontSize: '32px', color: '#722ed1' }} />,
+    //   link: '/main/uniforms/reports',
+    //   color: '#f9f0ff'
+    // },
+    // {
+    //   title: 'Configuración',
+    //   description: 'Configuración general del módulo de uniformes',
+    //   icon: <SettingOutlined style={{ fontSize: '32px', color: '#13c2c2' }} />,
+    //   link: '/main/uniforms/settings',
+    //   color: '#e6fffb'
+    // }
   ];
 
   return (

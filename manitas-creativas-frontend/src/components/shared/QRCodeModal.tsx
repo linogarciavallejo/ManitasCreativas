@@ -61,6 +61,10 @@ interface PaymentData {
   esPagoDeTransporte?: boolean;
   // Payment method
   medioPagoDescripcion?: string;
+  // Student grade and education level
+  gradoNombre?: string;
+  nivelEducativoDescripcion?: string;
+  seccion?: string;
 }
 
 interface QRCodeModalProps {
@@ -236,6 +240,16 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
                 </Text>
                 <Text>
                   <strong>Concepto:</strong> {payment.rubroDescripcion}
+                  {(payment.gradoNombre || payment.nivelEducativoDescripcion || payment.seccion) && (
+                    <span>
+                      {" "}
+                      {[
+                        payment.gradoNombre,
+                        payment.nivelEducativoDescripcion,
+                        payment.seccion ? `Sección: ${payment.seccion}` : null
+                      ].filter(Boolean).join(" • ")}
+                    </span>
+                  )}
                 </Text>
                 {payment.esColegiatura &&
                   payment.mesColegiatura &&

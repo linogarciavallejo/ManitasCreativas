@@ -108,6 +108,8 @@ const Tuitions: React.FC = () => {
     rubroDescripcion: string;
     esAnulado?: boolean;
     notas?: string;
+    gradoNombre?: string;
+    seccion?: string;
   } | null>(null);
 
   const currentYear = new Date().getFullYear();
@@ -618,7 +620,13 @@ const Tuitions: React.FC = () => {
     notas?: string;
   }) => {
     console.log('[Tuitions] handleShowQRCode called with payment:', payment);
-    setSelectedPayment(payment);
+    // Include grade information from selectedStudentDetails
+    const paymentWithGradeInfo = {
+      ...payment,
+      gradoNombre: selectedStudentDetails?.gradoNombre || '',
+      seccion: selectedStudentDetails?.seccion || '',
+    };
+    setSelectedPayment(paymentWithGradeInfo);
     setQrModalVisible(true);
     console.log('[Tuitions] QR modal opened for payment ID:', payment.id);
   };
